@@ -14,7 +14,7 @@ export const database = new DataSource({
     synchronize: true,
     schema: 'public',
     entities: [
-        'src/entities/*.ts',
+        'src/entities/**/*.ts',
     ],
 
 });
