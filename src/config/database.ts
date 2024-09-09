@@ -1,18 +1,20 @@
+
 import { DataSource } from "typeorm";
+import 'dotenv/config';
+
 
 export const database = new DataSource({
     type: 'postgres',
-    host: 'localhost',
-    port: 8889,
-    username: 'postgres',
-    password: 'Just4ral@123',
-    database: 'fatasize_test',
+    host: process.env.DATABASE_HOST,
+    port: Number(process.env.DATABASE_PORT),
+    username: process.env.DATABASE_USER,
+    password: process.env.DATABASE_PASSWORD,
+    database: process.env.DATABASE_NAME,
     logging: false,
     synchronize: true,
     schema: 'public',
     entities: [
-        'src/entities/Role.ts',
-        'src/entities/User.ts'
+        'src/entities/*.ts',
     ],
 
 });
@@ -27,13 +29,13 @@ export const initlizeDB = async () => {
 
         console.log('database connection error : ', error);
 
-        
+
     });
 
-    
 
 
 
-    
+
+
 
 }
