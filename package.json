@@ -1,0 +1,32 @@
+{
+  "name": "fantasize-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "build": "tsc",
+  "start": "node dist/index.js", 
+  "dev": "ts-node src/index.ts" 
+},
+  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/firaskhalayleh-it/fantasize-backend"
+  },
+  "author": "firas",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.12.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.5.4",
+    "concurrently": "^9.0.0",
+    "nodemon": "^3.1.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}
