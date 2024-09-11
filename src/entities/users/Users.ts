@@ -5,7 +5,8 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  BaseEntity
+  BaseEntity,
+  Relation
 } from 'typeorm';
 import { Roles } from './Roles';
 
@@ -15,7 +16,7 @@ export class Users extends BaseEntity {
   UserID: string;
 
   @ManyToOne(() => Roles, (role) => role.RoleID)
-  Role: Roles;
+  Role: Relation<Roles>;
 
   @Column('varchar')
   Username: string;
