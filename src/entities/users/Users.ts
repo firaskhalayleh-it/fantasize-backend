@@ -12,7 +12,7 @@ import { Roles } from './Roles';
 @Entity()
 export class Users extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
-  UserID: number;
+  UserID: string;
 
   @ManyToOne(() => Roles, (role) => role.RoleID)
   Role: Roles;
@@ -34,6 +34,9 @@ export class Users extends BaseEntity {
 
   @Column('varchar')
   Gender: string;
+
+  @Column('varchar2', { nullable: true })
+  firebaseUID: string;
 
   @CreateDateColumn()
   CreatedAt: Date;
