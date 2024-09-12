@@ -27,16 +27,16 @@ export class Users extends BaseEntity {
   @Column('varchar')
   Password: string;
 
-  @Column('bytea')
+  @Column('bytea', { nullable: true })
   UserProfilePicture: Buffer;
 
-  @Column('varchar')
+  @Column('varchar', { nullable: true })
   PhoneNumber: string;
 
-  @Column('varchar')
+  @Column('varchar', { nullable: true })
   Gender: string;
 
-  @Column('varchar2', { nullable: true })
+  @Column('varchar', { nullable: true })
   firebaseUID: string;
 
   @CreateDateColumn()
@@ -44,4 +44,10 @@ export class Users extends BaseEntity {
 
   @UpdateDateColumn()
   UpdatedAt: Date;
+
+
+  toJSON() {
+    const { Password, ...userWithoutPassword } = this;
+    return userWithoutPassword;
+  }
 }
