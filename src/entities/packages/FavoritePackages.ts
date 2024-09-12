@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, CreateDateColumn, PrimaryColumn } from 'typeorm';
+import { Entity, ManyToOne, CreateDateColumn, PrimaryColumn, OneToMany } from 'typeorm';
 import { Users } from '../users/Users';
 import { Packages } from '../packages/Packages';
 
@@ -13,8 +13,8 @@ export class FavoritePackages {
     @ManyToOne(() => Users, (user) => user.UserID)
     User: Users;
 
-    @ManyToOne(() => Packages, (pkg) => pkg.PackageID)
-    Package: Packages;
+    @OneToMany(() => Packages, (pkg) => pkg.PackageID)
+    Package: Packages[];
 
     @CreateDateColumn()
     CreatedAt: Date;

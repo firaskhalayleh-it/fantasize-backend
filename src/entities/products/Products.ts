@@ -5,12 +5,15 @@ import {
     ManyToOne,
     CreateDateColumn,
     UpdateDateColumn,
-    BaseEntity
+    BaseEntity,
+    JoinColumn,
+    OneToMany
   } from 'typeorm';
   import { Resources } from '../Resources';
   import { Offers } from '../Offers';
   import { Reviews } from '../Reviews';
   import { SubCategories } from '../categories/SubCategories';
+import { ProductCustomizations } from './ProductCustomizations';
   
   @Entity()
   export class Products extends BaseEntity {
@@ -31,6 +34,10 @@ import {
   
     @Column('text')
     Message: string;
+
+    @OneToMany(()=> ProductCustomizations, (productCustomization) => productCustomization.ProductCustomizationID)
+    @JoinColumn({ name: 'ProductCustomizationID' })
+    ProductCustomization: ProductCustomizations[];
   
     @ManyToOne(() => Resources, (resource) => resource.ResourceID)
     Resource: Resources;

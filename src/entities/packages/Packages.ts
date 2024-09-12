@@ -5,10 +5,16 @@ import {
     ManyToOne,
     CreateDateColumn,
     UpdateDateColumn,
-    BaseEntity
+    BaseEntity,
+    ManyToMany,
+    JoinTable,
+    OneToMany,
+    JoinColumn
   } from 'typeorm';
   import { Offers } from '../Offers';
   import { Reviews } from '../Reviews';
+import { Products } from '../products/Products';
+import { PackageCustomizations } from './PackageCustomizations';
   
   @Entity()
   export class Packages extends BaseEntity{
@@ -35,6 +41,13 @@ import {
   
     @ManyToOne(() => Offers, (offer) => offer.OfferID)
     Offer: Offers;
+
+    @OneToMany(() => PackageCustomizations, (customization) => customization.PackageCustomizationID)
+    @JoinColumn({name: 'PackageCustomizationID'})  
+    Customizations: PackageCustomizations[];
+    
+    @ManyToOne(() => Products, (product) => product.ProductID)
+    Product: Products[];
   
     @ManyToOne(() => Reviews, (review) => review.ReviewID)
     Review: Reviews;

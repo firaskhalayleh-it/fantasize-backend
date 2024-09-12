@@ -5,23 +5,20 @@ import {
     ManyToOne,
     CreateDateColumn,
     UpdateDateColumn,
-    BaseEntity
+    BaseEntity,
+    OneToMany,
+    ManyToMany
   } from 'typeorm';
   import { Packages } from './Packages';
+import { Resources } from '../Resources';
   
   @Entity()
   export class PackageCustomizations extends BaseEntity{
     @PrimaryGeneratedColumn()
     PackageCustomizationID: number;
   
-    @ManyToOne(() => Packages, (pkg) => pkg.PackageID)
-    Package: Packages;
-  
-    @Column('text')
-    Options: string;
-  
-    @Column('text')
-    Description: string;
+    @Column('jsonb', )
+    Options: Record<string, any>;
   
     @CreateDateColumn()
     CreatedAt: Date;
