@@ -34,8 +34,17 @@ export class Products extends BaseEntity {
   @Column('int')
   Quantity: number;
 
+  @Column('enum', { enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'], default: 'M' })
+  Size: string;
+
+  @Column('enum', { enum: ['out of stock', 'in stock', 'running low'], default: 'in stock' })
+  Status: string;
+
+
   @Column('text')
   Message: string;
+
+
 
   @Column('enum', {
     enum: ['None',

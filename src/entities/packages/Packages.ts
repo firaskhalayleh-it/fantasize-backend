@@ -38,6 +38,13 @@ import { PackageCustomizations } from './PackageCustomizations';
   
     @Column('text')
     Message: string;
+
+
+    @Column('enum', { enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'], default: 'M' })
+    Size: string;
+  
+    @Column('enum', {enum: ['out of stock', 'in stock', 'running low'], default: 'in stock'})
+    Status: string;
   
     @ManyToOne(() => Offers, (offer) => offer.OfferID)
     Offer: Offers;
