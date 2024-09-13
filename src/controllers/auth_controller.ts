@@ -51,25 +51,39 @@ export const registerUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
+
+        // Check if user exists
         const user = await Users.findOne({ where: { Email: email } });
         if (!user) {
             return res.status(400).json({ message: 'User does not exist' });
         }
+
+        // Check if password is valid
         const isPasswordValid = await bcrypt.compare(password, user.Password);
         if (!isPasswordValid) {
             return res.status(400).json({ message: 'Invalid password' });
         }
+
+        // Generate JWT token
         const token = generateToken(user.UserID);
+
+        // Create the cookies
+        const authorizationCookie = createCookie(token, 'authorization');
+        const userIDCookie = createCookie(user.UserID, 'UserID');
+
+        // Set multiple cookies in the response
+        res.setHeader('Set-Cookie', [authorizationCookie, userIDCookie]);
+
+        // Optionally log the token for debugging
+        console.log(token);
+
+        // Exclude password from user data
         const { Password, ...userData } = user;
-        const cookie = createCookie(user.UserID);
-        res.setHeader('Set-Cookie', cookie);
 
-        res.status(200).json({ message: 'Login successful', token: token, user });
+        // Send response
+        res.status(200).json({ message: 'Login successful', token, user: userData });
     } catch (error) {
-        return res.status(500).json({ message: 'Internal server error' });
-
+        return res.status(500).json({ message: 'Internal server error', error });
     }
-}
-
-
+};
 

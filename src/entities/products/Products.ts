@@ -39,14 +39,14 @@ import { ProductCustomizations } from './ProductCustomizations';
     @JoinColumn({ name: 'ProductCustomizationID' })
     ProductCustomization: ProductCustomizations[];
   
-    @ManyToOne(() => Resources, (resource) => resource.ResourceID)
-    Resource: Resources;
+    @OneToMany(() => Resources, (resource) => resource.ResourceID)
+    Resource: Resources[];
   
     @ManyToOne(() => Offers, (offer) => offer.OfferID)
     Offer: Offers;
   
-    @ManyToOne(() => Reviews, (review) => review.ReviewID)
-    Review: Reviews;
+    @OneToMany(() => Reviews, (review) => review.ReviewID)
+    Review: Reviews[];
   
     @ManyToOne(() => SubCategories, (subcategory) => subcategory.SubCategoryID)
     SubCategory: SubCategories;

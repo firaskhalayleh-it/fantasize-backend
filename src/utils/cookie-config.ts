@@ -1,8 +1,8 @@
 
 
-const createCookie = (userid: string) => {
+const createCookie = (userid: string,name: string) => {
     
-    return `Authorization=${userid}; HttpOnly; Max-Age=86400; Path=/; SameSite=None; Secure;`;
+    return `${name}=${userid}; HttpOnly; Max-Age=86400; Path=/; SameSite=None; Secure;`;
 
 }
 
