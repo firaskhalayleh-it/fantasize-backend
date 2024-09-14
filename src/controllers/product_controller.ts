@@ -96,8 +96,7 @@ export const getProductInDetail = async (req: Request, res: Response) => {
             ProductCustomizations: product.ProductCustomization ? product.ProductCustomization.map(customization => {
                 return {
                     CustomizationID: customization.ProductCustomizationID,
-                    CustomizationOptionName: customization.OptionName,
-                    CustomizationOptionValue: customization.OptionValue,
+                    CustomizationOption: customization.Options,
 
                 };
             }) : [],
@@ -154,7 +153,7 @@ export const updateProduct = async (req: Request, res: Response) => {
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
-        const { Name, Description, Price, Quantity, Size, Status, Message, Material, BrandID, SubCategoryID ,CustomizationID} = req.body;
+        const { Name, Description, Price, Quantity, Size, Status, Message, Material, BrandID, SubCategoryID, CustomizationID } = req.body;
         const customization = await ProductCustomizations.findOne({ where: { ProductCustomizationID: CustomizationID } });
         if (!customization) {
             return res.status(404).json({ message: 'Customization not found' });

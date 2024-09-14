@@ -6,13 +6,9 @@ export class ProductCustomizations extends BaseEntity {
     @PrimaryGeneratedColumn('increment')
     ProductCustomizationID: number;
 
-    @Column('varchar')
-    OptionName: string;
+    @Column('jsonb', )
+    Options: Record<string, any>;
 
-    @Column('varchar')
-    OptionValue: string;
-
-    // Many-to-many relationship with Products
     @ManyToMany(() => Products, (product) => product.ProductCustomization)
     Products: Products[];
 }

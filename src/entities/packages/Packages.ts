@@ -42,7 +42,7 @@ export class Packages extends BaseEntity {
   Message: string;
 
   @Column('json', { nullable: true })
-  Size: any;  // change the interaction with this in controller
+  Size: any;  
 
   @Column('enum', { enum: ['out of stock', 'in stock', 'running low'], default: 'in stock' })
   Status: string;

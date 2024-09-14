@@ -6,12 +6,12 @@ import cookieParser from 'cookie-parser';
 import favRouter from "./routes/favorites_route";
 import productsRouter from "./routes/products_route";
 import filterRouter from "./routes/filters_route";
-
-
+import packageRouter from "./routes/pakcage_route";
 
 
 const authr = authRouter;
 const favr = favRouter;
+const pkgr = packageRouter;
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -21,6 +21,7 @@ app.use(authr);
 app.use(favr);
 app.use(productsRouter);
 app.use(filterRouter);
+app.use(pkgr);
 
 app.listen(PORT, () => {
   initlizeDB();

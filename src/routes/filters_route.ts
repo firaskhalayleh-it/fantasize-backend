@@ -22,6 +22,12 @@ router.get('/products/size/:size', getProductsBySize);
 router.get('/products/status/:status', getProductsByStatus);
 router.get('/products/brand/:brand', getProductsByBrand);
 
+router.get('/packages/category/:category', getProductsByCategory);
+router.get('/packages/subcategory/:subCategory', getProducsBySubCategory);
+router.get('/packages/price-range/:min/:max', getProductsByPriceRange);
+router.get('/packages/size/:size', getProductsBySize);
+router.get('/packages/status/:status', getProductsByStatus);
+
 
 export default router;
 
