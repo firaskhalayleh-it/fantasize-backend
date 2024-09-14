@@ -1,14 +1,20 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, BaseEntity } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, BaseEntity } from 'typeorm';
 import { Categories } from './Categories';
+import { Products } from '../products/Products';
 
 @Entity()
-export class SubCategories extends BaseEntity{
+export class SubCategories extends BaseEntity {
   @PrimaryGeneratedColumn()
   SubCategoryID: number;
 
-  @ManyToOne(() => Categories, (category) => category.CategoryID)
-  Category: Categories;
-
   @Column('varchar')
   Name: string;
+
+  // Many SubCategories can belong to one Category
+  @ManyToOne(() => Categories, (category) => category.SubCategory)
+  Category: Categories;
+
+  // One SubCategory can have many Products
+  @OneToMany(() => Products, (product) => product.SubCategory)
+  Products: Products[];
 }

@@ -1,25 +1,15 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  CreateDateColumn,
-  UpdateDateColumn,
-  BaseEntity,
-  JoinColumn,
-  OneToMany,
-  OneToOne
-} from 'typeorm';
-import { Resources } from '../Resources';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Brands } from '../Brands';
 import { Offers } from '../Offers';
+import { Resources } from '../Resources';
 import { Reviews } from '../Reviews';
 import { SubCategories } from '../categories/SubCategories';
 import { ProductCustomizations } from './ProductCustomizations';
-import { Brands } from '../Brands';
 
 @Entity()
 export class Products extends BaseEntity {
-  @PrimaryGeneratedColumn()
+
+  @PrimaryGeneratedColumn('increment')
   ProductID: number;
 
   @Column('varchar')
@@ -34,50 +24,62 @@ export class Products extends BaseEntity {
   @Column('int')
   Quantity: number;
 
-  @Column('enum', { enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'], default: 'M' })
-  Size: string;
+  @Column('json', { nullable: true })
+  Size: any;
 
   @Column('enum', { enum: ['out of stock', 'in stock', 'running low'], default: 'in stock' })
   Status: string;
 
-
   @Column('text')
   Message: string;
 
-
-
   @Column('enum', {
-    enum: ['None',
-      'cotton', 'polyester', 'nylon', 'silk', 'wool', 'leather', 'rubber', 'linen',
-      'denim', 'cashmere', 'velvet', 'satin', 'suede', 'tweed', 'corduroy', 'chiffon',
-      'georgette', 'muslin', 'organza', 'taffeta', 'velour', 'velveteen', 'viscose',
-      'acrylic', 'rayon', 'spandex', 'lycra', 'modal', 'bamboo', 'jute', 'hemp', 'ramie',
-      'acetate', 'acrylic', 'lyocell', 'modacrylic', 'olefin', 'polypropylene', 'elastane',
-    ], default: 'None'
+    enum: ['None', 'cotton', 'polyester', 'nylon', 'silk', 'wool', 'leather', 'rubber', 'linen', 'denim', 'cashmere', 'velvet', 'satin', 'suede', 'tweed', 'corduroy', 'chiffon', 'georgette', 'muslin', 'organza', 'taffeta', 'velour', 'velveteen', 'viscose', 'acrylic', 'rayon', 'spandex', 'lycra', 'modal', 'bamboo', 'jute', 'hemp', 'ramie', 'acetate', 'lyocell', 'modacrylic', 'olefin', 'polypropylene', 'elastane'],
+    default: 'None'
   })
   Material: string;
 
-
-  @OneToOne(() => Brands, (brand) => brand.BrandID)
-  @JoinColumn({ name: 'BrandID' })
+  @ManyToOne(() => Brands, (brand) => brand.Products, { eager: true })
   Brand: Brands;
 
+  @ManyToOne(() => SubCategories, (subcategory) => subcategory.Products, { eager: true })
+  SubCategory: SubCategories;
 
-  @OneToMany(() => ProductCustomizations, (productCustomization) => productCustomization.ProductCustomizationID)
-  @JoinColumn({ name: 'ProductCustomizationID' })
-  ProductCustomization: ProductCustomizations[];
-
-  @OneToMany(() => Resources, (resource) => resource.ResourceID)
-  Resource: Resources[];
 
   @ManyToOne(() => Offers, (offer) => offer.OfferID)
   Offer: Offers;
 
-  @OneToMany(() => Reviews, (review) => review.ReviewID)
-  Review: Reviews[];
+  @OneToMany(() => Resources, (resource) => resource.ResourceID)
+  Resource: Resources[];
 
-  @ManyToOne(() => SubCategories, (subcategory) => subcategory.SubCategoryID)
-  SubCategory: SubCategories;
+  // Many-to-many relationship with ProductCustomizations
+  @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products)
+  @JoinTable({
+    name: 'ProductsCustomizations',  // Join table name
+    joinColumn: {
+      name: 'ProductID',
+      referencedColumnName: 'ProductID'
+    },
+    inverseJoinColumn: {
+      name: 'ProductCustomizationID',
+      referencedColumnName: 'ProductCustomizationID'
+    }
+  })
+  ProductCustomization: ProductCustomizations[];
+
+  @ManyToMany(() => Reviews, (review) => review.Products)
+  @JoinTable({
+    name: 'ProductsReviews',  // Join table for reviews
+    joinColumn: {
+      name: 'ProductID',
+      referencedColumnName: 'ProductID'
+    },
+    inverseJoinColumn: {
+      name: 'ReviewID',
+      referencedColumnName: 'ReviewID'
+    }
+  })
+  Review: Reviews[];
 
   @CreateDateColumn()
   CreatedAt: Date;

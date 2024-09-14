@@ -1,28 +1,19 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    ManyToOne,
-    CreateDateColumn,
-    UpdateDateColumn,
-    BaseEntity
-  } from 'typeorm';
-  
-  @Entity()
-  export class ProductCustomizations extends BaseEntity{
-    @PrimaryGeneratedColumn()
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, BaseEntity } from 'typeorm';
+import { Products } from './Products';
+
+@Entity()
+export class ProductCustomizations extends BaseEntity {
+    @PrimaryGeneratedColumn('increment')
     ProductCustomizationID: number;
-  
-    @Column('text')
-    Options: string;
-  
-    @Column('text')
-    Description: string;
-  
-    @CreateDateColumn()
-    CreatedAt: Date;
-  
-    @UpdateDateColumn()
-    UpdatedAt: Date;
-  }
+
+    @Column('varchar')
+    OptionName: string;
+
+    @Column('varchar')
+    OptionValue: string;
+
+    // Many-to-many relationship with Products
+    @ManyToMany(() => Products, (product) => product.ProductCustomization)
+    Products: Products[];
+}
   

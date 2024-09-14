@@ -15,7 +15,7 @@ import { Products } from './Products';
   
   @Entity()
   export class Orders extends BaseEntity {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('increment')
     OrderID: number;
   
     @ManyToOne(() => Users, (user) => user.UserID)
