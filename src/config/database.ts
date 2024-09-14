@@ -12,7 +12,7 @@ export const database = new DataSource({
     database: process.env.DATABASE_NAME,
     logging: false,
     synchronize: true,
-    schema: 'public',
+    schema: 'fatansize_test',
     entities: [
         'src/entities/**/*.ts',
     ],

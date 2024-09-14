@@ -2,15 +2,15 @@ import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm';
 
 @Entity()
 export class Offers extends BaseEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('increment')
   OfferID: number;
 
   @Column('decimal')
   Discount: number;
 
-  @Column('timestamp')
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   ValidFrom: Date;
 
-  @Column('timestamp')
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   ValidTo: Date;
 }
