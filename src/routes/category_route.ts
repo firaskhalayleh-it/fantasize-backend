@@ -14,3 +14,4 @@ router.get('/categories', getCategories);
 router.post('/categories/add', authMiddleware, adminMiddleware, addCategory);
 router.post('/subcategories/add', authMiddleware, adminMiddleware, addSubCategory);
 
+export default router;
