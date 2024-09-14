@@ -26,6 +26,30 @@ export const getSubCategories = async (req: Request, res: Response) => {
     }
 }
 
+
+export const getCategories = async (req: Request, res: Response) => {
+    try {
+        const categories = await Categories.find();
+        if (categories.length === 0) {
+            return res.status(404).json({ message: 'No categories found' });
+        }
+
+        const categoriesList = categories.map(category => {
+            return {
+                CategoryID: category.CategoryID,
+                CategoryName: category.Name
+            };
+        });
+
+        if (!categoriesList) {
+            return res.status(404).json({ message: 'No categories found' });
+        }
+        res.status(200).send(categoriesList);
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal server error', error: error });
+    }
+}
+
 export const getCategoriesWithSubCategory = async (req: Request, res: Response) => {
     try {
         const categories = await Categories.find();
