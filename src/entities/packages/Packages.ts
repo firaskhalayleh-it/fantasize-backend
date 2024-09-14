@@ -15,6 +15,8 @@ import { Offers } from '../Offers';
 import { Reviews } from '../Reviews';
 import { Products } from '../products/Products';
 import { PackageCustomizations } from './PackageCustomizations';
+import { SubCategories } from '../categories/SubCategories';
+import { Resources } from '../Resources';
 
 @Entity()
 export class Packages extends BaseEntity {
@@ -48,15 +50,43 @@ export class Packages extends BaseEntity {
   @ManyToOne(() => Offers, (offer) => offer.OfferID)
   Offer: Offers;
 
-  @OneToMany(() => PackageCustomizations, (customization) => customization.PackageCustomizationID)
-  @JoinColumn({ name: 'PackageCustomizationID' })
-  Customizations: PackageCustomizations[];
+  @ManyToOne(() => SubCategories, (subcategory) => subcategory.Package, { eager: true })
+  SubCategory: SubCategories;
+
+  @ManyToMany(() => PackageCustomizations, (packageCustomizations) => packageCustomizations.PackageCustomizationID)
+  @JoinTable({
+    name: 'PackagesCustomizations',  
+    joinColumn: {
+      name: 'PackageID',
+      referencedColumnName: 'PackageID'
+    },
+    inverseJoinColumn: {
+      name: 'PackageCustomizationID',
+      referencedColumnName: 'PackageCustomizationID'
+    }
+  })
+  PackageCustomization: PackageCustomizations[];
+
+
+
+  @OneToMany(() => Resources, (resource) => resource.ResourceID)
+  Resource: Resources[];
 
   @ManyToOne(() => Products, (product) => product.ProductID)
   Product: Products[];
 
-  @ManyToMany(() => Reviews, (review) => review.ReviewID)
-  @JoinTable({ name: 'PackagesReviews' })
+  @ManyToMany(() => Reviews, (review) => review.Products)
+  @JoinTable({
+    name: 'PackagesReviews',  
+    joinColumn: {
+      name: 'PackageID',
+      referencedColumnName: 'PackageID'
+    },
+    inverseJoinColumn: {
+      name: 'ReviewID',
+      referencedColumnName: 'ReviewID'
+    }
+  })
   Review: Reviews[];
 
   @CreateDateColumn()

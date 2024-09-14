@@ -19,6 +19,9 @@ import { Resources } from '../Resources';
   
     @Column('jsonb', )
     Options: Record<string, any>;
+
+    @ManyToMany(() => Packages, (pkg) => pkg.PackageCustomization)
+    Packages: Packages[];
   
     @CreateDateColumn()
     CreatedAt: Date;

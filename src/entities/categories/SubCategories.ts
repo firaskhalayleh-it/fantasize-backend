@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, BaseEntity } from 'typeorm';
 import { Categories } from './Categories';
 import { Products } from '../products/Products';
+import { Packages } from '../packages/Packages';
 
 @Entity()
 export class SubCategories extends BaseEntity {
@@ -17,4 +18,8 @@ export class SubCategories extends BaseEntity {
   // One SubCategory can have many Products
   @OneToMany(() => Products, (product) => product.SubCategory)
   Products: Products[];
+
+
+  @OneToMany(() => Packages, (pkg) => pkg.SubCategory)
+  Package: Packages[];
 }
