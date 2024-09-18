@@ -7,10 +7,14 @@ import { FavoriteProducts } from "../entities/products/FavoriteProducts";
 export const getFavoriteProducts = async (req: Request, res: Response) => {
     try {
         const cookie = req.cookies;
+
+        
         const user = await Users.findOne({ where: { UserID: cookie.user.UserID }, relations: ['FavoriteProducts'] });
         if (!user) {
             return res.status(404).json({ message: 'you must login first!' });
         }
+
+
         const favoriteProducts = await FavoriteProducts.findOne({ where: { User: { UserID: user.UserID } } });
         if (!favoriteProducts) {
             return res.status(404).json({ message: 'No favorite products found' });
