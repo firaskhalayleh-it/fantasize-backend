@@ -87,3 +87,14 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 };
 
+export const logoutUser = async (req: Request, res: Response) => {
+    try {
+        // Clear cookies
+        res.clearCookie('authorization');
+        res.clearCookie('UserID');
+
+        res.status(200).json({ message: 'Logout successful' });
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal server error', error });
+    }
+};

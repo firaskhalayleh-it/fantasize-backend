@@ -12,7 +12,6 @@ router.get('/products/:id', getProductInDetail);
 // This route is for admin access
 router.post('/products', authMiddleware, adminMiddleware,addNewProduct);
 router.put('/products/:id', authMiddleware, adminMiddleware, updateProduct);
-gpg --version
 
 
 export default router;

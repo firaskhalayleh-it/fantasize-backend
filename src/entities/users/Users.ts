@@ -6,7 +6,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BaseEntity,
-  Relation
+  Relation,
+  OneToOne
 } from 'typeorm';
 import { Roles } from './Roles';
 
