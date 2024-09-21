@@ -44,13 +44,13 @@ export class Products extends BaseEntity {
   SubCategory: SubCategories;
 
 
-  @ManyToOne(() => Offers, (offer) => offer.OfferID)
+  @ManyToOne(() => Offers, (offer) => offer.OfferID , { eager: true })
   Offer: Offers;
 
-  @OneToMany(() => Resources, (resource) => resource.ResourceID)
+  @OneToMany(() => Resources, (resource) => resource.ResourceID , )
   Resource: Resources[];
 
-  @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products)
+  @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products , )
   @JoinTable({
     name: 'ProductsCustomizations',  
     joinColumn: {
@@ -64,7 +64,7 @@ export class Products extends BaseEntity {
   })
   ProductCustomization: ProductCustomizations[];
 
-  @ManyToMany(() => Reviews, (review) => review.Products)
+  @ManyToMany(() => Reviews, (review) => review.Products , )
   @JoinTable({
     name: 'ProductsReviews',  
     joinColumn: {
@@ -79,10 +79,12 @@ export class Products extends BaseEntity {
   Review: Reviews[];
 
 
-  @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product)
+  @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product )
   FavoriteProducts: FavoriteProducts[];
 
-  @ManyToOne(() => Products, (product) => product.ProductID)
+
+  // products that are related to this package
+  @ManyToOne(() => Products, (product) => product.ProductID )
   RelatedProduct: Products;
 
   @CreateDateColumn()

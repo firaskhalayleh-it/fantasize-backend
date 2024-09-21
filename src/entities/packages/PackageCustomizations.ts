@@ -16,6 +16,7 @@ import { Resources } from '../Resources';
   export class PackageCustomizations extends BaseEntity{
     @PrimaryGeneratedColumn()
     PackageCustomizationID: number;
+    
     // color is required
     // size is required
     // material is required

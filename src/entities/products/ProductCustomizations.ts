@@ -11,10 +11,9 @@ export class ProductCustomizations extends BaseEntity {
     // material included in options
     // attachment included in options
     // message included in options
-
-    @Column('jsonb',)
+    @Column('jsonb')
     Options: Record<string, any>;
 
-    @ManyToMany(() => Products, (product) => product.ProductCustomization)
+    @ManyToMany(() => Products, (product) => product.ProductCustomization,{eager: true, cascade: true})
     Products: Products[];
 }

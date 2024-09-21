@@ -8,9 +8,6 @@ export class NotificationUser extends BaseEntity {
     @PrimaryGeneratedColumn('increment')
     NotificationID: number;
 
- 
-
-
     @ManyToOne(() => Notifications, (notification) => notification.NotificationID)
     Notification: Notifications;
 

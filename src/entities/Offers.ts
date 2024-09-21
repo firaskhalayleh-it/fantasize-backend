@@ -10,9 +10,11 @@ export class Offers extends BaseEntity {
   @Column('decimal')
   Discount: number;
 
+  @Column('bool', { default: true })
+  IsActive: boolean;
+
   @OneToMany(() => Products, (product) => product.ProductID)
   Products: Products[];
-
 
   @OneToMany(() => Packages, (pkg) => pkg.PackageID)
   Packages: Packages[];

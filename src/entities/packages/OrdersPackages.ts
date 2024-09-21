@@ -17,8 +17,23 @@ import { Packages } from './Packages';
 
 @Entity()
 export class OrdersPackages extends BaseEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('increment')
   OrderID: number;
+
+  @Column('boolean', { default: false }) // complete and incomplete order
+  Status: boolean;
+
+  @Column('boolean')
+  IsGift: boolean;
+
+  @Column('text')
+  GiftMessage: string;
+
+  @Column('boolean')
+  IsAnonymous: boolean;
+
+  @Column('decimal')
+  TotalPrice: number;
 
   @ManyToOne(() => Users, (user) => user.UserID)
   User: Users;
@@ -42,25 +57,6 @@ export class OrdersPackages extends BaseEntity {
 
   @ManyToOne(() => Addresses, (address) => address.AddressID)
   Address: Addresses;
-
-
-  @Column('boolean', { default: false }) // complete and incomplete order
-  Status: boolean;
-
-  @Column('boolean')
-  IsGift: boolean;
-
-  @Column('text')
-  GiftMessage: string;
-
-  @Column('boolean')
-  IsAnonymous: boolean;
-
-  @Column('decimal')
-  TotalPrice: number;
-
-
-
 
 
   @CreateDateColumn()
