@@ -3,11 +3,12 @@ import {
     PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
+    BaseEntity
   } from 'typeorm';
   
   @Entity()
-  export class Notifications {
+  export class Notifications extends BaseEntity {
     @PrimaryGeneratedColumn()
     NotificationID: number;
   

@@ -4,17 +4,28 @@ import {
     Column,
     ManyToOne,
     CreateDateColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
+    BaseEntity,
+    OneToMany
   } from 'typeorm';
   import { Users } from './Users';
+import { OrdersPackages } from '../packages/OrdersPackages';
+import { OrdersProduct } from '../products/OrdersProducts';
   
   @Entity()
-  export class Addresses {
+  export class Addresses extends BaseEntity {
     @PrimaryGeneratedColumn()
     AddressID: number;
   
     @ManyToOne(() => Users, (user) => user.UserID)
     User: Users;
+
+
+    @OneToMany(()=> OrdersPackages, (order) => order.OrderID)
+    Orders: OrdersPackages[];
+
+    @OneToMany(() => OrdersProduct, (order) => order.OrderID)
+    OrdersProduct: OrdersProduct[];
   
     @Column('varchar')
     AddressLine: string;

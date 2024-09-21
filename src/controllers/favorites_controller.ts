@@ -8,14 +8,14 @@ export const getFavoriteProducts = async (req: Request, res: Response) => {
     try {
         const cookie = req.cookies;
 
-        
+
         const user = await Users.findOne({ where: { UserID: cookie.user.UserID }, relations: ['FavoriteProducts'] });
         if (!user) {
             return res.status(404).json({ message: 'you must login first!' });
         }
 
 
-        const favoriteProducts = await FavoriteProducts.findOne({ where: { User: { UserID: user.UserID } } });
+        const favoriteProducts = await FavoriteProducts.findOne({ where: { User: { UserID: user.UserID }, } });
         if (!favoriteProducts) {
             return res.status(404).json({ message: 'No favorite products found' });
         }
@@ -49,11 +49,11 @@ export const addFavoriteProduct = async (req: Request, res: Response) => {
         if (isFavorite) {
             return res.status(400).json({ message: 'Product already in favorites' });
         }else{
-            const favoriteProduct = FavoriteProducts.create({
-                User: user,
-                Product: [product]
-            });
-            await favoriteProduct.save();
+            // const favoriteProduct = FavoriteProducts.create({
+            //     User: user,
+            //     Product: [product]
+            // });
+            // await favoriteProduct.save();
             res.status(201).json({ message: 'Product added to favorites' });
         }
     } catch (error) {

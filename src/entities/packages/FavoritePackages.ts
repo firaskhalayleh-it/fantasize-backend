@@ -13,8 +13,8 @@ export class FavoritePackages {
     @ManyToOne(() => Users, (user) => user.UserID)
     User: Users;
 
-    @OneToMany(() => Packages, (pkg) => pkg.PackageID)
-    Package: Packages[];
+    @ManyToOne(() => Packages, (pkg) => pkg.PackageID)
+    Package: Packages;
 
     @CreateDateColumn()
     CreatedAt: Date;

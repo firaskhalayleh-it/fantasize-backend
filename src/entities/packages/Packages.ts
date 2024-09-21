@@ -17,6 +17,7 @@ import { Products } from '../products/Products';
 import { PackageCustomizations } from './PackageCustomizations';
 import { SubCategories } from '../categories/SubCategories';
 import { Resources } from '../Resources';
+import { FavoritePackages } from './FavoritePackages';
 
 @Entity()
 export class Packages extends BaseEntity {
@@ -72,8 +73,12 @@ export class Packages extends BaseEntity {
   @OneToMany(() => Resources, (resource) => resource.ResourceID)
   Resource: Resources[];
 
-  @ManyToOne(() => Products, (product) => product.ProductID)
+  @OneToMany(() => Products, (product) => product.ProductID)
   Product: Products[];
+
+
+  @OneToMany(()=>FavoritePackages, (favoritePackages)=>favoritePackages.Package)
+  FavoritePackages: FavoritePackages[];
 
   @ManyToMany(() => Reviews, (review) => review.Products)
   @JoinTable({

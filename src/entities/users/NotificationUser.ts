@@ -1,15 +1,14 @@
-import { Entity, ManyToOne, Column, PrimaryColumn } from 'typeorm';
+import { Entity, ManyToOne, Column, PrimaryColumn, PrimaryGeneratedColumn, BaseEntity } from 'typeorm';
 import { Notifications } from './Notifications';
 import { Users } from './Users';
 
 @Entity()
-export class NotificationUser {
+export class NotificationUser extends BaseEntity {
 
-    @PrimaryColumn()
+    @PrimaryGeneratedColumn('increment')
     NotificationID: number;
 
-    @PrimaryColumn()
-    UserID: number;
+ 
 
 
     @ManyToOne(() => Notifications, (notification) => notification.NotificationID)

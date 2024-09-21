@@ -5,6 +5,7 @@ import { Resources } from '../Resources';
 import { Reviews } from '../Reviews';
 import { SubCategories } from '../categories/SubCategories';
 import { ProductCustomizations } from './ProductCustomizations';
+import { FavoriteProducts } from './FavoriteProducts';
 
 @Entity()
 export class Products extends BaseEntity {
@@ -24,14 +25,11 @@ export class Products extends BaseEntity {
   @Column('int')
   Quantity: number;
 
-  @Column('json', { nullable: true })
-  Size: any;
+
 
   @Column('enum', { enum: ['out of stock', 'in stock', 'running low'], default: 'in stock' })
   Status: string;
 
-  @Column('text')
-  Message: string;
 
   @Column('enum', {
     enum: ['None', 'cotton', 'polyester', 'nylon', 'silk', 'wool', 'leather', 'rubber', 'linen', 'denim', 'cashmere', 'velvet', 'satin', 'suede', 'tweed', 'corduroy', 'chiffon', 'georgette', 'muslin', 'organza', 'taffeta', 'velour', 'velveteen', 'viscose', 'acrylic', 'rayon', 'spandex', 'lycra', 'modal', 'bamboo', 'jute', 'hemp', 'ramie', 'acetate', 'lyocell', 'modacrylic', 'olefin', 'polypropylene', 'elastane'],
@@ -52,10 +50,9 @@ export class Products extends BaseEntity {
   @OneToMany(() => Resources, (resource) => resource.ResourceID)
   Resource: Resources[];
 
-  // Many-to-many relationship with ProductCustomizations
   @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products)
   @JoinTable({
-    name: 'ProductsCustomizations',  // Join table name
+    name: 'ProductsCustomizations',  
     joinColumn: {
       name: 'ProductID',
       referencedColumnName: 'ProductID'
@@ -69,7 +66,7 @@ export class Products extends BaseEntity {
 
   @ManyToMany(() => Reviews, (review) => review.Products)
   @JoinTable({
-    name: 'ProductsReviews',  // Join table for reviews
+    name: 'ProductsReviews',  
     joinColumn: {
       name: 'ProductID',
       referencedColumnName: 'ProductID'
@@ -80,6 +77,13 @@ export class Products extends BaseEntity {
     }
   })
   Review: Reviews[];
+
+
+  @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product)
+  FavoriteProducts: FavoriteProducts[];
+
+  @ManyToOne(() => Products, (product) => product.ProductID)
+  RelatedProduct: Products;
 
   @CreateDateColumn()
   CreatedAt: Date;

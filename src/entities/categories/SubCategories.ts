@@ -11,11 +11,12 @@ export class SubCategories extends BaseEntity {
   @Column('varchar')
   Name: string;
 
-  // Many SubCategories can belong to one Category
+  @Column('boolean', { default: true })
+  IsActive: boolean;
+
   @ManyToOne(() => Categories, (category) => category.SubCategory)
   Category: Categories;
 
-  // One SubCategory can have many Products
   @OneToMany(() => Products, (product) => product.SubCategory)
   Products: Products[];
 

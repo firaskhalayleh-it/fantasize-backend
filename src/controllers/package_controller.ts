@@ -4,7 +4,6 @@ import { PackageCustomizations } from "../entities/packages/PackageCustomization
 import { Brands } from "../entities/Brands";
 import { SubCategories } from "../entities/categories/SubCategories";
 import { Packages } from "../entities/packages/Packages";
-import { PackageProduct } from "../entities/PackageProduct";
 import { ProductCustomizations } from "../entities/products/ProductCustomizations";
 import { Offers } from "../entities/Offers";
 
@@ -67,8 +66,8 @@ export const getPackageInDetail = async (req: Request, res: Response) => {
             PackageDescription: pkg.Description,
             PackageValidity: pkg.Validity,
             PackageQuantity: pkg.Quantity,
-            PackageMessage: pkg.Message,
-            PackageSize: pkg.Size,
+          //  PackageMessage: pkg.Message,
+           // PackageSize: pkg.Size,
             PackageStatus: pkg.Status,
             PackageOffer: pkg.Offer,
             PackageSubCategory: pkg.SubCategory.Name,
@@ -130,8 +129,8 @@ export const createPackage = async (req: Request, res: Response) => {
             Price: Price,
             Validity: Validity,
             Quantity: Quantity,
-            Message: Message,
-            Size: Size,
+         //   Message: Message,
+         //   Size: Size,
             Status: Status,
             SubCategory: subcategory,
             Offer: offer,
@@ -190,8 +189,8 @@ export const updatePackage = async (req: Request, res: Response) => {
         pkg.Validity = Validity;
         pkg.Quantity = Quantity;
         pkg.Message = Message;
-        pkg.Size = Size;
-        pkg.Status = Status;
+       // pkg.Size = Size;
+        //pkg.Status = Status;
         pkg.SubCategory = subcategory;
         pkg.Offer = offer;
         pkg.PackageCustomization.push(packageCustomization);

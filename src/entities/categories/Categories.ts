@@ -9,6 +9,9 @@ export class Categories extends BaseEntity {
   @Column('varchar')
   Name: string;
 
+  @Column('boolean', { default: true })
+  IsActive: boolean;
+
   @OneToMany(() => SubCategories, (subCategory) => subCategory.Category)
   SubCategory: SubCategories[];
 }

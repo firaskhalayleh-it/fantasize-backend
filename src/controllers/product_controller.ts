@@ -77,9 +77,9 @@ export const getProductInDetail = async (req: Request, res: Response) => {
             ProductDescription: product.Description,
             ProductPrice: product.Price,
             ProductQuantity: product.Quantity,
-            ProductSize: product.Size,
+            // ProductSize: product.Size,
             ProductStatus: product.Status,
-            ProductMessage: product.Message,
+            // ProductMessage: product.Message,
             ProductMaterial: product.Material,
             ProductBrand: product.Brand ? product.Brand.Name : 'Unknown Brand',
             ProductSubCategory: product.SubCategory ? product.SubCategory.Name : 'Unknown SubCategory',
@@ -129,9 +129,9 @@ export const addNewProduct = async (req: Request, res: Response) => {
                 Description: Description,
                 Price: Price,
                 Quantity: Quantity,
-                Size: Size,
+                // Size: Size,
                 Status: Status,
-                Message: Message,
+                //Message: Message,
                 Material: Material,
                 Brand: brand,
                 SubCategory: subcategory
@@ -170,9 +170,9 @@ export const updateProduct = async (req: Request, res: Response) => {
         product.Description = Description;
         product.Price = Price;
         product.Quantity = Quantity;
-        product.Size = Size;
+        //  product.Size = Size;
         product.Status = Status;
-        product.Message = Message;
+        //  product.Message = Message;
         product.Material = Material;
         product.Brand = brand;
         product.SubCategory = subcategory;
