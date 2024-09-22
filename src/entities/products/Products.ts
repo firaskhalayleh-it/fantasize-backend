@@ -13,7 +13,7 @@ export class Products extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   ProductID: number;
 
-  @Column('varchar')
+  @Column('varchar',{unique: true})
   Name: string;
 
   @Column('text')
@@ -84,9 +84,7 @@ export class Products extends BaseEntity {
   FavoriteProducts: FavoriteProducts[];
 
 
-  // products that are related to this package
-  @ManyToOne(() => Products, (product) => product.ProductID )
-  RelatedProduct: Products;
+
 
   @CreateDateColumn()
   CreatedAt: Date;

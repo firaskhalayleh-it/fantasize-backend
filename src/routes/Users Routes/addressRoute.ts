@@ -1,6 +1,7 @@
 // create addresss , delete , update  get by userId
 import express from "express"
 import { c_addNewAdress, c_deleteUserAddress, c_getUserAddress, c_updateUserAddress } from "../../controllers/Users Controller/addressController";
+import { authMiddleware } from "../../middlewares/auth_middleware";
 const addressRoute = express.Router();
 
 /**
@@ -10,7 +11,7 @@ const addressRoute = express.Router();
  *  @access       private
  * 
  */
-addressRoute.post("/user/create_address_user/:userId",c_addNewAdress);
+addressRoute.post("/user/create_address_user/:userId",authMiddleware,c_addNewAdress);
 
 /**
  *  @description  update user address by userId
@@ -19,7 +20,7 @@ addressRoute.post("/user/create_address_user/:userId",c_addNewAdress);
  *  @access       private
  * 
  */
-addressRoute.put("/user/update_address_user/:userId",c_updateUserAddress);
+addressRoute.put("/user/update_address_user/:userId",authMiddleware,c_updateUserAddress);
 
 /**
  *  @description  delete user address by userId
@@ -28,7 +29,7 @@ addressRoute.put("/user/update_address_user/:userId",c_updateUserAddress);
  *  @access       private
  * 
  */
-addressRoute.delete("/user/delete_address_user/:userId",c_deleteUserAddress);
+addressRoute.delete("/user/delete_address_user/:userId",authMiddleware,c_deleteUserAddress);
 
 
 /**
@@ -38,7 +39,7 @@ addressRoute.delete("/user/delete_address_user/:userId",c_deleteUserAddress);
  *  @access       private
  * 
  */
-addressRoute.get("/user/get_address_user/:userId",c_getUserAddress);
+addressRoute.get("/user/get_address_user/:userId",authMiddleware,c_getUserAddress);
 
 
 export default  addressRoute

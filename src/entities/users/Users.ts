@@ -26,10 +26,10 @@ export class Users extends BaseEntity {
   @ManyToOne(() => Roles, (role) => role.RoleID)
   Role: Relation<Roles>;
 
-  @Column('varchar')
+  @Column('varchar',{unique:true})
   Username: string;
 
-  @Column('varchar')
+  @Column('varchar',{unique:true})
   Email: string;
 
   @Column('varchar')
@@ -38,7 +38,7 @@ export class Users extends BaseEntity {
   @Column('bytea', { nullable: true })
   UserProfilePicture: Buffer;
 
-  @Column('varchar', { nullable: true })
+  @Column('varchar', { nullable: true, unique: true })
   PhoneNumber: string;
 
   @Column('varchar', { nullable: true })

@@ -1,5 +1,5 @@
 import express from "express"
-
+import { authMiddleware } from "../../middlewares/auth_middleware";
 const FavoriteProductRoute = express.Router();
 
 /**
@@ -8,7 +8,7 @@ const FavoriteProductRoute = express.Router();
  *  @method        POST
  *  @access        Public
  */
-FavoriteProductRoute.post('/favorites');
+FavoriteProductRoute.post('/favorites' , authMiddleware);
 
 /**
  *  @description   Get all favorite products for a user
@@ -16,7 +16,7 @@ FavoriteProductRoute.post('/favorites');
  *  @method        GET
  *  @access        Public
  */
-FavoriteProductRoute.get('/favorites/:userId');
+FavoriteProductRoute.get('/favorites/:userId' , authMiddleware);
 
 /**
  *  @description   Remove a product from favorites
@@ -24,6 +24,6 @@ FavoriteProductRoute.get('/favorites/:userId');
  *  @method        DELETE
  *  @access        Public
  */
-FavoriteProductRoute.delete('/favorites/:userId');
+FavoriteProductRoute.delete('/favorites/:userId' , authMiddleware);
 
 export default FavoriteProductRoute;

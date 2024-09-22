@@ -23,7 +23,7 @@ export class Packages extends BaseEntity {
   @PrimaryGeneratedColumn()
   PackageID: number;
 
-  @Column('varchar')
+  @Column('varchar', { unique: true })
   Name: string;
 
   @Column('text')

@@ -6,8 +6,11 @@ export class Categories extends BaseEntity {
   @PrimaryGeneratedColumn()
   CategoryID: number;
 
-  @Column('varchar')
+  @Column('varchar',{unique:true})
   Name: string;
+
+  @Column('bytea', { nullable: true })
+  Image: Buffer;
 
   @Column('boolean', { default: true })
   IsActive: boolean;

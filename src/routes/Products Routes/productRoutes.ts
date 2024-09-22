@@ -1,32 +1,21 @@
 import express from "express"
+import { authMiddleware } from "../../middlewares/auth_middleware";
+import { adminMiddleware } from "../../middlewares/admin_middleware";
 
 const productRoute = express.Router();
 
-/**
- *  @description   Create a customization for a product
- *  @route         /ProductCustomization
- *  @method        POST
- *  @access        Public
- */
-// productRoute.post('/products/:productId/customizations');
-productRoute.post('/ProductCustomization');
 
-/**
- *  @description   Update customization for a product
- *  @route         /ProductCustomization/ProductCustomizationID
- *  @method        PUT
- *  @access        Public
- */
-productRoute.put('/ProductCustomization/ProductCustomizationID');
+
 
 
 /**
- *  @description   Get all products
+ *  @description   Get all products by subcategory
  *  @route         /products
  *  @method        GET
  *  @access        Public
  */
-productRoute.get('/getAllproducts');
+
+productRoute.get('/:CategoryName/:subCategoryName/getAllproducts');
 
 /**
  *  @description   Get a single product by ID
@@ -38,27 +27,27 @@ productRoute.get('/getProduct/:productId');
 
 /**
  *  @description   Create a new product
- *  @route         /products
+ *  @route         /createProduct
  *  @method        POST
- *  @access        Public
+ *  @access        admin
  */
-productRoute.post('/createProduct');
+productRoute.post('/createProduct',authMiddleware,adminMiddleware);
 
 /**
  *  @description   Update a product
  *  @route         /products/:productId
  *  @method        PUT
- *  @access        Public
+ *  @access        admin
  */
-productRoute.put('/product/:productId');
+productRoute.put('/product/:productId',authMiddleware,adminMiddleware);
 
-/**
- *  @description   Delete a product
- *  @route         /products/:productId
- *  @method        DELETE
- *  @access        Public
- */
-productRoute.delete('/product/:productId');
+
+
+
+
+
+
+
 
 
 

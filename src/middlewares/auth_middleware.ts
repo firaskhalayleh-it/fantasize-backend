@@ -18,7 +18,7 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
         const token = tokenFromCookie || tokenFromHeader;
 
         if (!token) {
-            return res.status(401).json({ message: 'Access denied. No token provided.' });
+            return res.status(401).json({ message: 'you must login first!' });
         }
 
         const decoded: any = verifyToken(token);

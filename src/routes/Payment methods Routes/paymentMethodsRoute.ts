@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { c_createPaymentMethod, c_deletePaymentMethod, c_getPaymentMethod, c_updatePaymentMethod } from '../../controllers/Payment methods Controller/paymentMethodsController';
+import { authMiddleware } from '../../middlewares/auth_middleware';
 
 const paymentMethodRoute = Router();
 
@@ -11,7 +12,7 @@ const paymentMethodRoute = Router();
  *  @access       private 
  * 
  */
-paymentMethodRoute.post("/user/create_payment_method_user/:userId",c_createPaymentMethod);
+paymentMethodRoute.post("/user/create_payment_method_user/:userId",authMiddleware,c_createPaymentMethod);
 
 /**
  *  @description  update user payment Method by userId
@@ -20,7 +21,7 @@ paymentMethodRoute.post("/user/create_payment_method_user/:userId",c_createPayme
  *  @access       private
  * 
  */
-paymentMethodRoute.put("/user/update_payment_method_user/:userId",c_updatePaymentMethod);
+paymentMethodRoute.put("/user/update_payment_method_user/:userId",authMiddleware,c_updatePaymentMethod);
 
 /**
  *  @description  get user payment Method by userId
@@ -29,7 +30,7 @@ paymentMethodRoute.put("/user/update_payment_method_user/:userId",c_updatePaymen
  *  @access       private
  * 
  */
-paymentMethodRoute.get("/user/get_payment_method_user/:userId",c_getPaymentMethod);
+paymentMethodRoute.get("/user/get_payment_method_user/:userId",authMiddleware,c_getPaymentMethod);
 
 /**
  *  @description  delete user payment Method by userId
@@ -38,7 +39,7 @@ paymentMethodRoute.get("/user/get_payment_method_user/:userId",c_getPaymentMetho
  *  @access       private
  * 
  */
-// paymentMethodRoute.delete("/user/delete_payment_method_user/:userId",c_deletePaymentMethod);
+paymentMethodRoute.delete("/user/delete_payment_method_user/:userId",authMiddleware,c_deletePaymentMethod);
 
 
 export default paymentMethodRoute;

@@ -1,6 +1,8 @@
 // update ,delete and get by id(Profile)  ,get all users  , search user using username
 import express from "express"
 import { c_deleteUser, c_getAllUser, c_getUser, c_searchUser, c_updateUser } from "../../controllers/Users Controller/userController";
+import { authMiddleware } from "../../middlewares/auth_middleware";
+import { adminMiddleware } from "../../middlewares/admin_middleware";
 const userRoute = express.Router();
 
 /**
@@ -10,16 +12,8 @@ const userRoute = express.Router();
  *  @access       private
  * 
  */
-userRoute.put("/update_user/:id",c_updateUser);
+userRoute.put("/update_user/:id",authMiddleware,c_updateUser);
 
-/**
- *  @description  delete user by id
- *  @route        /delete_user/:id
- *  @method       Delete
- *  @access       private
- * 
- */
-userRoute.delete("/delete_user/:id",c_deleteUser);
 
 
 /**
@@ -29,16 +23,16 @@ userRoute.delete("/delete_user/:id",c_deleteUser);
  *  @access       private
  * 
  */
-userRoute.get("/get_user/:id",c_getUser);
+userRoute.get("/get_user_detail/:id",authMiddleware,c_getUser);
 
 /**
  *  @description  search user by username 
  *  @route        /search_user/:username
  *  @method       Get
- *  @access       public
+ *  @access       admin
  * 
  */
-userRoute.get("/get_user/:username",c_searchUser);
+userRoute.get("/get_user/:username",authMiddleware,adminMiddleware,c_searchUser);
 
 /**
  *  @description  get all users
@@ -46,6 +40,16 @@ userRoute.get("/get_user/:username",c_searchUser);
  *  @method       Get
  *  @access       private
  */
-userRoute.get("/get_all_users",c_getAllUser);
+userRoute.get("/get_all_users",authMiddleware,adminMiddleware,c_getAllUser);
+
+
+/**
+ *  @description  get user username and profile picture
+ *  @route        /delete_user/:id
+ *  @method       get
+ *  @access       public
+ * 
+ */
+userRoute.get("/get_user/:id",authMiddleware,c_deleteUser);
 
 export default  userRoute
