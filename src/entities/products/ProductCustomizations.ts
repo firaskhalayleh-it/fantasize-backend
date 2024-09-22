@@ -16,4 +16,5 @@ export class ProductCustomizations extends BaseEntity {
 
     @ManyToMany(() => Products, (product) => product.ProductCustomization,{eager: true, cascade: true})
     Products: Products[];
+
 }

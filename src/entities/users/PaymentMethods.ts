@@ -16,7 +16,7 @@ import { OrdersPackages } from '../packages/OrdersPackages';
   export class PaymentMethods extends BaseEntity{
     @PrimaryGeneratedColumn()
     PaymentMethodID: number;
-  
+
     @ManyToOne(() => Users, (user) => user.UserID)
     User: Users;
 
@@ -28,20 +28,19 @@ import { OrdersPackages } from '../packages/OrdersPackages';
   
     @Column('varchar')
     Method: string;
-  
+
     @Column('varchar')
     CardholderName: string;
-  
+
     @Column('date')
     ExpirationDate: Date;
-  
+
     @Column('varchar')
     CardType: string;
-  
+
     @CreateDateColumn()
     CreatedAt: Date;
-  
-    @UpdateDateColumn()
+
+    @CreateDateColumn()
     UpdatedAt: Date;
   }
-  

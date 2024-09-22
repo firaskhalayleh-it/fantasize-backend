@@ -4,7 +4,6 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
-  UpdateDateColumn,
   BaseEntity,
   Relation,
   OneToOne,
@@ -77,7 +76,7 @@ export class Users extends BaseEntity {
   @CreateDateColumn()
   CreatedAt: Date;
 
-  @UpdateDateColumn()
+  @CreateDateColumn()
   UpdatedAt: Date;
 
 

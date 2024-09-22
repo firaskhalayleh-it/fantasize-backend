@@ -16,7 +16,7 @@ import { OrdersProduct } from '../products/OrdersProducts';
   export class Addresses extends BaseEntity {
     @PrimaryGeneratedColumn()
     AddressID: number;
-  
+
     @ManyToOne(() => Users, (user) => user.UserID)
     User: Users;
 
@@ -29,7 +29,7 @@ import { OrdersProduct } from '../products/OrdersProducts';
   
     @Column('varchar')
     AddressLine: string;
-  
+
     @Column('varchar')
     City: string;
   
@@ -45,7 +45,7 @@ import { OrdersProduct } from '../products/OrdersProducts';
     @CreateDateColumn()
     CreatedAt: Date;
   
-    @UpdateDateColumn()
+    @CreateDateColumn()
     UpdatedAt: Date;
   }
   

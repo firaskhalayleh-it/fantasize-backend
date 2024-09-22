@@ -4,7 +4,6 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
-  UpdateDateColumn,
   BaseEntity,
   ManyToMany,
   JoinTable,
@@ -97,6 +96,6 @@ export class Packages extends BaseEntity {
   @CreateDateColumn()
   CreatedAt: Date;
 
-  @UpdateDateColumn()
+  @CreateDateColumn()
   UpdatedAt: Date;
 }

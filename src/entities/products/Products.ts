@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn } from 'typeorm';
 import { Brands } from '../Brands';
 import { Offers } from '../Offers';
 import { Resources } from '../Resources';
@@ -36,6 +36,7 @@ export class Products extends BaseEntity {
     default: 'None'
   })
   Material: string;
+
 
   @ManyToOne(() => Brands, (brand) => brand.Products, { eager: true })
   Brand: Brands;
@@ -90,6 +91,6 @@ export class Products extends BaseEntity {
   @CreateDateColumn()
   CreatedAt: Date;
 
-  @UpdateDateColumn()
+  @CreateDateColumn()
   UpdatedAt: Date;
 }

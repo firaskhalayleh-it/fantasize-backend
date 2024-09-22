@@ -2,7 +2,6 @@
 import { DataSource } from "typeorm";
 import 'dotenv/config';
 
-
 export const database = new DataSource({
     type: 'postgres',
     host: process.env.DATABASE_HOST,
@@ -19,23 +18,12 @@ export const database = new DataSource({
 
 });
 
-
 export const initlizeDB = async () => {
     await database.connect().then(() => {
         console.log('database initlized : ', database.isConnected);
     }
-    ).catch((error) => {
+    ).catch((err :Error) => {
         console.log('database initlized : ', database.isConnected);
-
-        console.log('database connection error : ', error);
-
-
+        console.log('database connection error : ', err);
     });
-
-
-
-
-
-
-
 }
