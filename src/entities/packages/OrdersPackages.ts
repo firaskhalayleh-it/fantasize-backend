@@ -4,7 +4,6 @@ import {
     Column,
     ManyToOne,
     CreateDateColumn,
-    UpdateDateColumn,
     BaseEntity,
     OneToMany
   } from 'typeorm';
@@ -50,7 +49,7 @@ import { Packages } from './Packages';
     @CreateDateColumn()
     CreatedAt: Date;
   
-    @UpdateDateColumn()
+    @CreateDateColumn()
     UpdatedAt: Date;
   }
   

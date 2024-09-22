@@ -60,7 +60,7 @@ export const getProductInDetail = async (req: Request, res: Response) => {
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
-        if (product.Quantity <= 5) {
+        if (product.Quantity <= 5){     
             product!.Status = 'running low';
             await product.save();
             return res.status(200).json({ message: 'Only few products left' });

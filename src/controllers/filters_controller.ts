@@ -8,7 +8,7 @@ import { Packages } from "../entities/packages/Packages";
 export const getProductsByCategory = async (req: Request, res: Response) => {
     try {
         const { category } = req.params;
-
+        
         const products = await Products.find({ where: { SubCategory: { Category: { Name: category } } } });
         if (!products || products.length === 0) {
             return res.status(404).json({ message: 'No products found' });

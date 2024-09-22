@@ -4,21 +4,21 @@ import {
     Column,
     ManyToOne,
     CreateDateColumn,
-    UpdateDateColumn
+    BaseEntity
   } from 'typeorm';
   import { Users } from './Users';
   
   @Entity()
-  export class Addresses {
+  export class Addresses extends BaseEntity {
     @PrimaryGeneratedColumn()
     AddressID: number;
-  
+
     @ManyToOne(() => Users, (user) => user.UserID)
     User: Users;
-  
+
     @Column('varchar')
     AddressLine: string;
-  
+
     @Column('varchar')
     City: string;
   
@@ -34,7 +34,7 @@ import {
     @CreateDateColumn()
     CreatedAt: Date;
   
-    @UpdateDateColumn()
+    @CreateDateColumn()
     UpdatedAt: Date;
   }
   

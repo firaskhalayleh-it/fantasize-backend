@@ -1,10 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn } from 'typeorm';
 import { Brands } from '../Brands';
 import { Offers } from '../Offers';
 import { Resources } from '../Resources';
 import { Reviews } from '../Reviews';
 import { SubCategories } from '../categories/SubCategories';
 import { ProductCustomizations } from './ProductCustomizations';
+import { FavoriteProducts } from './FavoriteProducts';
+import { Orders } from './OrdersProducts';
 
 @Entity()
 export class Products extends BaseEntity {
@@ -38,6 +40,7 @@ export class Products extends BaseEntity {
     default: 'None'
   })
   Material: string;
+
 
   @ManyToOne(() => Brands, (brand) => brand.Products, { eager: true })
   Brand: Brands;
@@ -81,9 +84,17 @@ export class Products extends BaseEntity {
   })
   Review: Reviews[];
 
+
+  @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product)
+  FavoriteProduct: FavoriteProducts[];
+
+  //FIX:
+  @ManyToMany(() => Orders, (order) => order.Products)
+  OrderProducts: Orders[];
+
   @CreateDateColumn()
   CreatedAt: Date;
 
-  @UpdateDateColumn()
+  @CreateDateColumn()
   UpdatedAt: Date;
 }

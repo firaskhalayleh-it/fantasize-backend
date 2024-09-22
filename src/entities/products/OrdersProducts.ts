@@ -3,10 +3,10 @@ import {
     PrimaryGeneratedColumn,
     Column,
     ManyToOne,
+    ManyToMany,
+    JoinTable,
     CreateDateColumn,
-    UpdateDateColumn,
-    BaseEntity,
-    OneToMany
+    BaseEntity
   } from 'typeorm';
   import { Users } from '../users/Users';
   import { PaymentMethods } from '../users/PaymentMethods';
@@ -21,12 +21,13 @@ import { Products } from './Products';
     @ManyToOne(() => Users, (user) => user.UserID)
     User: Users;
 
-    @OneToMany(() => Products, (products) => products.ProductID)
+    @ManyToMany(() => Products, (product) => product.OrderProducts)
+    @JoinTable()
     Products: Products[];
-  
+
     @Column('varchar')
     Status: string;
-  
+
     @Column('boolean')
     IsGift: boolean;
   
@@ -50,7 +51,7 @@ import { Products } from './Products';
     @CreateDateColumn()
     CreatedAt: Date;
   
-    @UpdateDateColumn()
+    @CreateDateColumn()
     UpdatedAt: Date;
   }
   

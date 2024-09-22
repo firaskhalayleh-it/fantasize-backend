@@ -32,7 +32,6 @@ export const registerUser = async (req: Request, res: Response) => {
             Username: username,
             Role: role || new Roles(),
 
-
         })
 
         console.log(user);
