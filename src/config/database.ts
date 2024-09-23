@@ -1,4 +1,3 @@
-
 import { DataSource } from "typeorm";
 import 'dotenv/config';
 
@@ -15,15 +14,13 @@ export const database = new DataSource({
     entities: [
         'src/entities/**/*.ts',
     ],
-
 });
 
-export const initlizeDB = async () => {
-    await database.connect().then(() => {
-        console.log('database initlized : ', database.isConnected);
+export const initializeDB = async () => {
+    try {
+        await database.initialize();
+        console.log('Database initialized successfully');
+    } catch (err: any) {
+        console.error('Database initialization failed:', err);
     }
-    ).catch((err :Error) => {
-        console.log('database initlized : ', database.isConnected);
-        console.log('database connection error : ', err);
-    });
-}
+};
