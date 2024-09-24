@@ -12,7 +12,7 @@ export const s_signUpUser = async (req:Request , res :Response) =>{
         const {email , password} = req.body;
         const isExist= await Users.findOne({where :{Email:email}})
         if(isExist){
-            res.status(400).send('Wrond Email Or Password !');
+            res.status(400).send('Wrong Email Or Password !');
         }else{
         const userName =email.split('@')[0]; // here to convert string to array for take the user name
         const hashedPassword= await bcrypt.hash(password,10)
@@ -31,16 +31,8 @@ export const s_signUpUser = async (req:Request , res :Response) =>{
         });
         await CreateUser.save();
         // return res.status(201).send(CreateUser);
-        const payload ={
-            userId :CreateUser.UserID,
-            userName:CreateUser.Username,
-            email:CreateUser.Email,
-            role:CreateUser.Role.RoleName
-        }
-        const token =jwt.sign({payload},"testScrit" ,{expiresIn:"12h"})
-        res.cookie("authToken" , token,{httpOnly:false})
-        return (token);
-
+  
+        return `user created successfully`;
         // // console.log(CreateUser);
         // res.status(201).json("user created successfully" + token);
         }
@@ -55,15 +47,18 @@ export const s_signUpUser = async (req:Request , res :Response) =>{
 export const s_loginUser = async (req:Request , res :Response) =>{
     try{
         const {email , password} = req.body;
+        if(email! || password!){
+
+        }
         const isExist= await Users.findOne({where :{Email:email} , relations:["Role"]})
         if(!isExist){
-            res.status(400).json({ error: 'Wrond Email Or Password !' });
+            res.status(400).json({ error: 'Wrong Email Or Password !' });
         }
         const passwordMatch = await bcrypt.compare(password, isExist!.Password);
         if (passwordMatch){
             // console.log(isExist);
             const payload={
-                userId :isExist!.UserID,    
+                userId :isExist!.UserID,
                 userName:isExist!.Username,
                 email:isExist!.Email,
                 role:isExist!.Role.RoleName

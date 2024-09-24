@@ -35,16 +35,18 @@ export const IsAuthenticated = async (req: Request, res: Response, next: NextFun
 };
 
 
-export const IsAuthenticatedUserAndAdmin = async (req: Request, res: Response, next: NextFunction) => {
+export const isAuthorized  = async (req: Request, res: Response, next: NextFunction) => {
     IsAuthenticated(req,res,() =>{
-        if((req as any).user.payload.userId ===req.params.id ||(req as any).user.payload.role==="admin"){
+console.log((req as any).user.payload.userId );
+console.log("=================================");
+console.log(req.params.id);
+        if((req as any).user.payload.userId ===req.params.id || (req as any).user.payload.role==="admin"){
             next();
         }else{
             return res.status(403).json({message : 'You are not allowed'});
         }
     })
-
-    
-
 };
+
+
 

@@ -4,7 +4,6 @@ import { Users } from '../../entities/users/Users';
 //----------------------- update user by id-----------------------
 export const s_updateUser = async (req:Request , res:Response) =>{
     try{
-        // const userId = (req as any).user.userId
         const userId: any = req.params.id;
         const user = await Users.findOne({where :{UserID:userId}})
         if(!user){
@@ -26,7 +25,6 @@ export const s_updateUser = async (req:Request , res:Response) =>{
 //----------------------- get user by id (and using this to create profile)-----------------------
 export const s_getUser = async (req:Request , res:Response) =>{
     try{
-        // const userId = (req as any).user.userId
         const userId: any = req.params.id;
         const user = await Users.findOne({where :{UserID:userId}})
         if(!user){
@@ -43,7 +41,6 @@ export const s_getUser = async (req:Request , res:Response) =>{
 //----------------------- search user by username -----------------------
 export const s_searchUser = async (req:Request , res:Response) =>{
     try{
-        // const userId = (req as any).user.userId
         const userName: any = req.params.username;
         const user = await Users.find({where :{Username:userName}})
         if(!user){
@@ -72,7 +69,7 @@ export const s_getAllUser = async (req:Request , res:Response) =>{
 //----------------------- get user username and profile picture-----------------------
 export const s_getUserNameWithProfilePic = async (req:Request , res:Response) =>{
     try{
-        // const userId = (req as any).user.userId
+        
         const userId: any = req.params.id;
         const user = await Users.findOne({where :{UserID:userId}})
         if(!user){

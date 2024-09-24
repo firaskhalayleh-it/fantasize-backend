@@ -3,6 +3,7 @@ import express from "express"
 import { c_getAllUser, c_getUser, c_getUserNameWithProfilePic, c_searchUser, c_updateUser } from "../../controllers/Users Controller/userController";
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
+import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
 const userRoute = express.Router();
 
 /**
@@ -12,7 +13,7 @@ const userRoute = express.Router();
  *  @access       private
  * 
  */
-userRoute.put("/update_user/:id",authMiddleware,c_updateUser);
+userRoute.put("/update_user/:id",isAuthorized ,c_updateUser);
 
 
 
@@ -23,7 +24,7 @@ userRoute.put("/update_user/:id",authMiddleware,c_updateUser);
  *  @access       private
  * 
  */
-userRoute.get("/get_user_detail/:id",authMiddleware,c_getUser);
+userRoute.get("/get_user_detail/:id",isAuthorized,c_getUser);
 
 /**
  *  @description  search user by username 
@@ -32,7 +33,7 @@ userRoute.get("/get_user_detail/:id",authMiddleware,c_getUser);
  *  @access       admin
  * 
  */
-userRoute.get("/get_user/:username",authMiddleware,adminMiddleware,c_searchUser);
+userRoute.get("/getUser/:username",isAuthorized,c_searchUser);
 
 /**
  *  @description  get all users
@@ -40,8 +41,7 @@ userRoute.get("/get_user/:username",authMiddleware,adminMiddleware,c_searchUser)
  *  @method       Get
  *  @access       private
  */
-userRoute.get("/get_all_users",authMiddleware,adminMiddleware,c_getAllUser);
-
+userRoute.get("/get_all_users",isAuthorized,c_getAllUser);
 
 /**
  *  @description  get user username and profile picture
@@ -50,6 +50,6 @@ userRoute.get("/get_all_users",authMiddleware,adminMiddleware,c_getAllUser);
  *  @access       public
  * 
  */
-userRoute.get("/get_user/:id",authMiddleware,c_getUserNameWithProfilePic);
+userRoute.get("/getusers/:id", isAuthorized,c_getUserNameWithProfilePic);
 
 export default  userRoute

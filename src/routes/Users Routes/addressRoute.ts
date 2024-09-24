@@ -2,6 +2,7 @@
 import express from "express"
 import { c_addNewAdress, c_deleteUserAddress, c_getUserAddress, c_updateUserAddress } from "../../controllers/Users Controller/addressController";
 import { authMiddleware } from "../../middlewares/auth_middleware";
+import { isAuthorized } from "../../middlewares/isAuthentecated";
 const addressRoute = express.Router();
 
 /**
@@ -11,7 +12,7 @@ const addressRoute = express.Router();
  *  @access       private
  * 
  */
-addressRoute.post("/user/create_address_user/:userId",authMiddleware,c_addNewAdress);
+addressRoute.post("/user/create_address_user/:userId",isAuthorized,c_addNewAdress);
 
 /**
  *  @description  update user address by userId
