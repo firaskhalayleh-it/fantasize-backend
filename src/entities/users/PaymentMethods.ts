@@ -32,8 +32,14 @@ import { OrdersPackages } from '../packages/OrdersPackages';
     @Column('varchar')
     CardholderName: string;
 
+    @Column('varchar')
+    CardNumber: string;
+
     @Column('date')
     ExpirationDate: Date;
+
+    @Column('int')
+    CVV: number;
 
     @Column('varchar')
     CardType: string;
@@ -41,6 +47,6 @@ import { OrdersPackages } from '../packages/OrdersPackages';
     @CreateDateColumn()
     CreatedAt: Date;
 
-    @CreateDateColumn()
+    @UpdateDateColumn()
     UpdatedAt: Date;
   }

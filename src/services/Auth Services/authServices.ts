@@ -11,11 +11,11 @@ export const s_signUpUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
         if (email! || password!) {
-            res.status(400).send('Please provide an email and password');
+            return 'Please provide an email and password';
         }
         const isExist = await Users.findOne({ where: { Email: email } })
         if (isExist) {
-            res.status(400).send('Wrong Email Or Password !');
+            return 'User already exists';
         } else {
             const userName = email.split('@')[0]; // here to convert string to array for take the user name
             const hashedPassword = await bcrypt.hash(password, 10)
@@ -50,12 +50,12 @@ export const s_signUpUser = async (req: Request, res: Response) => {
 export const s_loginUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
-        if (email! || password!) {
-            res.status(400).json({ error: 'Please provide an email and password' });
+        if (email == '' || password == '') {
+            return({ error: 'Please provide an email and password' });
         }
         const isExist = await Users.findOne({ where: { Email: email }, relations: ["Role"] })
         if (!isExist) {
-            res.status(400).json({ error: 'Wrong Email Or Password !' });
+            return({ error: 'Wrong Email Or Password !' });
         }
         const passwordMatch = await bcrypt.compare(password, isExist!.Password);
         if (passwordMatch) {
@@ -71,7 +71,7 @@ export const s_loginUser = async (req: Request, res: Response) => {
             return (token);
 
         } else {
-            res.status(400).json({ error: 'Wrond Email Or Password !' });
+            return({ error: 'Wrond Email Or Password !' });
         }
 
 

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, BaseEntity } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, BaseEntity, JoinColumn } from 'typeorm';
 import { Categories } from './Categories';
 import { Products } from '../products/Products';
 import { Packages } from '../packages/Packages';
@@ -15,6 +15,7 @@ export class SubCategories extends BaseEntity {
   IsActive: boolean;
 
   @ManyToOne(() => Categories, (category) => category.SubCategory)
+  @JoinColumn({ name: "CategoryID" }) 
   Category: Categories;
 
   @OneToMany(() => Products, (product) => product.SubCategory)

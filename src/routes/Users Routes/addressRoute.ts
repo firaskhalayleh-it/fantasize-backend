@@ -2,7 +2,7 @@
 import express from "express"
 import { c_addNewAdress, c_deleteUserAddress, c_getUserAddress, c_updateUserAddress } from "../../controllers/Users Controller/addressController";
 import { authMiddleware } from "../../middlewares/auth_middleware";
-import { isAuthorized } from "../../middlewares/isAuthentecated";
+import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
 const addressRoute = express.Router();
 
 /**
@@ -21,7 +21,7 @@ addressRoute.post("/user/create_address_user/:userId",isAuthorized,c_addNewAdres
  *  @access       private
  * 
  */
-addressRoute.put("/user/update_address_user/:userId",authMiddleware,c_updateUserAddress);
+addressRoute.put("/user/update_address_user/:userId",IsAuthenticated,c_updateUserAddress);
 
 /**
  *  @description  delete user address by userId
@@ -30,7 +30,7 @@ addressRoute.put("/user/update_address_user/:userId",authMiddleware,c_updateUser
  *  @access       private
  * 
  */
-addressRoute.delete("/user/delete_address_user/:userId",authMiddleware,c_deleteUserAddress);
+addressRoute.delete("/user/delete_address_user/:userId",IsAuthenticated,c_deleteUserAddress);
 
 
 /**
@@ -40,7 +40,7 @@ addressRoute.delete("/user/delete_address_user/:userId",authMiddleware,c_deleteU
  *  @access       private
  * 
  */
-addressRoute.get("/user/get_address_user/:userId",authMiddleware,c_getUserAddress);
+addressRoute.get("/user/get_address_user/:userId",IsAuthenticated,c_getUserAddress);
 
 
 export default  addressRoute

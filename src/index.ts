@@ -7,6 +7,8 @@ import authRoute from "./routes/Auth Routes/authRoutes";
 import { errorHandler, notFound } from "./middlewares/httpErrors";
 import userRoute from "./routes/Users Routes/usersRoute";
 import addressRoute from "./routes/Users Routes/addressRoute";
+import paymentMethodRoute from "./routes/Payment methods Routes/paymentMethodsRoute";
+import categoryRoute from "./routes/Categories Routes/categoriesRoute";
 
 const app = express();
 app.use(cookieParser());
@@ -21,6 +23,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api",authRoute);
 app.use("/api",userRoute);
 app.use("/api",addressRoute);
+app.use("/api",paymentMethodRoute);
+app.use("/api",categoryRoute);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -3,6 +3,7 @@ import { s_getAllUser, s_getUser, s_getUserNameWithProfilePic, s_searchUser, s_u
 
 //----------------------- update user by id-----------------------
 export const c_updateUser = async (req:Request , res:Response) =>{
+    
 
     const result = await s_updateUser(req, res);
     res.status(200).json(result);

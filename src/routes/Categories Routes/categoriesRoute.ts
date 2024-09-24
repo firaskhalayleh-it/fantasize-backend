@@ -56,7 +56,7 @@ categoryRoute.put('/categories/:categoryId/subcategories/:subcategoryId', authMi
  *  @access        Public
  */
 
-categoryRoute.get('/categories/subcategories');
+categoryRoute.get('/categories/subcategories', c_getAllCategories);
 
 
 /**
@@ -66,7 +66,7 @@ categoryRoute.get('/categories/subcategories');
  *  @method        get
  *  @access        public
  */
-categoryRoute.get('/categories/selected_subcategories',);
+// categoryRoute.get('/categories/selected_subcategories',);
 
 
 export default categoryRoute;
