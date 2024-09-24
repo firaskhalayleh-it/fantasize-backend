@@ -1,6 +1,6 @@
 // update ,delete and get by id(Profile)  ,get all users  , search user using username
 import express from "express"
-import { c_deleteUser, c_getAllUser, c_getUser, c_searchUser, c_updateUser } from "../../controllers/Users Controller/userController";
+import { c_getAllUser, c_getUser, c_getUserNameWithProfilePic, c_searchUser, c_updateUser } from "../../controllers/Users Controller/userController";
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
 const userRoute = express.Router();
@@ -45,11 +45,11 @@ userRoute.get("/get_all_users",authMiddleware,adminMiddleware,c_getAllUser);
 
 /**
  *  @description  get user username and profile picture
- *  @route        /delete_user/:id
+ *  @route        /get_user/:id
  *  @method       get
  *  @access       public
  * 
  */
-userRoute.get("/get_user/:id",authMiddleware,c_deleteUser);
+userRoute.get("/get_user/:id",authMiddleware,c_getUserNameWithProfilePic);
 
 export default  userRoute

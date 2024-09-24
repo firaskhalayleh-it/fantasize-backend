@@ -37,6 +37,6 @@ authRoute.post("/logout",authMiddleware,c_logOutUser);
 //  @method       Post
 //  @access       public
 //
-authRoute.post("/user/firebaseUID");
+// authRoute.post("/user/firebaseUID");
 
 export default authRoute;
