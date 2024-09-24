@@ -2,6 +2,7 @@
 import express from "express"
 import { c_loginUser, c_logOutUser, c_registerUser } from "../../controllers/Auth Controller/authController";
 import { authMiddleware } from "../../middlewares/auth_middleware";
+import { IsAuthenticated } from "../../middlewares/isAuthentecated";
 const authRoute = express.Router();
 
 /**
@@ -29,7 +30,7 @@ authRoute.post("/login",c_loginUser);
  *  @access       private
  * 
  */
-authRoute.post("/logout",authMiddleware,c_logOutUser);
+authRoute.post("/logout",IsAuthenticated,c_logOutUser);
 
 
 //  @description  get user by firebase UID

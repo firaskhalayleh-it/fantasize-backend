@@ -19,20 +19,30 @@ export const s_signUpUser = async (req:Request , res :Response) =>{
         let role = await Roles.findOne({ where: { RoleName: 'user' }});
         if (!role) {
             role = Roles.create({ RoleName: 'user' });
-            await role.save();
-            return res.status(500).json({ message: 'Internal server error' });
+            role= await role.save();
+            // return res.status(500).json({ message: 'Internal server error' });
 
         }
         const CreateUser = Users.create({
             Username:userName,
             Email : email,
             Password:hashedPassword,
-            Role: role || new Roles(),
+            Role: role,
         });
         await CreateUser.save();
-        const token = generateToken(CreateUser.UserID);
-        // console.log(CreateUser);
-        res.status(201).json("user created successfully" + token);
+        // return res.status(201).send(CreateUser);
+        const payload ={
+            userId :CreateUser.UserID,
+            userName:CreateUser.Username,
+            email:CreateUser.Email,
+            role:CreateUser.Role.RoleName
+        }
+        const token =jwt.sign({payload},"testScrit" ,{expiresIn:"12h"})
+        res.cookie("authToken" , token,{httpOnly:false})
+        return (token);
+
+        // // console.log(CreateUser);
+        // res.status(201).json("user created successfully" + token);
         }
         
     }catch(err:any){
@@ -45,31 +55,47 @@ export const s_signUpUser = async (req:Request , res :Response) =>{
 export const s_loginUser = async (req:Request , res :Response) =>{
     try{
         const {email , password} = req.body;
-        const isExist= await Users.findOne({where :{Email:email}})
+        const isExist= await Users.findOne({where :{Email:email} , relations:["Role"]})
         if(!isExist){
             res.status(400).json({ error: 'Wrond Email Or Password !' });
         }
-        const isPasswordValid = await bcrypt.compare(password, isExist!.Password);
-        if (!isPasswordValid) {
-             res.status(400).json({ error: 'Wrond Email Or Password !' });
+        const passwordMatch = await bcrypt.compare(password, isExist!.Password);
+        if (passwordMatch){
+            // console.log(isExist);
+            const payload={
+                userId :isExist!.UserID,    
+                userName:isExist!.Username,
+                email:isExist!.Email,
+                role:isExist!.Role.RoleName
+            }
+            const token =jwt.sign({payload},"testScrit" ,{expiresIn:"12h"})
+            res.cookie("authToken" , token,{httpOnly:false})
+            return (token);
+
+        }else{
+            res.status(400).json({ error: 'Wrond Email Or Password !' });
         }
+
+
+
+
         // Generate JWT token
-        const token = generateToken(isExist!.UserID);
+        // const token = generateToken(isExist!.UserID);
 
         // Create the cookies
-        const authorizationCookie = createCookie(token, 'authorization');
-        const userIDCookie = createCookie(isExist!.UserID, 'UserID');
+        // const authorizationCookie = createCookie(token, 'authorization');
+        // const userIDCookie = createCookie(isExist!.UserID, 'UserID');
 
         // Set multiple cookies in the response
-        res.setHeader('Set-Cookie', [authorizationCookie, userIDCookie]);
+        // res.setHeader('Set-Cookie', [authorizationCookie, userIDCookie]);
 
         // Optionally log the token for debugging
         // console.log(token);
 
         // Exclude password from user data
-        const { Password, ...userData } = isExist!;
+        // const { Password, ...userData } = isExist!;
         // Send response
-        res.status(200).json({ message: 'Login successful', token, user: userData });
+        // res.status(200).json({ message: 'Login successful', token, user: userData });
     }catch(err:any){
         console.log(err);
         res.status(500).send({message: err.message})
@@ -79,10 +105,12 @@ export const s_loginUser = async (req:Request , res :Response) =>{
 export const s_logOutUser = async (req:Request , res:Response) => {
     try {
         // Clear cookies
-        res.clearCookie('UserID');
-        res.clearCookie('authorization');
+        // res.clearCookie('UserID');
+        // res.clearCookie('authorization');
+        const logout = res.clearCookie('authToken')
+        res.send("logged out")
 
-        res.status(200).json({ message: 'Logout successful' });
+        // res.status(200).json({ message: 'Logout successful' });
     }catch(err:any){
         console.log(err);
         res.status(500).send({message: err.message})
