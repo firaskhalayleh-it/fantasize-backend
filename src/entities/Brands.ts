@@ -1,4 +1,4 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, OneToMany, Index } from "typeorm";
 import { Products } from '../entities/products/Products';
 
 export const BrandName = ['Nike', 'Adidas', 'Puma', 'Reebok', 'Under Armour', 'ZARA', 'H&M', 'Levi Strauss & Co.', 'Gucci',

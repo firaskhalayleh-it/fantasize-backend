@@ -4,7 +4,7 @@ import { join } from 'path';
 
 @Entity()
 export class Categories extends BaseEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('increment')
   CategoryID: number;
 
   @Column('varchar', { unique: true })

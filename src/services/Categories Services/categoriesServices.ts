@@ -1,5 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { Categories } from '../../entities/categories/Categories';
+import { SubCategories } from '../../entities/categories/SubCategories';
 
 //-----------------------Get all categories -----------------------
 export const s_getAllCategories = async (req: Request, res: Response) => {
@@ -47,8 +48,22 @@ export const s_getCategory = async (req: Request, res: Response) => {
 export const s_createCategory = async (req: Request, res: Response) => {
     try {
 
-        const { CategoryName, Description } = req.body;
-        const Image = req.file;
+        const { Name, IsActive } = req.body;
+
+        if (!Name || Name === '') {
+            return res.status(400).send({ message: 'Please provide a category name ' });
+        }
+        const category = Categories.create({
+            Name: Name,
+            IsActive: IsActive
+        });
+
+        const createdCategory = await category.save();
+        if (createdCategory) {
+            return res.status(201).json(createdCategory);
+        } else {
+            return res.status(400).send({ message: 'Category could not be created' });
+        }
 
 
     } catch (err: any) {
@@ -61,6 +76,24 @@ export const s_createCategory = async (req: Request, res: Response) => {
 //----------------------- Update a category by ID-----------------------
 export const s_updateCategory = async (req: Request, res: Response) => {
     try {
+        const categoryId = Number(req.params.id);
+        const { Name, Image, IsActive } = req.body;
+        const category = await Categories.findOne({ where: { CategoryID: categoryId } });
+
+        if (category) {
+            category.Name = Name || category.Name;
+            category.Image = Image || category.Image;
+            category.IsActive = IsActive || category.IsActive;
+
+            const updatedCategory = await category.save();
+            if (updatedCategory) {
+                return res.status(200).json(updatedCategory);
+            } else {
+                return res.status(400).send({ message: 'Category could not be updated' });
+            }
+        } else {
+            return res.status(404).send({ message: 'Category not found' });
+        }
 
     } catch (err: any) {
         console.log(err);
@@ -73,6 +106,16 @@ export const s_updateCategory = async (req: Request, res: Response) => {
 export const s_deleteCategory = async (req: Request, res: Response) => {
     try {
 
+        const categoryId = Number(req.params.categoryId);
+        const category = await Categories.findOne({ where: { CategoryID: categoryId } });
+
+        if (category) {
+            await Categories.delete({ CategoryID: categoryId });
+            return res.status(200).json({ message: 'Category deleted successfully' });
+        }
+        return res.status(404).send({ message: 'Category not found' });
+
+
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message })
@@ -83,7 +126,14 @@ export const s_deleteCategory = async (req: Request, res: Response) => {
 //----------------------- Get all subcategories for a specific category by category ID-----------------------
 export const s_getAllSubcategories = async (req: Request, res: Response) => {
     try {
+        const categoryId = Number(req.params.categoryId);
+        const category = await Categories.findOne({ where: { CategoryID: categoryId }, relations: ['SubCategory'] });
 
+        if (category) {
+            return res.status(200).json(category.SubCategory);
+        } else {
+            return res.status(404).send({ message: 'Category not found' });
+        }
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message })
@@ -95,6 +145,32 @@ export const s_getAllSubcategories = async (req: Request, res: Response) => {
 export const s_createSubcategory = async (req: Request, res: Response) => {
     try {
 
+        const { Name, IsActive } = req.body;
+
+        if (!Name || Name === '') {
+            return res.status(400).send({ message: 'Please provide a subcategory name ' });
+        }
+     
+    
+        const categoryId = Number(req.params.categoryId);
+        const category = await Categories.findOne({ where: { CategoryID: categoryId } });
+
+        if (category) {
+
+            const createdSubcategory = await SubCategories.create({
+                Name: Name,
+                IsActive: IsActive,
+                Category: category
+            }
+            ).save();
+            if (createdSubcategory) {
+                return res.status(201).json(createdSubcategory);
+            } else {
+                return res.status(400).send({ message: 'Subcategory could not be created' });
+            }
+        } else {
+            return res.status(404).send({ message: 'Category not found' });
+        }
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message })
@@ -104,9 +180,81 @@ export const s_createSubcategory = async (req: Request, res: Response) => {
 //----------------------- Delete a subcategory under a specific category-----------------------
 export const s_DeleteSubcategory = async (req: Request, res: Response) => {
     try {
+        const categoryId = Number(req.params.categoryId);
+        const subcategoryId = Number(req.params.subcategoryId);
+
+        const category = await Categories.findOne({ where: { CategoryID: categoryId } });
+        const subcategory = await SubCategories.findOne({ where: { SubCategoryID: subcategoryId } });
+
+        if (category && subcategory) {
+            await SubCategories.delete({ SubCategoryID: subcategoryId });
+            return res.status(200).json({ message: 'Subcategory deleted successfully' });
+        }
+        return res.status(404).send({ message: 'Subcategory not found' });
 
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message })
     }
-} 
+}
+
+//----------------------- Disactivate a category-----------------------
+export const s_disactivateCategory = async (req: Request, res: Response) => {
+    try {
+        const categoryId = Number(req.params.categoryId);
+
+        const category = await Categories.findOne({ where: { CategoryID: categoryId } });
+
+        if (category) {
+            const ExistingSubcategories = await SubCategories.find({ where: { Category: { CategoryID: categoryId } }, relations: ['Category'] });
+            if (ExistingSubcategories && ExistingSubcategories.length > 0) {
+                ExistingSubcategories.forEach(async (subcategory) => {
+                    subcategory.IsActive = false;
+                    await subcategory.save();
+                });
+            }
+            category.IsActive = false;
+            const updatedCategory = await category.save();
+            if (updatedCategory) {
+                return res.status(200).json(updatedCategory);
+            } else {
+                return res.status(400).send({ message: 'Category could not be updated' });
+            }
+        } else {
+            return res.status(404).send({ message: 'Category not found' });
+        }
+
+    } catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message })
+    }
+}
+
+export const s_updateSubcategory = async (req: Request, res: Response) => {
+    try {
+        const categoryId = Number(req.params.categoryId);
+        const subcategoryId = Number(req.params.subcategoryId);
+        const { Name, IsActive } = req.body;
+
+        const category = await Categories.findOne({ where: { CategoryID: categoryId } });
+        const subcategory = await SubCategories.findOne({ where: { SubCategoryID: subcategoryId } });
+
+        if (category && subcategory) {
+            subcategory.Name = Name || subcategory.Name;
+            subcategory.IsActive = IsActive || subcategory.IsActive;
+
+            const updatedSubcategory = await subcategory.save();
+            if (updatedSubcategory) {
+                return res.status(200).json(updatedSubcategory);
+            } else {
+                return res.status(400).send({ message: 'Subcategory could not be updated' });
+            }
+        } else {
+            return res.status(404).send({ message: 'Subcategory not found' });
+        }
+
+    } catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message })
+    }
+}

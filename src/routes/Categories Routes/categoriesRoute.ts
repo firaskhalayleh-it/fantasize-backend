@@ -1,7 +1,8 @@
 import express from "express"
-import { c_createCategory, c_createSubcategory, c_deleteCategory, c_DeleteSubcategory, c_getAllCategories, c_getAllSubcategories, c_getCategory, c_updateCategory } from "../../controllers/Categories Controller/CategoriesController";
+import { c_createCategory, c_createSubcategory, c_deleteCategory, c_DeleteSubcategory, c_disActiveCategory, c_getAllCategories, c_getAllSubcategories, c_getCategory, c_updateCategory, c_updateSubcategory } from "../../controllers/Categories Controller/CategoriesController";
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
+import { isAuthorized } from "../../middlewares/isAuthentecated";
 const categoryRoute = express.Router();
 
 /**
@@ -19,7 +20,7 @@ categoryRoute.get('/categories', c_getAllCategories);
  *  @method        POST
  *  @access        Admin
  */
-categoryRoute.post('/categories', authMiddleware, adminMiddleware, c_createCategory);
+categoryRoute.post('/categories', isAuthorized, c_createCategory);
 
 /**
  *  @description   Update a category by ID
@@ -27,7 +28,7 @@ categoryRoute.post('/categories', authMiddleware, adminMiddleware, c_createCateg
  *  @method        PUT
  *  @access        admin
  */
-categoryRoute.put('/categories/:id', authMiddleware, adminMiddleware, c_updateCategory);
+categoryRoute.put('/category/:id', isAuthorized, c_updateCategory);
 
 
 
@@ -37,7 +38,7 @@ categoryRoute.put('/categories/:id', authMiddleware, adminMiddleware, c_updateCa
  *  @method        POST
  *  @access        Public
  */
-categoryRoute.post('/categories/:categoryId/subcategories', authMiddleware, adminMiddleware, c_createSubcategory);
+categoryRoute.post('/categories/:categoryId/subcategories', isAuthorized, c_createSubcategory);
 
 
 
@@ -47,7 +48,7 @@ categoryRoute.post('/categories/:categoryId/subcategories', authMiddleware, admi
  *  @method        put
  *  @access        admin
  */
-categoryRoute.put('/categories/:categoryId/subcategories/:subcategoryId', authMiddleware, adminMiddleware, c_DeleteSubcategory);
+categoryRoute.put('/categories/:categoryId/subcategories/:subcategoryId', isAuthorized, c_updateSubcategory);
 
 /**
  *  @description   Get  all categories with subcategories
@@ -59,14 +60,14 @@ categoryRoute.put('/categories/:categoryId/subcategories/:subcategoryId', authMi
 categoryRoute.get('/categories/subcategories', c_getAllCategories);
 
 
+
 /**
- *  @description   Get selected subcategories for home page mobile and web 
- * version with providing first product picture foreach subcategory
- *  @route         /categories/:id
- *  @method        get
- *  @access        public
+ *  @description   disActive a category by ID if it is active
+ *  @route         /categories/:CategoryId
+ *  @method        put
+ *  @access        admin
  */
-// categoryRoute.get('/categories/selected_subcategories',);
+categoryRoute.put('/categories/:CategoryId', isAuthorized, c_disActiveCategory);
 
 
 export default categoryRoute;
