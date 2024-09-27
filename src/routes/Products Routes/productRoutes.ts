@@ -2,6 +2,7 @@ import express from "express"
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
 import { isAuthorized } from "../../middlewares/isAuthentecated";
+import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory, c_updateProduct } from "../../controllers/Products Controller/productController";
 
 const productRoute = express.Router();
 
@@ -16,7 +17,7 @@ const productRoute = express.Router();
  *  @access        Public
  */
 
-productRoute.get('/:CategoryID/:subCategoryID/getAllproducts');
+productRoute.get('/:CategoryID/:subCategoryID/getAllproducts',isAuthorized,c_getProductByCategoryAndSubCategory);
 
 /**
  *  @description   Get a single product by ID
@@ -24,7 +25,7 @@ productRoute.get('/:CategoryID/:subCategoryID/getAllproducts');
  *  @method        GET
  *  @access        Public
  */
-productRoute.get('/getProduct/:productId');
+productRoute.get('/getProduct/:productId',isAuthorized,c_getProduct);
 
 /**
  *  @description   Create a new product
@@ -32,7 +33,7 @@ productRoute.get('/getProduct/:productId');
  *  @method        POST
  *  @access        admin
  */
-productRoute.post('/createProduct',isAuthorized);
+productRoute.post('/createProduct',isAuthorized,c_createProduct);
 
 /**
  *  @description   Update a product
@@ -40,7 +41,7 @@ productRoute.post('/createProduct',isAuthorized);
  *  @method        PUT
  *  @access        admin
  */
-productRoute.put('/product/:productId',isAuthorized);
+productRoute.put('/product/:productId',isAuthorized,c_updateProduct);
 
 
 
