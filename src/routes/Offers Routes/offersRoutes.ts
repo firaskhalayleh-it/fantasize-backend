@@ -1,4 +1,6 @@
 import express from 'express';
+import { authMiddleware } from '../../middlewares/auth_middleware';
+import { adminMiddleware } from '../../middlewares/admin_middleware';
 
 const offerRoute = express.Router();
 
@@ -8,38 +10,42 @@ const offerRoute = express.Router();
  *  @method        POST
  *  @access        private
  */
-offerRoute.post('/offers', );
+offerRoute.post('/offers',authMiddleware,adminMiddleware );
 
 /**
- *  @description   Get all offers (مش عارف اذا هاي بتلزمنا)
+ *  @description   Get all offers
  *  @route         /offers
  *  @method        GET
- *  @access        public
+ *  @access        admin
  */
-offerRoute.get('/offers', );
+offerRoute.get('/offers',authMiddleware,adminMiddleware );
 
 /**
  *  @description   Get an offer by ID
  *  @route         /offers/:offerId
  *  @method        GET
- *  @access        public
+ *  @access        admin
  */
-offerRoute.get('/offers/:offerId', );
+offerRoute.get('/offers/:offerId',authMiddleware,adminMiddleware );
 
 /**
  *  @description   Update an offer
  *  @route         /offers/:offerId
  *  @method        PUT
- *  @access        private
+ *  @access        admin
  */
-offerRoute.put('/offers/:offerId',);
+offerRoute.put('/offers/:offerId',authMiddleware,adminMiddleware );
+
+
+
+
 
 /**
- *  @description   Delete an offer
- *  @route         /offers/:offerId
- *  @method        DELETE
- *  @access        private
+ *  @description   Get all offers for the home page for mobile version and web version
+ *  @route         /offers/homeOffers
+ *  @method        GET
+ *  @access        public
  */
-offerRoute.delete('/offers/:offerId',);
+offerRoute.get('/offers/homeOffers' );
 
 export default offerRoute;

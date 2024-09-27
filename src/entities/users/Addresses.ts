@@ -4,9 +4,13 @@ import {
     Column,
     ManyToOne,
     CreateDateColumn,
-    BaseEntity
+    UpdateDateColumn,
+    BaseEntity,
+    OneToMany
   } from 'typeorm';
   import { Users } from './Users';
+import { OrdersPackages } from '../packages/OrdersPackages';
+import { OrdersProduct } from '../products/OrdersProducts';
   
   @Entity()
   export class Addresses extends BaseEntity {
@@ -16,6 +20,13 @@ import {
     @ManyToOne(() => Users, (user) => user.UserID)
     User: Users;
 
+
+    @OneToMany(()=> OrdersPackages, (order) => order.OrderID)
+    Orders: OrdersPackages[];
+
+    @OneToMany(() => OrdersProduct, (order) => order.OrderID)
+    OrdersProduct: OrdersProduct[];
+  
     @Column('varchar')
     AddressLine: string;
 

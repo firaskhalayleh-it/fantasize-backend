@@ -16,7 +16,12 @@ import { Resources } from '../Resources';
   export class PackageCustomizations extends BaseEntity{
     @PrimaryGeneratedColumn()
     PackageCustomizationID: number;
-  
+    
+    // color is required
+    // size is required
+    // material is required
+    // attachment is required
+    // message is required
     @Column('jsonb', )
     Options: Record<string, any>;
 

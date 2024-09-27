@@ -1,19 +1,13 @@
 import { Request, Response } from 'express';
-import { s_deleteUser, s_getAllUser, s_getUser, s_searchUser, s_updateUser } from '../../services/Users Services/usersServices';
+import { s_getAllUser, s_getUser, s_getUserNameWithProfilePic, s_searchUser, s_updateUser } from '../../services/Users Services/usersServices';
 
 //----------------------- update user by id-----------------------
 export const c_updateUser = async (req:Request , res:Response) =>{
+    
 
     const result = await s_updateUser(req, res);
     res.status(200).json(result);
 
-} 
-
-//----------------------- delete user by id-----------------------
-export const c_deleteUser = async (req:Request , res:Response) =>{
-
-    const result = await s_deleteUser(req, res);
-    res.status(200).json(result);
 } 
 
 
@@ -36,5 +30,12 @@ export const c_searchUser = async (req:Request , res:Response) =>{
 export const c_getAllUser = async (req:Request , res:Response) =>{
 
     const result = await s_getAllUser(req, res);
+    res.status(200).json(result);
+} 
+
+//----------------------- get user username and profile picture -----------------------
+export const c_getUserNameWithProfilePic = async (req:Request , res:Response) =>{
+
+    const result = await s_getUserNameWithProfilePic(req, res);
     res.status(200).json(result);
 } 

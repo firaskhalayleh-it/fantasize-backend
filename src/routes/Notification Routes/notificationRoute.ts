@@ -1,25 +1,47 @@
-// create notificatin , get 
 import express from 'express';
-import { c_addNotification, c_getNotification } from '../../controllers/Notification Controller/notificationController';
-const notificatinRoute = express.Router();
+import { authMiddleware } from '../../middlewares/auth_middleware';
+import { adminMiddleware } from '../../middlewares/admin_middleware';
+
+const notificationRoute = express.Router();
 
 /**
- *  @description  create new notification
- *  @route        /notifications/:userId
- *  @method       Post
- *  @access       private 
- * 
+ *  @description  Create a new notification for a specific user
+ *  @route        POST /notifications/:userId
+ *  @method       POST
+ *  @access       Private (Admin)
  */
-notificatinRoute.post("/notifications/:userId",c_addNotification);
-
+notificationRoute.post("/notifications/:userId", authMiddleware, adminMiddleware, );
 
 /**
- *  @description  get a notification the user
- *  @route        /notification
- *  @method       get
- *  @access       private 
- * 
+ *  @description  Create a new notification for all users
+ *  @route        POST /notifications
+ *  @method       POST
+ *  @access       Private (Admin)
  */
-notificatinRoute.get("/notification",c_getNotification);
+notificationRoute.post('/notifications', authMiddleware, adminMiddleware, );
 
-export default notificatinRoute;
+/**
+ *  @description  Get notifications for a specific user
+ *  @route        GET /notifications/:userId
+ *  @method       GET
+ *  @access       Private (Authenticated User)
+ */
+notificationRoute.get("/:userId/notifications", authMiddleware, );
+
+/**
+ *  @description  Send a notification to a specific user
+ *  @route        POST /notifications/send/:userId
+ *  @method       POST
+ *  @access       Private (Admin)
+ */
+notificationRoute.post("/notifications/send/:userId", authMiddleware, adminMiddleware, );
+
+/**
+ *  @description  Send notifications to all users
+ *  @route        POST /notifications/sendAll
+ *  @method       POST
+ *  @access       Private (Admin)
+ */
+notificationRoute.post("/notifications/sendAll", authMiddleware, adminMiddleware, );
+
+export default notificationRoute;

@@ -1,32 +1,23 @@
 import express from "express"
+import { authMiddleware } from "../../middlewares/auth_middleware";
+import { adminMiddleware } from "../../middlewares/admin_middleware";
+import { isAuthorized } from "../../middlewares/isAuthentecated";
+import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory, c_updateProduct } from "../../controllers/Products Controller/productController";
 
 const productRoute = express.Router();
 
-/**
- *  @description   Create a customization for a product
- *  @route         /ProductCustomization
- *  @method        POST
- *  @access        Public
- */
-// productRoute.post('/products/:productId/customizations');
-productRoute.post('/ProductCustomization');
 
-/**
- *  @description   Update customization for a product
- *  @route         /ProductCustomization/ProductCustomizationID
- *  @method        PUT
- *  @access        Public
- */
-productRoute.put('/ProductCustomization/ProductCustomizationID');
+
 
 
 /**
- *  @description   Get all products
+ *  @description   Get all products by subcategory
  *  @route         /products
  *  @method        GET
  *  @access        Public
  */
-productRoute.get('/getAllproducts');
+
+productRoute.get('/:CategoryID/:subCategoryID/getAllproducts',isAuthorized,c_getProductByCategoryAndSubCategory);
 
 /**
  *  @description   Get a single product by ID
@@ -34,31 +25,31 @@ productRoute.get('/getAllproducts');
  *  @method        GET
  *  @access        Public
  */
-productRoute.get('/getProduct/:productId');
+productRoute.get('/getProduct/:productId',isAuthorized,c_getProduct);
 
 /**
  *  @description   Create a new product
- *  @route         /products
+ *  @route         /createProduct
  *  @method        POST
- *  @access        Public
+ *  @access        admin
  */
-productRoute.post('/createProduct');
+productRoute.post('/createProduct',isAuthorized,c_createProduct);
 
 /**
  *  @description   Update a product
  *  @route         /products/:productId
  *  @method        PUT
- *  @access        Public
+ *  @access        admin
  */
-productRoute.put('/product/:productId');
+productRoute.put('/product/:productId',isAuthorized,c_updateProduct);
 
-/**
- *  @description   Delete a product
- *  @route         /products/:productId
- *  @method        DELETE
- *  @access        Public
- */
-productRoute.delete('/product/:productId');
+
+
+
+
+
+
+
 
 
 

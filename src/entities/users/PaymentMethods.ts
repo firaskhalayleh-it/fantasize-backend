@@ -4,10 +4,14 @@ import {
     Column,
     ManyToOne,
     CreateDateColumn,
-    BaseEntity
+    UpdateDateColumn,
+    BaseEntity,
+    OneToMany
   } from 'typeorm';
   import { Users } from './Users';
-
+import { OrdersProduct } from '../products/OrdersProducts';
+import { OrdersPackages } from '../packages/OrdersPackages';
+  
   @Entity()
   export class PaymentMethods extends BaseEntity{
     @PrimaryGeneratedColumn()
@@ -16,14 +20,26 @@ import {
     @ManyToOne(() => Users, (user) => user.UserID)
     User: Users;
 
+    @OneToMany(() => OrdersProduct, (orderProduct) => orderProduct.OrderID)
+    OrdersProduct: OrdersProduct[];
+
+    @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.OrderID)
+    OrdersPackages: OrdersPackages[];
+  
     @Column('varchar')
     Method: string;
 
     @Column('varchar')
     CardholderName: string;
 
+    @Column('varchar')
+    CardNumber: string;
+
     @Column('date')
     ExpirationDate: Date;
+
+    @Column('int')
+    CVV: number;
 
     @Column('varchar')
     CardType: string;
@@ -31,6 +47,6 @@ import {
     @CreateDateColumn()
     CreatedAt: Date;
 
-    @CreateDateColumn()
+    @UpdateDateColumn()
     UpdatedAt: Date;
   }

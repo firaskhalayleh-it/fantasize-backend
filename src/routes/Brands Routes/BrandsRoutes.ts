@@ -18,13 +18,7 @@ brandRoute.post('/AddBrands');
  */
 brandRoute.get('/brands');
 
-/**
- *  @description   Get a brand by ID
- *  @route         /brands/:brandId
- *  @method        GET
- *  @access        public
- */
-brandRoute.get('/brands/:brandId');
+
 
 /**
  *  @description   Update a brand

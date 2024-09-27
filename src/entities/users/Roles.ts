@@ -5,6 +5,7 @@ export class Roles extends BaseEntity {
   @PrimaryGeneratedColumn()
   RoleID: number;
 
-  @Column('enum', { enum: ['user', 'admin'] })
+  @Column('enum', { enum: ['user', 'admin'] ,default: 'user'})
   RoleName: string;
+
 }
