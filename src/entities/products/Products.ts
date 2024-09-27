@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn, Index, UpdateDateColumn } from 'typeorm';
 import { Brands } from '../Brands';
 import { Offers } from '../Offers';
 import { Resources } from '../Resources';
@@ -38,6 +38,10 @@ export class Products extends BaseEntity {
   Material: string;
 
 
+  @Column()
+  AvgRating: number;
+
+
   @ManyToOne(() => Brands, (brand) => brand.Products, { eager: true })
   Brand: Brands;
 
@@ -45,7 +49,7 @@ export class Products extends BaseEntity {
   SubCategory: SubCategories;
 
 
-  @ManyToOne(() => Offers, (offer) => offer.OfferID , { eager: true })
+  @ManyToOne(() => Offers, (offer) => offer.OfferID )
   Offer: Offers;
 
   @OneToMany(() => Resources, (resource) => resource.ResourceID , )
@@ -89,6 +93,6 @@ export class Products extends BaseEntity {
   @CreateDateColumn()
   CreatedAt: Date;
 
-  @CreateDateColumn()
+  @UpdateDateColumn()
   UpdatedAt: Date;
 }

@@ -1,6 +1,7 @@
 import express from "express"
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
+import { isAuthorized } from "../../middlewares/isAuthentecated";
 
 const productRoute = express.Router();
 
@@ -15,7 +16,7 @@ const productRoute = express.Router();
  *  @access        Public
  */
 
-productRoute.get('/:CategoryName/:subCategoryName/getAllproducts');
+productRoute.get('/:CategoryID/:subCategoryID/getAllproducts');
 
 /**
  *  @description   Get a single product by ID
@@ -31,7 +32,7 @@ productRoute.get('/getProduct/:productId');
  *  @method        POST
  *  @access        admin
  */
-productRoute.post('/createProduct',authMiddleware,adminMiddleware);
+productRoute.post('/createProduct',isAuthorized);
 
 /**
  *  @description   Update a product
@@ -39,7 +40,7 @@ productRoute.post('/createProduct',authMiddleware,adminMiddleware);
  *  @method        PUT
  *  @access        admin
  */
-productRoute.put('/product/:productId',authMiddleware,adminMiddleware);
+productRoute.put('/product/:productId',isAuthorized);
 
 
 

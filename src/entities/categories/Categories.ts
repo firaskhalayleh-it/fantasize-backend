@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BaseEntity, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BaseEntity, JoinColumn, Index } from 'typeorm';
 import { SubCategories } from './SubCategories';
 import { join } from 'path';
 
@@ -8,6 +8,7 @@ export class Categories extends BaseEntity {
   CategoryID: number;
 
   @Column('varchar', { unique: true })
+  @Index()
   Name: string;
 
   @Column('varchar', { nullable: true })

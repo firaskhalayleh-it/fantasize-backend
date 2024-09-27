@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, BaseEntity, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, BaseEntity, JoinColumn, Index } from 'typeorm';
 import { Categories } from './Categories';
 import { Products } from '../products/Products';
 import { Packages } from '../packages/Packages';
@@ -9,6 +9,7 @@ export class SubCategories extends BaseEntity {
   SubCategoryID: number;
 
   @Column('varchar', { unique: true })
+  @Index()
   Name: string;
 
   @Column('boolean', { default: true })
