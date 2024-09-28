@@ -12,6 +12,7 @@ import categoryRoute from "./routes/Categories Routes/categoriesRoute";
 import packageRoute from "./routes/Packages Routes/packagesRoutes";
 import productRoute from "./routes/Products Routes/productRoutes";
 import customizationProductRoute from "./routes/Products Routes/customizationProductRoute";
+import FavoriteProductRoute from "./routes/Products Routes/favoriteProductsRoutes";
 
 const app = express();
 app.use(cookieParser());
@@ -30,6 +31,7 @@ app.use("/api",paymentMethodRoute);
 app.use("/api",categoryRoute);
 app.use("/api",productRoute);
 app.use("/api",customizationProductRoute);
+app.use("/api",FavoriteProductRoute);
 app.use("/api",packageRoute);
 
 app.use(notFound);

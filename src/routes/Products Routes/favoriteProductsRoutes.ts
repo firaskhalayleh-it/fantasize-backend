@@ -1,5 +1,7 @@
 import express from "express"
 import { authMiddleware } from "../../middlewares/auth_middleware";
+import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
+import { c_addProductFavorites, c_getAllFavoriteProductsUser, c_removeProductFavorites } from "../../controllers/Products Controller/favoriteProductsController";
 const FavoriteProductRoute = express.Router();
 
 /**
@@ -8,7 +10,7 @@ const FavoriteProductRoute = express.Router();
  *  @method        POST
  *  @access        Public
  */
-FavoriteProductRoute.post('/favorites' , authMiddleware);
+FavoriteProductRoute.post('/favorites' , isAuthorized ,c_addProductFavorites);
 
 /**
  *  @description   Get all favorite products for a user
@@ -16,7 +18,7 @@ FavoriteProductRoute.post('/favorites' , authMiddleware);
  *  @method        GET
  *  @access        Public
  */
-FavoriteProductRoute.get('/favorites/:userId' , authMiddleware);
+FavoriteProductRoute.get('/favorites/:userId' , isAuthorized,c_getAllFavoriteProductsUser);
 
 /**
  *  @description   Remove a product from favorites
@@ -24,6 +26,6 @@ FavoriteProductRoute.get('/favorites/:userId' , authMiddleware);
  *  @method        DELETE
  *  @access        Public
  */
-FavoriteProductRoute.delete('/favorites/:userId' , authMiddleware);
+FavoriteProductRoute.delete('/favorites/:userId' , isAuthorized ,c_removeProductFavorites);
 
 export default FavoriteProductRoute;
