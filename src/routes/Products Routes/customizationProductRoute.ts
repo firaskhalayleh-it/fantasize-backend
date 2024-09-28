@@ -2,6 +2,8 @@ import express from 'express';
 
 import { authMiddleware } from '../../middlewares/auth_middleware';
 import { adminMiddleware } from '../../middlewares/admin_middleware';
+import { isAuthorized } from '../../middlewares/isAuthentecated';
+import { c_createCustomizationProduct, c_getAllCustomizationProducts, c_updateCustomizationProduct } from '../../controllers/Products Controller/productCustomizationsController';
 
 const customizationProductRoute = express.Router();
 
@@ -11,7 +13,7 @@ const customizationProductRoute = express.Router();
  *  @method        POST
  *  @access        admin
  */
-customizationProductRoute.post('/customizationProducts', authMiddleware, adminMiddleware);
+customizationProductRoute.post('/customizationProducts', isAuthorized , c_createCustomizationProduct);
 
 
 /**
@@ -20,15 +22,15 @@ customizationProductRoute.post('/customizationProducts', authMiddleware, adminMi
  *  @method        GET
  *  @access        public
  */
-customizationProductRoute.get('/customizationProducts');
+customizationProductRoute.get('/customizationProducts',c_getAllCustomizationProducts);
 
 
 /**
  *  @description   Update a customization product
  *  @route         /customizationProducts/:customizationProductId
  *  @method        PUT
- *  @access        public
+ *  @access        admin
  */
-customizationProductRoute.put('/customizationProducts/:customizationProductId', authMiddleware, adminMiddleware);
+customizationProductRoute.put('/customizationProducts/:customizationProductId', isAuthorized,c_updateCustomizationProduct);
 
 export default customizationProductRoute;

@@ -11,6 +11,7 @@ import paymentMethodRoute from "./routes/Payment methods Routes/paymentMethodsRo
 import categoryRoute from "./routes/Categories Routes/categoriesRoute";
 import packageRoute from "./routes/Packages Routes/packagesRoutes";
 import productRoute from "./routes/Products Routes/productRoutes";
+import customizationProductRoute from "./routes/Products Routes/customizationProductRoute";
 
 const app = express();
 app.use(cookieParser());
@@ -28,6 +29,7 @@ app.use("/api",addressRoute);
 app.use("/api",paymentMethodRoute);
 app.use("/api",categoryRoute);
 app.use("/api",productRoute);
+app.use("/api",customizationProductRoute);
 app.use("/api",packageRoute);
 
 app.use(notFound);
