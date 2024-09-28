@@ -1,6 +1,8 @@
 import express from "express";
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
+import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
+import { c_checkoutOrder, c_createNewOrderUser, c_getAllOrders, c_getAllOrdersForUser } from "../../controllers/Products Controller/ordersProductsController";
 const orderProductRoute = express.Router();
 
 /**
@@ -9,7 +11,7 @@ const orderProductRoute = express.Router();
  *  @method        POST
  *  @access        private 
  */
-orderProductRoute.post('/order/:userId/orders',authMiddleware);
+orderProductRoute.post('/order/:userId/orders', isAuthorized ,c_createNewOrderUser);
 
 /**
  *  @description   Get all orders for a user
@@ -17,7 +19,7 @@ orderProductRoute.post('/order/:userId/orders',authMiddleware);
  *  @method        GET
  *  @access        private
  */
-orderProductRoute.get('/order/:userId/orders',authMiddleware);
+orderProductRoute.get('/order/:userId/orders',IsAuthenticated ,c_getAllOrdersForUser);
 
 /**
  *  @description   Get all orders
@@ -25,7 +27,7 @@ orderProductRoute.get('/order/:userId/orders',authMiddleware);
  *  @method        GET
  *  @access        admin
  */
-orderProductRoute.get('/orders',authMiddleware,adminMiddleware);
+orderProductRoute.get('/orders',isAuthorized ,c_getAllOrders);
 
 /**
  * @description   Checkout an order
@@ -34,7 +36,7 @@ orderProductRoute.get('/orders',authMiddleware,adminMiddleware);
  * @access        private
  * 
  */
-orderProductRoute.put('/checkout/:orderId',authMiddleware);//changes the status of order to true (complete)to make order not in cart view
+orderProductRoute.put('/checkout/:orderId',IsAuthenticated ,c_checkoutOrder);//changes the status of order to true (complete)to make order not in cart view
 
 
 export default orderProductRoute;

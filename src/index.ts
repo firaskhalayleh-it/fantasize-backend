@@ -13,6 +13,7 @@ import packageRoute from "./routes/Packages Routes/packagesRoutes";
 import productRoute from "./routes/Products Routes/productRoutes";
 import customizationProductRoute from "./routes/Products Routes/customizationProductRoute";
 import FavoriteProductRoute from "./routes/Products Routes/favoriteProductsRoutes";
+import orderProductRoute from "./routes/Products Routes/ordersProductsRoutes";
 
 const app = express();
 app.use(cookieParser());
@@ -32,6 +33,7 @@ app.use("/api",categoryRoute);
 app.use("/api",productRoute);
 app.use("/api",customizationProductRoute);
 app.use("/api",FavoriteProductRoute);
+app.use("/api",orderProductRoute);
 app.use("/api",packageRoute);
 
 app.use(notFound);
