@@ -1,5 +1,5 @@
 import express from "express";
-import { initializeDB } from "./config/database"; // التأكد من الاسم الصحيح للدالة
+import { initializeDB } from "./config/database";
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import cors  from "cors";
@@ -9,6 +9,8 @@ import userRoute from "./routes/Users Routes/usersRoute";
 import addressRoute from "./routes/Users Routes/addressRoute";
 import paymentMethodRoute from "./routes/Payment methods Routes/paymentMethodsRoute";
 import categoryRoute from "./routes/Categories Routes/categoriesRoute";
+import packageRoute from "./routes/Packages Routes/packagesRoutes";
+import productRoute from "./routes/Products Routes/productRoutes";
 
 const app = express();
 app.use(cookieParser());
@@ -25,6 +27,8 @@ app.use("/api",userRoute);
 app.use("/api",addressRoute);
 app.use("/api",paymentMethodRoute);
 app.use("/api",categoryRoute);
+app.use("/api",productRoute);
+app.use("/api",packageRoute);
 
 app.use(notFound);
 app.use(errorHandler);
