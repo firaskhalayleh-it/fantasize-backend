@@ -38,7 +38,7 @@ export class Products extends BaseEntity {
   Material: string;
 
 
-  @Column()
+  @Column('int', { default: 0 })
   AvgRating: number;
 
 

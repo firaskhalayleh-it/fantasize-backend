@@ -9,6 +9,7 @@ import userRoute from "./routes/Users Routes/usersRoute";
 import addressRoute from "./routes/Users Routes/addressRoute";
 import paymentMethodRoute from "./routes/Payment methods Routes/paymentMethodsRoute";
 import categoryRoute from "./routes/Categories Routes/categoriesRoute";
+import productRoute from "./routes/Products Routes/productRoutes";
 
 const app = express();
 app.use(cookieParser());
@@ -25,6 +26,7 @@ app.use("/api",userRoute);
 app.use("/api",addressRoute);
 app.use("/api",paymentMethodRoute);
 app.use("/api",categoryRoute);
+app.use("/api",productRoute);
 
 app.use(notFound);
 app.use(errorHandler);
