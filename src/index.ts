@@ -12,7 +12,7 @@ import categoryRoute from "./routes/Categories Routes/categoriesRoute";
 import packageRoute from "./routes/Packages Routes/packagesRoutes";
 import productRoute from "./routes/Products Routes/productRoutes";
 import customizationProductRoute from "./routes/Products Routes/customizationProductRoute";
-import FavoriteProductRoute from "./routes/Products Routes/favoriteProductsRoutes";
+import {userFaves} from "./routes/Products Routes/favoriteProductsRoutes";
 import orderProductRoute from "./routes/Products Routes/ordersProductsRoutes";
 
 const app = express();
@@ -32,7 +32,7 @@ app.use("/api",paymentMethodRoute);
 app.use("/api",categoryRoute);
 app.use("/api",productRoute);
 app.use("/api",customizationProductRoute);
-app.use("/api",FavoriteProductRoute);
+app.use("/api",userFaves);
 app.use("/api",orderProductRoute);
 app.use("/api",packageRoute);
 

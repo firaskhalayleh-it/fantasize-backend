@@ -2,7 +2,7 @@ import express from "express"
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
 import { c_addProductFavorites, c_getAllFavoriteProductsUser, c_removeProductFavorites } from "../../controllers/Products Controller/favoriteProductsController";
-const FavoriteProductRoute = express.Router();
+const FavoriteProductRoute = express.Router({ mergeParams: true });
 
 /**
  *  @description   Add a product to favorites
@@ -18,7 +18,7 @@ FavoriteProductRoute.post('/favorites' , isAuthorized ,c_addProductFavorites);
  *  @method        GET
  *  @access        Public
  */
-FavoriteProductRoute.get('/favorites/:userId' , isAuthorized,c_getAllFavoriteProductsUser);
+export const userFaves = FavoriteProductRoute.get('/favorites/:userId' , isAuthorized,c_getAllFavoriteProductsUser);
 
 /**
  *  @description   Remove a product from favorites
