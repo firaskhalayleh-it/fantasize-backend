@@ -17,6 +17,7 @@ import { PackageCustomizations } from './PackageCustomizations';
 import { SubCategories } from '../categories/SubCategories';
 import { Resources } from '../Resources';
 import { FavoritePackages } from './FavoritePackages';
+import { OrdersPackages } from './OrdersPackages';
 
 @Entity()
 export class Packages extends BaseEntity {
@@ -50,6 +51,10 @@ export class Packages extends BaseEntity {
   @ManyToOne(() => Offers, (offer) => offer.OfferID)
   Offer: Offers;
 
+  @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.Package)
+  OrdersPackages: OrdersPackages[];
+
+  
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Package, { eager: true })
   SubCategory: SubCategories;
 

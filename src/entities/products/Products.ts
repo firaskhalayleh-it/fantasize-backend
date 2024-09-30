@@ -6,6 +6,7 @@ import { Reviews } from '../Reviews';
 import { SubCategories } from '../categories/SubCategories';
 import { ProductCustomizations } from './ProductCustomizations';
 import { FavoriteProducts } from './FavoriteProducts';
+import { OrdersProducts } from './OrdersProducts';
 
 @Entity()
 export class Products extends BaseEntity {
@@ -87,6 +88,8 @@ export class Products extends BaseEntity {
   @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product)
   FavoriteProducts: FavoriteProducts[];
 
+  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product)
+  OrdersProducts: OrdersProducts[];
 
   @CreateDateColumn()
   CreatedAt: Date;
@@ -116,5 +119,5 @@ export class Products extends BaseEntity {
       this.AvgRating = totalRating / this.Review.length;
     }
   }
-  
+
 }
