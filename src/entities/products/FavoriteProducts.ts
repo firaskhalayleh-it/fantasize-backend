@@ -10,8 +10,8 @@ export class FavoriteProducts extends BaseEntity {
   @ManyToOne(() => Users, (user) => user.UserID,)
   User: Users;
 
-  @ManyToOne(() => Products, (product) => product.ProductID)
-  Product: Relation<Products>;
+  @ManyToOne(() => Products, (product) => product.FavoriteProducts)
+  Product: Products;
 
   @CreateDateColumn()
   CreatedAt: Date;

@@ -34,8 +34,8 @@ export const s_addProductFavorites = async (req:Request , res:Response) =>{
 //----------------------- Get all favorite products for a user-----------------------
 export const s_getAllFavoriteProductsUser = async (req:Request , res:Response) =>{
     try {
-        const { userId } = (req as any).payload.userId;
-        const favoriteProducts = await FavoriteProducts.find({ where: { User: {UserID:userId} } });
+        const { userId } = (req as any).user.payload.userId;
+        const favoriteProducts = await FavoriteProducts.find({ where: { User: {UserID:userId}, } ,relations: ["Product"] });
         if (!favoriteProducts) {
             return res.status(404).send({ message: "No favorite products found" });
         }
@@ -52,7 +52,7 @@ export const s_getAllFavoriteProductsUser = async (req:Request , res:Response) =
 export const s_removeProductFavorites = async (req:Request , res:Response) =>{
     try {
         const productId = Number(req.params.productId);
-        const { userId } = (req as any).payload.userId;
+        const { userId } = (req as any).user.payload.userId;
 
         const product = await Products.findOne({ where: { ProductID: productId } });
         if (!product) {

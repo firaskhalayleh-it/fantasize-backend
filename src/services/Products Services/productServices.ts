@@ -13,17 +13,7 @@ export const s_getAllProducts = async (req: Request, res: Response) => {
             return res.status(404).send({ message: "No Products Found!" });
         }
 
-        const productsWithRatings = products.map(product => {
-            if (!product.Review || product.Review.length === 0) {
-                product.AvgRating = 0; 
-            } else {
-                const totalRating = product.Review.reduce((acc, review) => acc + review.Rating, 0);
-                product.AvgRating = totalRating / product.Review.length;
-            }
-            return product;
-        });
-
-        return res.status(200).send(productsWithRatings);
+        return res.status(200).send(products);
     } catch (err: any) {
         console.error(err);
         return res.status(500).send({ message: "An error occurred while fetching products.", error: err.message });

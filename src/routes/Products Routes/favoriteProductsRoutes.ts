@@ -18,7 +18,7 @@ FavoriteProductRoute.post('/favorites' , isAuthorized ,c_addProductFavorites);
  *  @method        GET
  *  @access        Public
  */
-export const userFaves = FavoriteProductRoute.get('/favorites/:userId' , isAuthorized,c_getAllFavoriteProductsUser);
+export const userFaves = FavoriteProductRoute.get('/favorites' , IsAuthenticated,c_getAllFavoriteProductsUser);
 
 /**
  *  @description   Remove a product from favorites
@@ -26,6 +26,6 @@ export const userFaves = FavoriteProductRoute.get('/favorites/:userId' , isAutho
  *  @method        DELETE
  *  @access        Public
  */
-FavoriteProductRoute.delete('/favorites/:userId' , isAuthorized ,c_removeProductFavorites);
+FavoriteProductRoute.delete('/favorites/:productId' , IsAuthenticated ,c_removeProductFavorites);
 
 export default FavoriteProductRoute;

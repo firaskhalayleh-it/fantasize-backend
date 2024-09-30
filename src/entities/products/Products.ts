@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn, Index, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn, Index, UpdateDateColumn, BeforeInsert, BeforeUpdate, AfterLoad } from 'typeorm';
 import { Brands } from '../Brands';
 import { Offers } from '../Offers';
 import { Resources } from '../Resources';
@@ -13,13 +13,13 @@ export class Products extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   ProductID: number;
 
-  @Column('varchar',{unique: true})
+  @Column('varchar', { unique: true })
   Name: string;
 
   @Column('text')
   Description: string;
 
-  @Column('decimal', { precision: 9, scale: 2 ,default: 0})
+  @Column('decimal', { precision: 9, scale: 2, default: 0 })
   Price: number;
 
   @Column('int')
@@ -49,15 +49,15 @@ export class Products extends BaseEntity {
   SubCategory: SubCategories;
 
 
-  @ManyToOne(() => Offers, (offer) => offer.OfferID )
+  @ManyToOne(() => Offers, (offer) => offer.OfferID)
   Offer: Offers;
 
-  @OneToMany(() => Resources, (resource) => resource.ResourceID , )
+  @OneToMany(() => Resources, (resource) => resource.ResourceID,)
   Resource: Resources[];
 
-  @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products , )
+  @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products,)
   @JoinTable({
-    name: 'ProductsCustomizations',  
+    name: 'ProductsCustomizations',
     joinColumn: {
       name: 'ProductID',
       referencedColumnName: 'ProductID'
@@ -69,9 +69,9 @@ export class Products extends BaseEntity {
   })
   ProductCustomization: ProductCustomizations[];
 
-  @ManyToMany(() => Reviews, (review) => review.Products , )
+  @ManyToMany(() => Reviews, (review) => review.Products, { eager: true })
   @JoinTable({
-    name: 'ProductsReviews',  
+    name: 'ProductsReviews',
     joinColumn: {
       name: 'ProductID',
       referencedColumnName: 'ProductID'
@@ -84,10 +84,8 @@ export class Products extends BaseEntity {
   Review: Reviews[];
 
 
-  @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product )
+  @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product)
   FavoriteProducts: FavoriteProducts[];
-
-
 
 
   @CreateDateColumn()
@@ -95,4 +93,28 @@ export class Products extends BaseEntity {
 
   @UpdateDateColumn()
   UpdatedAt: Date;
+
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  checkStatus = () => {
+    if (this.Quantity == 0) {
+      this.Status = 'out of stock';
+    } else if (this.Quantity < 10) {
+      this.Status = 'running low';
+    } else {
+      this.Status = 'in stock';
+    }
+  }
+
+  @AfterLoad()
+  calculateAvgRating = () => {
+    if (this.Review.length == 0) {
+      this.AvgRating = 0;
+    } else {
+      const totalRating = this.Review.reduce((acc, review) => acc + review.Rating, 0);
+      this.AvgRating = totalRating / this.Review.length;
+    }
+  }
+  
 }
