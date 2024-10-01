@@ -79,7 +79,12 @@ export const s_getAllPackagesUnderSpecificSubcategory = async (req:Request , res
 //----------------------- Get a package by ID-----------------------
 export const s_getPackageByID = async (req:Request , res:Response) =>{
     try{
-
+        const pkgId :any = req.params.packageId;
+        const getPackage= await Packages.findOne({where :{PackageID:pkgId}})
+        if(!getPackage){
+            return `not found a package`
+        }
+        return getPackage;
     }catch (err: any) {
             console.log(err);
             res.status(500).send({ message: err.message })
