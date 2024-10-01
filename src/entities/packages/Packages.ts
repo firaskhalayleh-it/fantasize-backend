@@ -8,7 +8,9 @@ import {
   ManyToMany,
   JoinTable,
   OneToMany,
-  JoinColumn
+  JoinColumn,
+  BeforeInsert,
+  BeforeUpdate
 } from 'typeorm';
 import { Offers } from '../Offers';
 import { Reviews } from '../Reviews';
@@ -98,4 +100,18 @@ export class Packages extends BaseEntity {
 
   @CreateDateColumn()
   UpdatedAt: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  checkStatus = () => {
+    if (this.Quantity == 0) {
+      this.Status = 'out of stock';
+    } else if (this.Quantity < 10) {
+      this.Status = 'running low';
+    } else {
+      this.Status = 'in stock';
+    }
+  }
+
+  
 }
