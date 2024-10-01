@@ -60,7 +60,16 @@ export const s_getAllPackages = async (req:Request , res:Response) =>{
 //-----------------------Get all packages under a specific subcategory-----------------------
 export const s_getAllPackagesUnderSpecificSubcategory = async (req:Request , res:Response) =>{
     try{
-
+        const CategoryID: any = req.params.categoryId;
+        const subCategoryID: any = req.params.subcategoryId;
+        if(!CategoryID || !subCategoryID){
+            return res.status(400).send({ message: "Please fill all the fields" });
+        }
+        const pkg = await Packages.find({ where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID } }, relations: ['SubCategory' ,'products'] });
+        if(!pkg){
+            return `the packagies not found`;
+        }
+        return pkg;
     }catch (err: any) {
             console.log(err);
             res.status(500).send({ message: err.message })
