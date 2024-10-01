@@ -74,8 +74,8 @@ export class Packages extends BaseEntity {
   @OneToMany(() => Resources, (resource) => resource.ResourceID)
   Resource: Resources[];
 
-  @OneToMany(() => Products, (product) => product.ProductID)
-  Product: Products[];
+  @OneToMany(() => Products, (product) => product.Package)
+  products: Products[];
 
 
   @OneToMany(()=>FavoritePackages, (favoritePackages)=>favoritePackages.Package)

@@ -30,7 +30,7 @@ try{
             Message :Message,
             Size :Size,
             SubCategory:SubCategoryId,
-            Product :products
+            products:products
         }).save();
 
         return addPackage ;
@@ -45,7 +45,11 @@ try{
 //----------------------- Get all packages-----------------------
 export const s_getAllPackages = async (req:Request , res:Response) =>{
     try{
-
+        const getAllPackages = await Packages.find({relations:['products' ,'Review']});
+        if(!getAllPackages || getAllPackages.length===0){
+            return `Not Found Packages` ;
+        }
+        return getAllPackages;
 
     }catch (err: any) {
             console.log(err);
