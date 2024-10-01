@@ -92,11 +92,46 @@ export const s_getPackageByID = async (req:Request , res:Response) =>{
 } 
 
 //----------------------- Update a package-----------------------
-export const s_updatePackage = async (req:Request , res:Response) =>{
-    try{
+export const s_updatePackage = async (req: Request, res: Response) => {
+    try {
+        const packageId :any = req.params.packageId; 
+        const { Name, Description, Price, Validity, Quantity, Message, Size, SubCategoryId, productName } = req.body;
 
-    }catch (err: any) {
-            console.log(err);
-            res.status(500).send({ message: err.message })
+        const packageToUpdate = await Packages.findOne({ where: {PackageID : packageId} });
+        if (!packageToUpdate) {
+            return res.status(404).send({ message: "Package not found" });
         }
-} 
+        const subcategory = await SubCategories.findOne({ where: { SubCategoryID: SubCategoryId } });
+        if (!subcategory) {
+            return res.status(400).send({ message: "SubCategory not found" });
+        }
+
+        packageToUpdate.Name = Name || packageToUpdate.Name;
+        packageToUpdate.Description = Description || packageToUpdate.Description;
+        packageToUpdate.Price = Price || packageToUpdate.Price;
+        packageToUpdate.Validity = Validity || packageToUpdate.Validity;
+        packageToUpdate.Quantity = Quantity || packageToUpdate.Quantity;
+        packageToUpdate.Message = Message || packageToUpdate.Message;
+        packageToUpdate.Size = Size || packageToUpdate.Size;
+
+        packageToUpdate.SubCategory = SubCategoryId || packageToUpdate.SubCategory;
+
+        const products = await Promise.all(
+            productName.map(async (Pname: string) => {
+                const product = await Products.findOne({ where: { Name: Pname } });
+                if (!product) {
+                    throw new Error(`The product ${Pname} not found`);
+                }
+                return product;
+            })
+        );
+        packageToUpdate.products = products;
+        const updatedPackage = await packageToUpdate.save();
+
+        return updatedPackage;
+
+    } catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message });
+    }
+}

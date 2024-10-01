@@ -44,7 +44,7 @@ packageRoute.get('/packages/:packageId',c_getPackageByID);
  *  @description   Update a package
  *  @route         /packages/:packageId
  *  @method        PUT
- *  @access        public
+ *  @access        private (admin)
  */
 packageRoute.put('/packages/:packageId', isAuthorized , c_updatePackage);
 
