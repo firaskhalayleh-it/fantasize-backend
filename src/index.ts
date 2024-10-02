@@ -14,6 +14,8 @@ import productRoute from "./routes/Products Routes/productRoutes";
 import customizationProductRoute from "./routes/Products Routes/customizationProductRoute";
 import {userFaves} from "./routes/Products Routes/favoriteProductsRoutes";
 import orderProductRoute from "./routes/Products Routes/ordersProductsRoutes";
+import favoritePackagesRoute from "./routes/Packages Routes/favoritePackagesRoutes";
+import brandRoute from "./routes/Brands Routes/BrandsRoutes";
 
 const app = express();
 app.use(cookieParser());
@@ -35,6 +37,8 @@ app.use("/api",customizationProductRoute);
 app.use("/api",userFaves);
 app.use("/api",orderProductRoute);
 app.use("/api",packageRoute);
+app.use("/api",favoritePackagesRoute);
+app.use("/api",brandRoute);
 
 app.use(notFound);
 app.use(errorHandler);
