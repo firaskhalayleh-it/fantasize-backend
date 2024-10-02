@@ -11,7 +11,6 @@ import {
     OneToMany,
     BeforeInsert,
     BeforeUpdate,
-    JoinColumn,
   } from 'typeorm';
   import { OrdersPackages } from './packages/OrdersPackages';
   import { Addresses } from './users/Addresses';
@@ -27,10 +26,10 @@ import {
     @ManyToOne(() => Users, (user) => user.Orders)
     User: Users;
   
-    @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.Orders, { eager: true })
+    @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.Orders)
     PaymentMethod: PaymentMethods;
   
-    @ManyToOne(() => Addresses, (address) => address.Orders, { eager: true })
+    @ManyToOne(() => Addresses, (address) => address.Orders)
     Address: Addresses;
   
     @OneToMany(() => OrdersProducts, (ordersProduct) => ordersProduct.Order, { cascade: true })

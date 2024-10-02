@@ -10,24 +10,20 @@ import {
   UpdateDateColumn,
   BeforeInsert,
   BeforeUpdate,
-  JoinColumn,
-  Relation,
 } from "typeorm";
 import { Orders } from "../Orders";
 import { Products } from "./Products";
-import { join } from "path";
 
 @Entity({ name: 'OrdersProducts' })
 export class OrdersProducts extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   OrderProductID: number;
 
-  @ManyToOne(() => Orders, (order) => order.OrdersProduct)
-  @JoinColumn({ name: 'OrderID' })
+  @ManyToOne(() => Orders, (order) => order.OrdersProduct, { onDelete: 'CASCADE' })
   Order: Orders;
 
   @ManyToOne(() => Products, (product) => product.OrdersProducts)
-  Product:Products;
+  Product: Products;
 
   @Column('int')
   Quantity: number;
