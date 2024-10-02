@@ -1,7 +1,6 @@
 import { Entity, BaseEntity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Orders } from "../Orders";
 import { Packages } from "./Packages";
-import { Users } from "../users/Users";
 
 @Entity()
 export class OrdersPackages extends BaseEntity {
@@ -11,11 +10,8 @@ export class OrdersPackages extends BaseEntity {
   @ManyToOne(() => Orders, (order) => order.OrdersPackages)
   Order: Orders;
 
-  @ManyToOne(() => Packages, (packages) => packages.PackageID)
+  @ManyToOne(() => Packages, (packages) => packages.OrdersPackages)
   Package: Packages;
-
-  @ManyToOne(() => Users, (user) => user.UserID)
-  User: Users;
 
   @Column('int')
   Quantity: number;

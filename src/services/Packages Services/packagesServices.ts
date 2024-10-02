@@ -22,15 +22,13 @@ try{
             })
         );
         const addPackage = await Packages.create({
-            Name:Name,
-            Description:Description,
-            Price :Price,
-            Validity :Validity,
-            Quantity :Quantity,
-            Message :Message,
-            Size :Size,
-            SubCategory:SubCategoryId,
-            products:products
+            Name: Name,
+            Description: Description,
+            Price: Price,
+            Quantity: Quantity,
+            Size: Size,
+            SubCategory: subcategory,
+            Product: products
         }).save();
 
         return addPackage ;
@@ -95,7 +93,7 @@ export const s_getPackageByID = async (req:Request , res:Response) =>{
 export const s_updatePackage = async (req: Request, res: Response) => {
     try {
         const packageId :any = req.params.packageId; 
-        const { Name, Description, Price, Validity, Quantity, Message, Size, SubCategoryId, productName } = req.body;
+        const { Name, Description, Price, Quantity, Message, Size, SubCategoryId, productName } = req.body;
 
         const packageToUpdate = await Packages.findOne({ where: {PackageID : packageId} });
         if (!packageToUpdate) {
@@ -109,9 +107,8 @@ export const s_updatePackage = async (req: Request, res: Response) => {
         packageToUpdate.Name = Name || packageToUpdate.Name;
         packageToUpdate.Description = Description || packageToUpdate.Description;
         packageToUpdate.Price = Price || packageToUpdate.Price;
-        packageToUpdate.Validity = Validity || packageToUpdate.Validity;
+        packageToUpdate.message =Message || packageToUpdate.message;
         packageToUpdate.Quantity = Quantity || packageToUpdate.Quantity;
-        packageToUpdate.Message = Message || packageToUpdate.Message;
         packageToUpdate.Size = Size || packageToUpdate.Size;
 
         packageToUpdate.SubCategory = SubCategoryId || packageToUpdate.SubCategory;
@@ -125,7 +122,7 @@ export const s_updatePackage = async (req: Request, res: Response) => {
                 return product;
             })
         );
-        packageToUpdate.products = products;
+        packageToUpdate.Product = products;
         const updatedPackage = await packageToUpdate.save();
 
         return updatedPackage;

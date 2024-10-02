@@ -8,6 +8,7 @@ import { ProductCustomizations } from './ProductCustomizations';
 import { FavoriteProducts } from './FavoriteProducts';
 import { OrdersProducts } from './OrdersProducts';
 import { Packages } from '../packages/Packages';
+import { OrdersPackages } from '../packages/OrdersPackages';
 
 @Entity()
 export class Products extends BaseEntity {
@@ -44,13 +45,13 @@ export class Products extends BaseEntity {
   AvgRating: number;
 
 
-  @ManyToOne(() => Brands, (brand) => brand.Products, { eager: true })
+  @ManyToOne(() => Brands, (brand) => brand.Products, )
   Brand: Brands;
 
-  @ManyToOne(() => SubCategories, (subcategory) => subcategory.Products, { eager: true })
+  @ManyToOne(() => SubCategories, (subcategory) => subcategory.Products,)
   SubCategory: SubCategories;
 
-  @ManyToOne(() => Packages, (pkg) => pkg.products)
+  @ManyToOne(() => Packages, (pkg) => pkg.Product,)
   Package: Packages;
 
   @ManyToOne(() => Offers, (offer) => offer.OfferID)
@@ -93,6 +94,9 @@ export class Products extends BaseEntity {
 
   @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product)
   OrdersProducts: OrdersProducts[];
+
+  @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.Package)
+  OrdersPackages: OrdersPackages[];
 
   @CreateDateColumn()
   CreatedAt: Date;
