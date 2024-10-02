@@ -24,15 +24,6 @@ export class OrdersPackages extends BaseEntity {
   @ManyToOne(() => Orders, (order) => order.OrdersPackages, { onDelete: 'CASCADE' })
   Order: Orders;
 
-  @Column('boolean', {nullable:true})
-  IsGift: boolean;
-
-  @Column('text' , {nullable:true})
-  GiftMessage: string;
-
-  @Column('boolean', {nullable:true})
-  IsAnonymous: boolean;
-
   @Column('int',{nullable:true})
   quantity: number;
 

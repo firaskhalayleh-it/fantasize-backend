@@ -91,7 +91,7 @@ try {
         if(!user){
             return ` User not found`;
         };
-        const orderPkg= await OrdersPackages.findOne({where:{Order:{OrderID:orderId} , User:user,Status:false}});
+        const orderPkg= await OrdersPackages.findOne({where:{Order:{OrderID:orderId} , User:{UserID:user.UserID}}});
         if(!orderPkg){
             return `order package not found or its already checkout`;
         }
