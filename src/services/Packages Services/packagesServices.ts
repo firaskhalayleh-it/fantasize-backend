@@ -107,7 +107,7 @@ export const s_updatePackage = async (req: Request, res: Response) => {
         packageToUpdate.Name = Name || packageToUpdate.Name;
         packageToUpdate.Description = Description || packageToUpdate.Description;
         packageToUpdate.Price = Price || packageToUpdate.Price;
-        packageToUpdate.message =Message || packageToUpdate.message;
+        packageToUpdate.Message =Message || packageToUpdate.Message;
         packageToUpdate.Quantity = Quantity || packageToUpdate.Quantity;
         packageToUpdate.Size = Size || packageToUpdate.Size;
 

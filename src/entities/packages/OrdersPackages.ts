@@ -14,6 +14,7 @@ import { Users } from '../users/Users';
 import { PaymentMethods } from '../users/PaymentMethods';
 import { Addresses } from '../users/Addresses';
 import { Packages } from './Packages';
+import { Orders } from '../Orders';
 
 @Entity()
 export class OrdersPackages extends BaseEntity {
