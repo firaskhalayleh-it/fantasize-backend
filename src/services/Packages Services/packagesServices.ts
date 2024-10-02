@@ -18,6 +18,7 @@ try{
                     // return `the product ${Pname} not found`; 
                     throw new Error(`the product ${Pname} not found`);
                 }
+                // product.Quantity -=Quantity
                 return product
             })
         );
@@ -32,7 +33,6 @@ try{
             SubCategory:SubCategoryId,
             products:products
         }).save();
-
         return addPackage ;
     
 }catch (err: any) {

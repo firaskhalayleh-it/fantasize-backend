@@ -23,16 +23,19 @@ export class OrdersPackages extends BaseEntity {
   @Column('boolean', { default: false }) // complete and incomplete order
   Status: boolean;
 
-  @Column('boolean')
+  @Column('boolean', {nullable:true})
   IsGift: boolean;
 
-  @Column('text')
+  @Column('text' , {nullable:true})
   GiftMessage: string;
 
-  @Column('boolean')
+  @Column('boolean', {nullable:true})
   IsAnonymous: boolean;
 
-  @Column('decimal')
+  @Column('int',{nullable:true})
+  quantity: number;
+
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
   TotalPrice: number;
 
   @ManyToOne(() => Users, (user) => user.UserID)
@@ -50,7 +53,7 @@ export class OrdersPackages extends BaseEntity {
       referencedColumnName: 'PackageID'
     }
   })
-  Packages: Packages[];
+  Package: Packages[];
 
   @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.PaymentMethodID)
   PaymentMethod: PaymentMethods;
@@ -64,4 +67,5 @@ export class OrdersPackages extends BaseEntity {
 
   @UpdateDateColumn()
   UpdatedAt: Date;
+
 }

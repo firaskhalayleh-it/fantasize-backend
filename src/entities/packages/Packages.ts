@@ -19,6 +19,7 @@ import { PackageCustomizations } from './PackageCustomizations';
 import { SubCategories } from '../categories/SubCategories';
 import { Resources } from '../Resources';
 import { FavoritePackages } from './FavoritePackages';
+import { OrdersPackages } from './OrdersPackages';
 
 @Entity()
 export class Packages extends BaseEntity {
@@ -40,7 +41,7 @@ export class Packages extends BaseEntity {
   @Column('int')
   Quantity: number;
 
-  @Column('text')
+  @Column('text',{ nullable: true })
   Message: string;
 
   @Column('json', { nullable: true })
@@ -69,7 +70,8 @@ export class Packages extends BaseEntity {
   })
   PackageCustomization: PackageCustomizations[];
 
-
+  @ManyToMany(() => OrdersPackages, (pkgOrder) => pkgOrder.Package)
+  Orders: OrdersPackages[];
 
   @OneToMany(() => Resources, (resource) => resource.ResourceID)
   Resource: Resources[];
