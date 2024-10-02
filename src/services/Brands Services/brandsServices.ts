@@ -38,7 +38,19 @@ try {
 //----------------------- Update a brand-----------------------
 export const s_updateBrand = async (req:Request , res:Response) =>{
 try {
+    const {Name} = req.body;
+    const brandId :any= req.params.brandId;
+    if(!Name){
+        return `please enter the name a brand`
+    }
+     const brand =  await Brands.findOne({where: {BrandID :brandId}})
+     if(!brand){
+        return `sorry its not found brand : ${Name}`
+     }
+     brand.Name=Name;
+      await brand.save();
 
+      return brand;
 } catch (err: any) {
     console.log(err);
     res.status(500).send({ message: err.message })
