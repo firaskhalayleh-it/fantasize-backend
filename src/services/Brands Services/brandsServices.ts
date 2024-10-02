@@ -38,7 +38,19 @@ try {
 //----------------------- Update a brand-----------------------
 export const s_updateBrand = async (req:Request , res:Response) =>{
 try {
-
+    const {Name} = req.body;
+    const brandId :any= req.params.brandId;
+    if(!Name){
+        return `please enter the name a brand`
+    }
+     const brand =  await Brands.findOne({where: {BrandID :brandId}})
+     if(!brand){
+        return `sorry its not found brand : ${Name}`
+    }
+    brand.Name=Name;
+    await brand.save();
+    
+    return brand;
 } catch (err: any) {
     console.log(err);
     res.status(500).send({ message: err.message })
@@ -48,9 +60,15 @@ try {
 
 //----------------------- Delete a brand-----------------------
 export const s_deleteBrand = async (req:Request , res:Response) =>{
-try {
-
-} catch (err: any) {
+    try {
+        const brandId :any= req.params.brandId;
+        const brand =  await Brands.findOne({where:{BrandID:brandId}})
+        if(!brand){
+            return `sorry its not found brand`
+        }
+        await brand.remove();
+        return `Brand deleted successfully`
+    } catch (err: any) {
     console.log(err);
     res.status(500).send({ message: err.message })
 }
