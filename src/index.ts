@@ -16,6 +16,8 @@ import {userFaves} from "./routes/Products Routes/favoriteProductsRoutes";
 import orderProductRoute from "./routes/Products Routes/ordersProductsRoutes";
 import favoritePackagesRoute from "./routes/Packages Routes/favoritePackagesRoutes";
 import brandRoute from "./routes/Brands Routes/BrandsRoutes";
+import reviewsRoute from "./routes/Reviews Routes/reviewsRoutes";
+import offerRoute from "./routes/Offers Routes/offersRoutes";
 
 const app = express();
 app.use(cookieParser());
@@ -39,6 +41,9 @@ app.use("/api",orderProductRoute);
 app.use("/api",packageRoute);
 app.use("/api",favoritePackagesRoute);
 app.use("/api",brandRoute);
+app.use("/api",reviewsRoute);
+app.use("/api",offerRoute);
+
 
 app.use(notFound);
 app.use(errorHandler);

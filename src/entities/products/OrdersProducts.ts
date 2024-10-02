@@ -14,12 +14,12 @@ import {
 import { Orders } from "../Orders";
 import { Products } from "./Products";
 
-@Entity({ name: 'OrdersProducts' })
+@Entity({ name: 'OrdersProduct' })
 export class OrdersProducts extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   OrderProductID: number;
 
-  @ManyToOne(() => Orders, (order) => order.OrdersProduct, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Orders, (order) => order.OrdersProducts, { onDelete: 'CASCADE' })
   Order: Orders;
 
   @ManyToOne(() => Products, (product) => product.OrdersProducts)

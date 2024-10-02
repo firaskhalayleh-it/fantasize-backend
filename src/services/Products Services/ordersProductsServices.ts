@@ -7,13 +7,13 @@ import { Orders } from '../../entities/Orders';
 import { Users } from '../../entities/users/Users';
 
 //----------------------- Create a new order for a user-----------------------
-export const s_createNewOrderUser = async (req:Request , res:Response) =>{
+export const s_createNewOrderUser = async (req: Request, res: Response) => {
     try {
         // Extract user ID from authenticated user
         const userId = (req as any).user.payload.userId;
 
         // Extract product ID and quantity from the request body
-        const { productId, quantity } = req.body;
+        const { productId, quantity,IsGift,IsAnonymous,PaymentMethodID, AddressID,} = req.body;
 
         // Validate quantity
         if (!quantity || quantity <= 0) {
@@ -35,9 +35,9 @@ export const s_createNewOrderUser = async (req:Request , res:Response) =>{
         }
 
         // Check if the user has an existing pending order (cart)
-        let order = await Orders.findOne({ 
+        let order = await Orders.findOne({
             where: { User: user, Status: false },
-            relations: ["OrdersProduct", "OrdersProduct.Product"]
+            relations: ["OrdersProducts", "OrdersProducts.Product"]
         });
 
         if (!order) {
@@ -47,11 +47,11 @@ export const s_createNewOrderUser = async (req:Request , res:Response) =>{
                 Status: false,
             });
             await order.save();
-            order.OrdersProduct = [];
+            order.OrdersProducts = [];
         }
 
         // Check if the product is already in the order
-        let orderProduct = order.OrdersProduct.find(op => op.Product.ProductID === productId);
+        let orderProduct = order.OrdersProducts.find(op => op.Product.ProductID === productId);
 
         if (orderProduct) {
             // Update the quantity and total price if it exists
@@ -67,7 +67,7 @@ export const s_createNewOrderUser = async (req:Request , res:Response) =>{
                 TotalPrice: quantity * product.Price
             });
             await orderProduct.save();
-            order.OrdersProduct.push(orderProduct);
+            order.OrdersProducts.push(orderProduct);
         }
 
         // Recalculate the total price of the order
@@ -75,9 +75,9 @@ export const s_createNewOrderUser = async (req:Request , res:Response) =>{
         await order.save();
 
         // Reload the order with updated relations
-        order = await Orders.findOne({ 
+        order = await Orders.findOne({
             where: { OrderID: order.OrderID },
-            relations: ["OrdersProduct", "OrdersProduct.Product"]
+            relations: ["OrdersProducts", "OrdersProducts.Product"]
         });
 
         // Return the updated order
@@ -104,11 +104,10 @@ export const s_getAllOrdersForUser = async (req: Request, res: Response) => {
 
         // Get all orders for the user
         const orders = await Orders.find({
-            where: { User: user },
-            relations: ["OrdersProduct", "OrdersProduct.Product", "PaymentMethod", "Address"],
-            order: { CreatedAt: "DESC" }
-        });
+            where: { User: { UserID: user.UserID }, Status: false },
+            relations: ["OrdersProducts", "OrdersProducts.Product"]
 
+        });
         // Return the orders
         return res.status(200).json({ orders });
 
@@ -116,15 +115,14 @@ export const s_getAllOrdersForUser = async (req: Request, res: Response) => {
         console.log(err);
         res.status(500).send({ message: err.message });
     }
-} 
+}
 
 //----------------------- Get all orders-----------------------
-export const s_getAllOrders = async (req:Request , res:Response) =>{
+export const s_getAllOrders = async (req: Request, res: Response) => {
     try {
         // Get all orders
         const orders = await Orders.find({
-            relations: ["User", "OrdersProduct", "OrdersProduct.Product", "PaymentMethod", "Address"],
-            order: { CreatedAt: "DESC" }
+            relations: ["User", "OrdersProducts", "OrdersProducts.Product", "PaymentMethod", "Address"],
         });
 
         // Return the orders
@@ -134,7 +132,7 @@ export const s_getAllOrders = async (req:Request , res:Response) =>{
         console.log(err);
         res.status(500).send({ message: err.message });
     }
-} 
+}
 
 //----------------------- Checkout an order-----------------------
 export const s_checkoutOrder = async (req: Request, res: Response) => {
@@ -152,12 +150,11 @@ export const s_checkoutOrder = async (req: Request, res: Response) => {
 
         // Find the order
         const order = await Orders.findOne({
-            where: { OrderID: orderId, User: user, Status: false },
-            relations: ["OrdersProduct", "OrdersProduct.Product"]
+            where: { OrderID: orderId, Status: false },
         });
 
         if (!order) {
-            return res.status(404).send({ message: "Order not found or already checked out" });
+            return res.status(404).send({ message: "Order not found or already checked out", orderId,order });
         }
 
         // Update the order status to true (checked out)
@@ -167,7 +164,7 @@ export const s_checkoutOrder = async (req: Request, res: Response) => {
 
         // Return success message
         return res.status(200).json({ message: "Order checked out successfully", order });
-    
+
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message });

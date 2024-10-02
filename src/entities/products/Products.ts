@@ -92,12 +92,10 @@ export class Products extends BaseEntity {
   @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product)
   FavoriteProducts: FavoriteProducts[];
 
-  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product)
+  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product ,{ eager: true })
   OrdersProducts: OrdersProducts[];
 
-  @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.Package)
-  OrdersPackages: OrdersPackages[];
-
+  
   @CreateDateColumn()
   CreatedAt: Date;
 
