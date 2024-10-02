@@ -33,7 +33,13 @@ try{
 //----------------------- Get all favorite packages for a user-----------------------
 export const s_getAllFavoritePackagesUser = async (req:Request , res:Response) =>{
 try{
+        const  userId  = (req as any).user.payload.userId;
 
+        const getAllFavoritePackages = await FavoritePackages.find({where :{User:{UserID:userId} },relations :['Package']})
+        if(!getAllFavoritePackages){
+                return({ message: "No favorite products found" });
+        }
+        return getAllFavoritePackages;
 }catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message })
