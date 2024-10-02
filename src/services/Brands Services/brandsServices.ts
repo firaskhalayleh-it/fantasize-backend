@@ -1,9 +1,18 @@
 import { Request, Response } from 'express';
+import { Brands } from '../../entities/Brands';
 
 //-----------------------Add a new brand -----------------------
 export const s_addNewBrand = async (req:Request , res:Response) =>{
 try {
-    
+    const {Name} = req.body;
+    if(!Name){
+        return `please enter the name a brand`
+    }
+     const addNewBrand = Brands.create({
+        Name:Name
+     });
+     await addNewBrand.save();
+     return addNewBrand;
 } catch (err: any) {
     console.log(err);
     res.status(500).send({ message: err.message })
