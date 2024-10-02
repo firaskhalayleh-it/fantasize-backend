@@ -9,8 +9,7 @@ import {
     OneToMany
   } from 'typeorm';
   import { Users } from './Users';
-import { OrdersProduct } from '../products/OrdersProducts';
-import { OrdersPackages } from '../packages/OrdersPackages';
+  import { Orders } from '../Orders';
   
   @Entity()
   export class PaymentMethods extends BaseEntity{
@@ -20,11 +19,8 @@ import { OrdersPackages } from '../packages/OrdersPackages';
     @ManyToOne(() => Users, (user) => user.UserID)
     User: Users;
 
-    @OneToMany(() => OrdersProduct, (orderProduct) => orderProduct.OrderID)
-    OrdersProduct: OrdersProduct[];
-
-    @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.OrderID)
-    OrdersPackages: OrdersPackages[];
+    @OneToMany(() => Orders, (order) => order.PaymentMethod)
+    Orders: Orders[];
   
     @Column('varchar')
     Method: string;

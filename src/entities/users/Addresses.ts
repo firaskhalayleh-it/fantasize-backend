@@ -1,51 +1,46 @@
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    ManyToOne,
-    CreateDateColumn,
-    UpdateDateColumn,
-    BaseEntity,
-    OneToMany
-  } from 'typeorm';
-  import { Users } from './Users';
-import { OrdersPackages } from '../packages/OrdersPackages';
-import { OrdersProduct } from '../products/OrdersProducts';
-  
-  @Entity()
-  export class Addresses extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    AddressID: number;
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BaseEntity,
+  OneToMany
+} from 'typeorm';
+import { Users } from './Users';
+import { Orders } from '../Orders';
 
-    @ManyToOne(() => Users, (user) => user.UserID)
-    User: Users;
+@Entity()
+export class Addresses extends BaseEntity {
+  @PrimaryGeneratedColumn()
+  AddressID: number;
+
+  @ManyToOne(() => Users, (user) => user.UserID)
+  User: Users;
+
+  @OneToMany(() => Orders, (order) => order.Address)
+  Orders: Orders[];
 
 
-    @OneToMany(()=> OrdersPackages, (order) => order.OrderID)
-    Orders: OrdersPackages[];
+  @Column('varchar')
+  AddressLine: string;
 
-    @OneToMany(() => OrdersProduct, (order) => order.OrderID)
-    OrdersProduct: OrdersProduct[];
-  
-    @Column('varchar')
-    AddressLine: string;
+  @Column('varchar')
+  City: string;
 
-    @Column('varchar')
-    City: string;
-  
-    @Column('varchar')
-    State: string;
-  
-    @Column('varchar')
-    Country: string;
-  
-    @Column('varchar')
-    PostalCode: string;
-  
-    @CreateDateColumn()
-    CreatedAt: Date;
-  
-    @CreateDateColumn()
-    UpdatedAt: Date;
-  }
-  
+  @Column('varchar')
+  State: string;
+
+  @Column('varchar')
+  Country: string;
+
+  @Column('varchar')
+  PostalCode: string;
+
+  @CreateDateColumn()
+  CreatedAt: Date;
+
+  @CreateDateColumn()
+  UpdatedAt: Date;
+}

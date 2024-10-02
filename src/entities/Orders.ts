@@ -1,3 +1,5 @@
+// src/entities/Orders.ts
+
 import {
     Entity,
     BaseEntity,
@@ -6,29 +8,31 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     ManyToOne,
-    OneToMany
+    OneToMany,
+    BeforeInsert,
+    BeforeUpdate,
   } from 'typeorm';
-import { OrdersPackages } from './packages/OrdersPackages';
-import { Addresses } from './users/Addresses';
-import { PaymentMethods } from './users/PaymentMethods';
-import { Users } from './users/Users';
-import { OrdersProducts } from './products/OrdersProducts';
+  import { OrdersPackages } from './packages/OrdersPackages';
+  import { Addresses } from './users/Addresses';
+  import { PaymentMethods } from './users/PaymentMethods';
+  import { Users } from './users/Users';
+  import { OrdersProducts } from './products/OrdersProducts';
   
   @Entity()
   export class Orders extends BaseEntity {
     @PrimaryGeneratedColumn('increment')
     OrderID: number;
   
-    @ManyToOne(() => Users, (user) => user.UserID)
+    @ManyToOne(() => Users, (user) => user.Orders)
     User: Users;
   
-    @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.PaymentMethodID)
+    @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.Orders)
     PaymentMethod: PaymentMethods;
   
-    @ManyToOne(() => Addresses, (address) => address.AddressID)
+    @ManyToOne(() => Addresses, (address) => address.Orders)
     Address: Addresses;
   
-    @OneToMany(() => OrdersProducts, (ordersProduct) => ordersProduct.Order)
+    @OneToMany(() => OrdersProducts, (ordersProduct) => ordersProduct.Order, { cascade: true })
     OrdersProduct: OrdersProducts[];
   
     @OneToMany(() => OrdersPackages, (ordersPackages) => ordersPackages.Order)
@@ -40,7 +44,7 @@ import { OrdersProducts } from './products/OrdersProducts';
     @Column('boolean', { default: false })
     IsGift: boolean;
   
-    @Column('boolean')
+    @Column('boolean', { default: false })
     IsAnonymous: boolean;
   
     @Column('decimal', { precision: 10, scale: 2, default: 0 })
@@ -52,18 +56,20 @@ import { OrdersProducts } from './products/OrdersProducts';
     @UpdateDateColumn()
     UpdatedAt: Date;
   
+    @BeforeInsert()
+    @BeforeUpdate()
     calculateTotalPrice() {
       let totalPrice = 0;
   
       if (this.OrdersProduct && this.OrdersProduct.length > 0) {
         this.OrdersProduct.forEach((orderProduct) => {
-          totalPrice += orderProduct.TotalPrice;
+          totalPrice += Number(orderProduct.TotalPrice);
         });
       }
   
       if (this.OrdersPackages && this.OrdersPackages.length > 0) {
         this.OrdersPackages.forEach((orderPackage) => {
-          totalPrice += orderPackage.TotalPrice;
+          totalPrice += Number(orderPackage.TotalPrice);
         });
       }
   

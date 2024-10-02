@@ -1,17 +1,28 @@
-import { Entity, BaseEntity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate } from "typeorm";
+// src/entities/products/OrdersProducts.ts
+
+import {
+  Entity,
+  BaseEntity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BeforeInsert,
+  BeforeUpdate,
+} from "typeorm";
 import { Orders } from "../Orders";
 import { Products } from "./Products";
-import { Users } from "../users/Users";
 
 @Entity()
 export class OrdersProducts extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
-  OrderProductID: number;  
+  OrderProductID: number;
 
-  @ManyToOne(() => Orders, (order) => order.OrdersProduct)
+  @ManyToOne(() => Orders, (order) => order.OrdersProduct, { onDelete: 'CASCADE' })
   Order: Orders;
 
-  @ManyToOne(() => Products, (product) => product.ProductID)
+  @ManyToOne(() => Products, (product) => product.OrdersProducts)
   Product: Products;
 
   @Column('int')
@@ -29,6 +40,8 @@ export class OrdersProducts extends BaseEntity {
   @BeforeInsert()
   @BeforeUpdate()
   calculateTotalPrice() {
-    this.TotalPrice = this.Product.Price * this.Quantity;
+    if (this.Product && this.Quantity) {
+      this.TotalPrice = Number(this.Product.Price) * this.Quantity;
+    }
   }
 }
