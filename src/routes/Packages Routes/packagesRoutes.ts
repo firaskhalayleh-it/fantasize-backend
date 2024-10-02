@@ -49,6 +49,4 @@ packageRoute.get('/packages/:packageId',c_getPackageByID);
 packageRoute.put('/packages/:packageId', isAuthorized , c_updatePackage);
 
 
-
-
 export default packageRoute;

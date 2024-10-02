@@ -1,9 +1,9 @@
-import { Entity, ManyToOne, CreateDateColumn, PrimaryColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, ManyToOne, CreateDateColumn, PrimaryColumn, OneToMany, PrimaryGeneratedColumn, BaseEntity } from 'typeorm';
 import { Users } from '../users/Users';
 import { Packages } from '../packages/Packages';
 
 @Entity()
-export class FavoritePackages {
+export class FavoritePackages extends BaseEntity{
     @PrimaryGeneratedColumn('increment')
     favoritePackageID: number;
 
