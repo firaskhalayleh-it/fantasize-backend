@@ -4,12 +4,13 @@ import { Packages } from "./Packages";
 
 @Entity()
 export class OrdersPackages extends BaseEntity {
-  @PrimaryGeneratedColumn('increment')
+  @PrimaryGeneratedColumn('increment',{name:'OrderPackageID'})
   OrderPackageID: number; 
 
-  @ManyToOne(() => Orders, (order) => order.OrdersPackages)
+  @ManyToOne(() => Orders, (order) => order.OrdersPackages, { onDelete: 'CASCADE' })
   Order: Orders;
 
+  
   @ManyToOne(() => Packages, (packages) => packages.OrdersPackages)
   Package: Packages;
 
