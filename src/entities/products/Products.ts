@@ -7,6 +7,7 @@ import { SubCategories } from '../categories/SubCategories';
 import { ProductCustomizations } from './ProductCustomizations';
 import { FavoriteProducts } from './FavoriteProducts';
 import { OrdersProducts } from './OrdersProducts';
+import { Packages } from '../packages/Packages';
 
 @Entity()
 export class Products extends BaseEntity {
@@ -49,6 +50,8 @@ export class Products extends BaseEntity {
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Products, { eager: true })
   SubCategory: SubCategories;
 
+  @ManyToOne(() => Packages, (pkg) => pkg.products)
+  Package: Packages;
 
   @ManyToOne(() => Offers, (offer) => offer.OfferID)
   Offer: Offers;
