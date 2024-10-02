@@ -23,7 +23,11 @@ try {
 //----------------------- Get all brands-----------------------
 export const s_getAllBrands = async (req:Request , res:Response) =>{
 try {
-
+    const getAllBrands = await Brands.find();
+    if(!getAllBrands){
+        return `Not found any brand`
+    }
+    return getAllBrands
 } catch (err: any) {
     console.log(err);
     res.status(500).send({ message: err.message })
