@@ -1,6 +1,19 @@
-import { Entity, BaseEntity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { Orders } from "../Orders";
-import { Packages } from "./Packages";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BaseEntity,
+  OneToMany,
+  ManyToMany,
+  JoinTable
+} from 'typeorm';
+import { Users } from '../users/Users';
+import { PaymentMethods } from '../users/PaymentMethods';
+import { Addresses } from '../users/Addresses';
+import { Packages } from './Packages';
 
 @Entity()
 export class OrdersPackages extends BaseEntity {
@@ -10,15 +23,44 @@ export class OrdersPackages extends BaseEntity {
   @ManyToOne(() => Orders, (order) => order.OrdersPackages, { onDelete: 'CASCADE' })
   Order: Orders;
 
-  
-  @ManyToOne(() => Packages, (packages) => packages.OrdersPackages)
-  Package: Packages;
+  @Column('boolean', {nullable:true})
+  IsGift: boolean;
 
-  @Column('int')
-  Quantity: number;
+  @Column('text' , {nullable:true})
+  GiftMessage: string;
+
+  @Column('boolean', {nullable:true})
+  IsAnonymous: boolean;
+
+  @Column('int',{nullable:true})
+  quantity: number;
 
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   TotalPrice: number;
+
+  @ManyToOne(() => Users, (user) => user.UserID)
+  User: Users;
+
+  @ManyToMany(() => Packages, (packages) => packages.PackageID)
+  @JoinTable({
+    name: 'OrdersPackages',
+    joinColumn: {
+      name: 'OrderID',
+      referencedColumnName: 'OrderID'
+    },
+    inverseJoinColumn: {
+      name: 'PackageID',
+      referencedColumnName: 'PackageID'
+    }
+  })
+  Package: Packages[];
+
+  @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.PaymentMethodID)
+  PaymentMethod: PaymentMethods;
+
+  @ManyToOne(() => Addresses, (address) => address.AddressID)
+  Address: Addresses;
+
 
   @CreateDateColumn()
   CreatedAt: Date;
@@ -26,7 +68,4 @@ export class OrdersPackages extends BaseEntity {
   @UpdateDateColumn()
   UpdatedAt: Date;
 
-  calculateTotalPrice() {
-    this.TotalPrice = this.Package.Price * this.Quantity;
-  }
 }

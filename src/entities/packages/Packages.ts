@@ -38,8 +38,8 @@ export class Packages extends BaseEntity {
   @Column('int')
   Quantity: number;
 
-  @Column('varchar')
-  message: string;
+  @Column('text',{ nullable: true })
+  Message: string;
 
   @Column('json', { nullable: true })
   Size: any;  
@@ -70,7 +70,8 @@ export class Packages extends BaseEntity {
   })
   PackageCustomization: PackageCustomizations[];
 
-
+  @ManyToMany(() => OrdersPackages, (pkgOrder) => pkgOrder.Package)
+  Orders: OrdersPackages[];
 
   @OneToMany(() => Resources, (resource) => resource.ResourceID)
   Resource: Resources[];

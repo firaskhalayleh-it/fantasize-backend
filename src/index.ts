@@ -16,6 +16,7 @@ import {userFaves} from "./routes/Products Routes/favoriteProductsRoutes";
 import orderProductRoute from "./routes/Products Routes/ordersProductsRoutes";
 import favoritePackagesRoute from "./routes/Packages Routes/favoritePackagesRoutes";
 import brandRoute from "./routes/Brands Routes/BrandsRoutes";
+import orderPackageRoute from "./routes/Packages Routes/ordersPackagesRoutes";
 import reviewsRoute from "./routes/Reviews Routes/reviewsRoutes";
 import offerRoute from "./routes/Offers Routes/offersRoutes";
 
@@ -39,6 +40,7 @@ app.use("/api",customizationProductRoute);
 app.use("/api",userFaves);
 app.use("/api",orderProductRoute);
 app.use("/api",packageRoute);
+app.use("/api",orderPackageRoute);
 app.use("/api",favoritePackagesRoute);
 app.use("/api",brandRoute);
 app.use("/api",reviewsRoute);
