@@ -16,6 +16,7 @@ export const s_createPackage = async (req: Request, res: Response) => {
 
         const subcategory = await SubCategories.findOne({ where: { SubCategoryID: SubCategoryId } });
         if (!subcategory) {
+            await queryRunner.rollbackTransaction();
             return res.status(400).send({ message: "SubCategory not found" });
         }
 
@@ -42,7 +43,7 @@ export const s_createPackage = async (req: Request, res: Response) => {
 
         }
 
-        const addPackage = await Packages.create({
+        const addPackage =  Packages.create({
             Name: Name,
             Description: Description,
             Price: Price,
@@ -120,20 +121,27 @@ export const s_getPackageByID = async (req:Request , res:Response) =>{
 //----------------------- Update a package-----------------------
 
 export const s_updatePackage = async (req: Request, res: Response) => {
+    const queryRunner = database.createQueryRunner();
+
     try {
+        await queryRunner.startTransaction();
+
         const { packageId, Name, Description, Price, Quantity, Size, SubCategoryId, products } = req.body;
 
         if (!packageId) {
+            await queryRunner.rollbackTransaction();
             return res.status(400).json({ message: "Package ID is required" });
         }
 
         const existingPackage = await Packages.findOne({ where: { PackageID: packageId } });
         if (!existingPackage) {
+            await queryRunner.rollbackTransaction();
             return res.status(404).json({ message: "Package not found" });
         }
 
         const subcategory = await SubCategories.findOne({ where: { SubCategoryID: SubCategoryId } });
         if (!subcategory) {
+            await queryRunner.rollbackTransaction();
             return res.status(400).json({ message: "SubCategory not found" });
         }
 
@@ -143,6 +151,7 @@ export const s_updatePackage = async (req: Request, res: Response) => {
 
             const pNameIsExist = await Products.find({ where: { Name: In(productNames) } });
             if (pNameIsExist.length !== productNames.length) {
+                await queryRunner.rollbackTransaction();
                 return res.status(400).json({ message: "Sorry, some products do not exist" });
             }
 
@@ -151,11 +160,13 @@ export const s_updatePackage = async (req: Request, res: Response) => {
                 const requestedQuantity = quantities[i];
 
                 if (productInDB.Quantity < requestedQuantity) {
+                    await queryRunner.rollbackTransaction();
                     return res.status(400).json({ message: `Insufficient quantity for ${productInDB.Name}` });
                 }
 
                 productInDB.Quantity -= requestedQuantity;
-                await productInDB.save();
+                // await productInDB.save();
+                await queryRunner.manager.save(productInDB);
             }
         }
 
@@ -166,12 +177,16 @@ export const s_updatePackage = async (req: Request, res: Response) => {
         existingPackage.Size = Size || existingPackage.Size;
         existingPackage.SubCategory = subcategory;
 
-        await existingPackage.save();
-
+        // await existingPackage.save();
+        await queryRunner.manager.save(existingPackage);
+        await queryRunner.commitTransaction();
         return  "Package updated successfully";
 
     } catch (err: any) {
+        await queryRunner.rollbackTransaction();
         console.error("Error updating package:", err);
         return res.status(500).json({ message: "An error occurred", error: err.message });
+    }finally{
+        await queryRunner.release();
     }
 };
