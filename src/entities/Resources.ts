@@ -1,18 +1,25 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, OneToOne } from 'typeorm';
 import { Products } from './products/Products';
 import { Packages } from './packages/Packages';
+import { Users } from './users/Users';
 
 @Entity()
 export class Resources extends BaseEntity{
   @PrimaryGeneratedColumn('increment')
   ResourceID: number;
 
-  @Column('varchar')
-  AttachmentPath: string;
+  @Column()
+    entityType: string; 
 
-  @Column('varchar')
-  ResourceType: string;
- 
+    @Column()
+    entityName: string;
+
+    @Column()
+    fileType: string; 
+
+    @Column()
+    filePath: string; 
+
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   CreatedAt: Date;
 
@@ -20,9 +27,14 @@ export class Resources extends BaseEntity{
   UpdatedAt: Date;
 
 
+  @OneToOne(()=> Users, (user) => user.UserProfilePicture)
+  User: Users;
+  
   @ManyToOne(() => Products, (product) => product.Resource)
   Product: Products;
 
   @ManyToOne(() => Packages, (pkg) => pkg.Resource)
   Package: Packages;
+
+
 }

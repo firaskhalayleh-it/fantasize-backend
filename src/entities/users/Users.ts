@@ -19,6 +19,7 @@ import { OrdersProducts } from '../products/OrdersProducts';
 import { OrdersPackages } from '../packages/OrdersPackages';
 import { Cart } from '../Cart';
 import { Orders } from '../Orders';
+import { Resources } from '../Resources';
 
 @Entity()
 export class Users extends BaseEntity {
@@ -37,8 +38,8 @@ export class Users extends BaseEntity {
   @Column('varchar')
   Password: string;
 
-  @Column('bytea', { nullable: true })
-  UserProfilePicture: Buffer;
+  @OneToOne(() =>Resources, (resource) => resource.ResourceID)
+  UserProfilePicture: string;
 
   @Column('varchar', { nullable: true, unique: true })
   PhoneNumber: string;
