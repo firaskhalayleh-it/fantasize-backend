@@ -3,10 +3,15 @@ import { SubCategories } from '../../entities/categories/SubCategories';
 import { Products } from '../../entities/products/Products';
 import { Packages } from '../../entities/packages/Packages';
 import { In } from 'typeorm';
+import { database } from '../../config/database';
 
 //----------------------- Create a new package-----------------------
 export const s_createPackage = async (req: Request, res: Response) => {
+    const queryRunner = database.createQueryRunner();
+
     try {
+        await queryRunner.startTransaction();
+
         const { Name, Description, Price, Quantity, Message, Size, SubCategoryId, products } = req.body;
 
         const subcategory = await SubCategories.findOne({ where: { SubCategoryID: SubCategoryId } });
@@ -19,6 +24,7 @@ export const s_createPackage = async (req: Request, res: Response) => {
 
         const pNameIsExist = await Products.find({ where: { Name: In(productName) } });
         if (pNameIsExist.length !== productName.length) {
+            await queryRunner.rollbackTransaction();
             return res.status(400).send({ message: "Sorry, some products do not exist" });
         }
 
@@ -27,11 +33,13 @@ export const s_createPackage = async (req: Request, res: Response) => {
             const requestedQuantity = quantity[i];
 
             if (productInDB.Quantity < requestedQuantity) {
+                await queryRunner.rollbackTransaction();
                 return res.status(400).send({ message: `Insufficient quantity for ${productInDB.Name}` });
             }
 
             productInDB.Quantity -= requestedQuantity;
-            await productInDB.save();
+            await queryRunner.manager.save(productInDB);
+
         }
 
         const addPackage = await Packages.create({
@@ -44,13 +52,18 @@ export const s_createPackage = async (req: Request, res: Response) => {
             Product: products
         });
 
-        await addPackage.save();
+        // await addPackage.save();
+        await queryRunner.manager.save(addPackage);
+        await queryRunner.commitTransaction();
 
         return `Added successfully`;
 
     } catch (err: any) {
+        await queryRunner.rollbackTransaction();
         console.log(err);
         return res.status(500).send({ message: err.message });
+    }finally{
+        await queryRunner.release();
     }
 };
 
