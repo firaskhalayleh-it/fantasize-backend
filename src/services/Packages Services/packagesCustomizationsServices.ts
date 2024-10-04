@@ -1,24 +1,39 @@
 import { Request, Response } from 'express';
 import { PackageCustomizations } from '../../entities/packages/PackageCustomizations';
 import { Packages } from '../../entities/packages/Packages';
+import { uploadFiles } from '../../config/Multer config/multerConfig';
 
 //----------------------- Create a new customization for a package -----------------------
 export const s_createCustomizationPackage = async (req: Request, res: Response) => {
     try {
         const { title, type, typeOptions } = req.body;
+
         if (!title || !type || !typeOptions || !Array.isArray(typeOptions)) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
-        const validTypes = ["text", "button", "radio", "checkbox", "image", "message", "colorOption"];
 
+        const validTypes = ["text", "button", "radio", "checkbox", "image", "message", "colorOption"];
         if (!validTypes.includes(type)) {
             return res.status(400).send({ message: "Invalid type" });
         }
 
-        const formattedTypeOptions = typeOptions.map((opt) => ({
-            option: opt.option,
-            value: opt.value,
-        }));
+        let formattedTypeOptions;
+
+        // If type is "image", handle file uploads
+        if (type === "image" && req.files) {
+            const files = await uploadFiles(req);
+            formattedTypeOptions = files.map((file, index) => ({
+                option: typeOptions[index]?.option || `Option ${index + 1}`,
+                value: typeOptions[index]?.value || `Value ${index + 1}`,
+                imagePath: `/resources/package_customizations/${title}/${file.filename}` // Store the file path
+            }));
+        } else {
+            // For other types, use the provided typeOptions
+            formattedTypeOptions = typeOptions.map((opt) => ({
+                option: opt.option,
+                value: opt.value,
+            }));
+        }
 
         const customizationObj = {
             title: title,
@@ -29,15 +44,70 @@ export const s_createCustomizationPackage = async (req: Request, res: Response) 
         const customization = PackageCustomizations.create({
             Options: customizationObj,
         });
+
         await customization.save();
 
-        return res.status(200).send({ message: "Customization created successfully", customization });
+        return res.status(201).send({ message: "Customization created successfully", customization });
 
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message });
+        return res.status(500).send({ message: err.message });
     }
-}
+};
+
+
+
+//----------------------- Update a package customization -----------------------
+export const s_updateCustomizationPackage = async (req: Request, res: Response) => {
+    try {
+        const customizationId = Number(req.params.customizationId);
+        const { title, type, typeOptions } = req.body;
+
+        if (!title || !type || !typeOptions || !Array.isArray(typeOptions)) {
+            return res.status(400).send({ message: "Please fill all the fields" });
+        }
+
+        const validTypes = ["text", "button", "radio", "checkbox", "image", "message", "colorOption"];
+        if (!validTypes.includes(type)) {
+            return res.status(400).send({ message: "Invalid type" });
+        }
+
+        const customization = await PackageCustomizations.findOne({ where: { PackageCustomizationID: customizationId } });
+        if (!customization) {
+            return res.status(404).send({ message: "Customization not found" });
+        }
+
+        let formattedTypeOptions;
+
+        if (type === "image" && req.files) {
+            const files = await uploadFiles(req);
+            formattedTypeOptions = files.map((file, index) => ({
+                option: typeOptions[index]?.option || `Option ${index + 1}`,
+                value: typeOptions[index]?.value || `Value ${index + 1}`,
+                imagePath: `/resources/package_customizations/${customizationId}/${file.filename}` 
+            }));
+        } else {
+            formattedTypeOptions = typeOptions.map((opt) => ({
+                option: opt.option,
+                value: opt.value,
+            }));
+        }
+
+        customization.Options = {
+            title: title,
+            type: type,
+            typeOptions: formattedTypeOptions,
+        };
+
+        await customization.save();
+
+        return res.status(200).send({ message: "Customization updated successfully", customization });
+
+    } catch (err: any) {
+        console.log(err);
+        return res.status(500).send({ message: err.message });
+    }
+};
 
 //----------------------- Get all package customizations -----------------------
 export const s_getAllCustomizationPackages = async (req: Request, res: Response) => {
@@ -53,48 +123,6 @@ export const s_getAllCustomizationPackages = async (req: Request, res: Response)
         res.status(500).send({ message: err.message });
     }
 }
-
-//----------------------- Update a package customization -----------------------
-export const s_updateCustomizationPackage = async (req: Request, res: Response) => {
-    try {
-        const customizationId = Number(req.params.customizationId);
-        const { title, type, typeOptions } = req.body;
-        if (!title || !type || !typeOptions || !Array.isArray(typeOptions)) {
-            return res.status(400).send({ message: "Please fill all the fields" });
-        }
-        const validTypes = ["text", "button", "radio", "checkbox", "image", "message", "colorOption"];
-
-        if (!validTypes.includes(type)) {
-            return res.status(400).send({ message: "Invalid type" });
-        }
-
-        const formattedTypeOptions = typeOptions.map((opt) => ({
-            option: opt.option,
-            value: opt.value,
-        }));
-
-        const customizationObj = {
-            title: title,
-            type: type,
-            typeOptions: formattedTypeOptions,
-        };
-
-        const customization = await PackageCustomizations.findOne({ where: { PackageCustomizationID: customizationId } });
-        if (!customization) {
-            return res.status(404).send({ message: "Customization not found" });
-        }
-
-        customization.Options = customizationObj;
-        await customization.save();
-
-        return res.status(200).send({ message: "Customization updated successfully", customization });
-
-    } catch (err: any) {
-        console.log(err);
-        res.status(500).send({ message: err.message });
-    }
-}
-
 //----------------------- Delete a package customization -----------------------
 export const s_deleteCustomizationPackage = async (req: Request, res: Response) => {
     try {
