@@ -15,7 +15,7 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
         const userId = (req as any).user.payload.userId;
 
         // Extract product ID and quantity from the request body
-        const { productId, quantity, } = req.body;
+        const { productId, quantity } = req.body;
 
         // Validate quantity
         if (!quantity || quantity <= 0) {

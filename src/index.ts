@@ -20,6 +20,8 @@ import orderPackageRoute from "./routes/Packages Routes/ordersPackagesRoutes";
 import reviewsRoute from "./routes/Reviews Routes/reviewsRoutes";
 import offerRoute from "./routes/Offers Routes/offersRoutes";
 import orderRoute from "./routes/Order Routes/orderRoute";
+import customizationPackageRoute from "./routes/Packages Routes/customizationPackageRoute";
+
 
 const app = express();
 app.use(cookieParser());
@@ -47,6 +49,7 @@ app.use("/api", brandRoute);
 app.use("/api", reviewsRoute);
 app.use("/api", offerRoute);
 app.use("/api", orderRoute);
+app.use("/api", customizationPackageRoute);
 
 
 app.use(notFound);

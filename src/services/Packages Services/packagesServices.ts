@@ -27,7 +27,7 @@ try{
             Description: Description,
             Price: Price,
             Quantity: Quantity,
-            Size: Size,
+           
             SubCategory: subcategory,
             Product: products
         }).save();
@@ -93,7 +93,7 @@ export const s_getPackageByID = async (req:Request , res:Response) =>{
 export const s_updatePackage = async (req: Request, res: Response) => {
     try {
         const packageId :any = req.params.packageId; 
-        const { Name, Description, Price, Quantity, Message, Size, SubCategoryId, productName } = req.body;
+        const { Name, Description, Price, Quantity, SubCategoryId, productName } = req.body;
 
         const packageToUpdate = await Packages.findOne({ where: {PackageID : packageId} });
         if (!packageToUpdate) {
@@ -107,9 +107,7 @@ export const s_updatePackage = async (req: Request, res: Response) => {
         packageToUpdate.Name = Name || packageToUpdate.Name;
         packageToUpdate.Description = Description || packageToUpdate.Description;
         packageToUpdate.Price = Price || packageToUpdate.Price;
-        packageToUpdate.Message =Message || packageToUpdate.Message;
         packageToUpdate.Quantity = Quantity || packageToUpdate.Quantity;
-        packageToUpdate.Size = Size || packageToUpdate.Size;
 
         packageToUpdate.SubCategory = SubCategoryId || packageToUpdate.SubCategory;
 
