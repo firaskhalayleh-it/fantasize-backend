@@ -20,6 +20,7 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
             where: { User: user, Status: false },
             relations: ["OrdersProducts", "OrdersProducts.Product"]
         });
+
         if (!order) {
             return res.status(404).send({ message: "Order not found" });
         }
@@ -31,11 +32,20 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
         if (!address) {
             return res.status(404).send({ message: "Address not found" });
         }
+        order.OrdersPackages.forEach(async (orderPackage) => {
+            orderPackage.Package.Quantity -= orderPackage.quantity;
+            await orderPackage.Package.save();
+        });
+        order.OrdersProducts.forEach(async (orderProduct) => {
+            orderProduct.Product.Quantity -= orderProduct.Quantity;
+            await orderProduct.Product.save();
+        });
+
         order.PaymentMethod = paymentMethod;
         order.Address = address;
         order.Status = true;
-        order.IsGift = IsGift;
-        order.IsAnonymous = IsAnonymous;
+        order.IsGift = IsGift ?? false;
+        order.IsAnonymous = IsAnonymous ?? false;
 
 
         await order.save();
@@ -50,7 +60,7 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
 export const s_getAllOrdersUser = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user.payload.userId;
-        const user = await Users.findOne({ where: { UserID: userId } });
+        const user = await Users.findOne({ where: { UserID: userId, } });
         if (!user) {
             return res.status(404).send({ message: "User not found" });
         }
@@ -60,6 +70,29 @@ export const s_getAllOrdersUser = async (req: Request, res: Response) => {
         });
         return res.status(200).send(orders);
     } catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message });
+    }
+}
+
+//----------------------- Get Cart for a user-----------------------
+export const s_getCartUser = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user.payload.userId;
+        const user = await Users.findOne({ where: { UserID: userId } });
+        if (!user) {
+            return res.status(404).send({ message: "User not found" });
+        }
+        const order = await Orders.findOne({
+            where: { User: user, Status: false },
+            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
+        });
+        if (!order) {
+            return res.status(404).send({ message: "Cart not found" });
+        }
+        return res.status(200).send(order);
+    }
+    catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message });
     }

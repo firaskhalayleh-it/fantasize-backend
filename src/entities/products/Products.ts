@@ -60,7 +60,7 @@ export class Products extends BaseEntity {
   @OneToMany(() => Resources, (resource) => resource.ResourceID,)
   Resource: Resources[];
 
-  @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products,)
+  @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products,{ eager: true })
   @JoinTable({
     name: 'ProductsCustomizations',
     joinColumn: {
@@ -92,7 +92,7 @@ export class Products extends BaseEntity {
   @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product)
   FavoriteProducts: FavoriteProducts[];
 
-  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product ,{ eager: true })
+  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product )
   OrdersProducts: OrdersProducts[];
 
   
