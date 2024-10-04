@@ -14,7 +14,7 @@ export class ProductCustomizations extends BaseEntity {
     @Column('jsonb')
     Options: Record<string, any>;
 
-    @ManyToMany(() => Products, (product) => product.ProductCustomization,{eager: true, cascade: true})
+    @ManyToMany(() => Products, (product) => product.ProductCustomization,{eager: true})
     Products: Products[];
 
 }

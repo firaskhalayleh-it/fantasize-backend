@@ -1,0 +1,133 @@
+import { MigrationInterface, QueryRunner } from "typeorm";
+
+export class UpdateOrdersPackages1727897585769 implements MigrationInterface {
+    name = 'UpdateOrdersPackages1727897585769'
+
+    public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP CONSTRAINT "PK_7adf3b2981c70547ae1c908fa92"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP CONSTRAINT "FK_385caf6d00386dca58fe45abe90"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP CONSTRAINT "FK_7a1123cd639fd65314a228f8c9f"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP CONSTRAINT "FK_1a86f9f09c659e26d0ed7d16778"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP CONSTRAINT "FK_d80c347d8341bbb6f7bb024159d"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP CONSTRAINT "FK_b553748826b9140d70b5b2d449e"`);
+        await queryRunner.query(`DROP INDEX "fatansize_test"."IDX_b553748826b9140d70b5b2d449"`);
+        await queryRunner.query(`DROP INDEX "fatansize_test"."IDX_d80c347d8341bbb6f7bb024159"`);
+        await queryRunner.query(`CREATE TABLE "fatansize_test"."cart_product" ("CartProductID" SERIAL NOT NULL, "Quantity" integer NOT NULL, "TotalPrice" numeric(10,2) NOT NULL DEFAULT '0', "CreatedAt" TIMESTAMP NOT NULL DEFAULT now(), "UpdatedAt" TIMESTAMP NOT NULL DEFAULT now(), "cartCartID" integer, "productProductID" integer, CONSTRAINT "PK_d626ad82fd66c7651a96fe39c79" PRIMARY KEY ("CartProductID"))`);
+        await queryRunner.query(`CREATE TABLE "fatansize_test"."cart_package" ("CartPackageID" SERIAL NOT NULL, "Quantity" integer NOT NULL, "TotalPrice" numeric(10,2) NOT NULL DEFAULT '0', "CreatedAt" TIMESTAMP NOT NULL DEFAULT now(), "UpdatedAt" TIMESTAMP NOT NULL DEFAULT now(), "cartCartID" integer, "packagePackageID" integer, CONSTRAINT "PK_67b8cdc30617564185051afd1e0" PRIMARY KEY ("CartPackageID"))`);
+        await queryRunner.query(`CREATE TABLE "fatansize_test"."cart" ("CartID" SERIAL NOT NULL, "TotalPrice" numeric(10,2) NOT NULL DEFAULT '0', "CreatedAt" TIMESTAMP NOT NULL DEFAULT now(), "UpdatedAt" TIMESTAMP NOT NULL DEFAULT now(), "userUserID" uuid, CONSTRAINT "PK_c3a3f0640a7606c3daf5ee16284" PRIMARY KEY ("CartID"))`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP CONSTRAINT "PK_5e4fdc811f9f6bbae78635a44a7"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP COLUMN "OrderID"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP COLUMN "IsGift"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP COLUMN "IsAnonymous"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP COLUMN "userUserID"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP COLUMN "paymentMethodPaymentMethodID"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP COLUMN "addressAddressID"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP COLUMN "Status"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP COLUMN "GiftMessage"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP CONSTRAINT "PK_c50e7cb12a08c16a39426aa5b2a"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD CONSTRAINT "PK_b553748826b9140d70b5b2d449e" PRIMARY KEY ("OrderID")`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP COLUMN "ProductID"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP CONSTRAINT "PK_b553748826b9140d70b5b2d449e"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP COLUMN "OrderID"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" DROP COLUMN "GiftMessage"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."packages" DROP COLUMN "Message"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."packages" DROP COLUMN "Validity"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD "OrderPackageID" SERIAL NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD CONSTRAINT "PK_7adf3b2981c70547ae1c908fa92" PRIMARY KEY ("OrderPackageID")`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD "Quantity" integer NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD "orderOrderID" integer`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD "packagePackageID" integer`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD "OrderProductID" SERIAL NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD CONSTRAINT "PK_0752c7e8bb998533d979c55a220" PRIMARY KEY ("OrderProductID")`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD "Quantity" integer NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD "TotalPrice" numeric(10,2) NOT NULL DEFAULT '0'`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD "CreatedAt" TIMESTAMP NOT NULL DEFAULT now()`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD "UpdatedAt" TIMESTAMP NOT NULL DEFAULT now()`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD "orderOrderID" integer`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD "productProductID" integer`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."packages" ADD "message" character varying NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."products" ADD "packagePackageID" integer`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ALTER COLUMN "TotalPrice" TYPE numeric(10,2)`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ALTER COLUMN "TotalPrice" SET DEFAULT '0'`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" DROP COLUMN "Status"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" ADD "Status" boolean NOT NULL DEFAULT false`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" ALTER COLUMN "IsGift" SET DEFAULT false`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" ALTER COLUMN "IsAnonymous" SET DEFAULT false`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" ALTER COLUMN "TotalPrice" TYPE numeric(10,2)`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" ALTER COLUMN "TotalPrice" SET DEFAULT '0'`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD CONSTRAINT "FK_a974882995ffdf0b111b1f0b897" FOREIGN KEY ("orderOrderID") REFERENCES "fatansize_test"."orders"("OrderID") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD CONSTRAINT "FK_852100c7a06b52090028061b3bd" FOREIGN KEY ("packagePackageID") REFERENCES "fatansize_test"."packages"("PackageID") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD CONSTRAINT "FK_e5d01afacc1155ff60c987546c5" FOREIGN KEY ("orderOrderID") REFERENCES "fatansize_test"."orders"("OrderID") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD CONSTRAINT "FK_51b664066c2382a933a06206e7b" FOREIGN KEY ("productProductID") REFERENCES "fatansize_test"."products"("ProductID") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."cart_product" ADD CONSTRAINT "FK_927d435d111566e8c3b5fc2a8b7" FOREIGN KEY ("cartCartID") REFERENCES "fatansize_test"."cart"("CartID") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."cart_product" ADD CONSTRAINT "FK_5284e50fc9562330f0cb8aad648" FOREIGN KEY ("productProductID") REFERENCES "fatansize_test"."products"("ProductID") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."cart_package" ADD CONSTRAINT "FK_115032742156d655f6aec3be351" FOREIGN KEY ("cartCartID") REFERENCES "fatansize_test"."cart"("CartID") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."cart_package" ADD CONSTRAINT "FK_c20ca5eaf2b5c6d8a19286ea493" FOREIGN KEY ("packagePackageID") REFERENCES "fatansize_test"."packages"("PackageID") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."cart" ADD CONSTRAINT "FK_68b393abdaf1d6c75a6cc5715db" FOREIGN KEY ("userUserID") REFERENCES "fatansize_test"."users"("UserID") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."products" ADD CONSTRAINT "FK_0d7a8baf42968ab39813f2a46ab" FOREIGN KEY ("packagePackageID") REFERENCES "fatansize_test"."packages"("PackageID") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+    }
+
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."products" DROP CONSTRAINT "FK_0d7a8baf42968ab39813f2a46ab"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."cart" DROP CONSTRAINT "FK_68b393abdaf1d6c75a6cc5715db"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."cart_package" DROP CONSTRAINT "FK_c20ca5eaf2b5c6d8a19286ea493"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."cart_package" DROP CONSTRAINT "FK_115032742156d655f6aec3be351"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."cart_product" DROP CONSTRAINT "FK_5284e50fc9562330f0cb8aad648"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."cart_product" DROP CONSTRAINT "FK_927d435d111566e8c3b5fc2a8b7"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP CONSTRAINT "FK_51b664066c2382a933a06206e7b"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP CONSTRAINT "FK_e5d01afacc1155ff60c987546c5"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP CONSTRAINT "FK_852100c7a06b52090028061b3bd"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP CONSTRAINT "FK_a974882995ffdf0b111b1f0b897"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" ALTER COLUMN "TotalPrice" DROP DEFAULT`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" ALTER COLUMN "TotalPrice" TYPE numeric`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" ALTER COLUMN "IsAnonymous" DROP DEFAULT`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" ALTER COLUMN "IsGift" DROP DEFAULT`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" DROP COLUMN "Status"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" ADD "Status" character varying NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ALTER COLUMN "TotalPrice" DROP DEFAULT`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ALTER COLUMN "TotalPrice" TYPE numeric`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."products" DROP COLUMN "packagePackageID"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."packages" DROP COLUMN "message"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP COLUMN "productProductID"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP COLUMN "orderOrderID"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP COLUMN "UpdatedAt"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP COLUMN "CreatedAt"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP COLUMN "TotalPrice"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP COLUMN "Quantity"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP CONSTRAINT "PK_0752c7e8bb998533d979c55a220"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP COLUMN "OrderProductID"`);``
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP COLUMN "packagePackageID"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP COLUMN "orderOrderID"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP COLUMN "Quantity"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP CONSTRAINT "PK_7adf3b2981c70547ae1c908fa92"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" DROP COLUMN "OrderPackageID"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."packages" ADD "Validity" character varying NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."packages" ADD "Message" text NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders" ADD "GiftMessage" text NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD "OrderID" integer NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD CONSTRAINT "PK_b553748826b9140d70b5b2d449e" PRIMARY KEY ("OrderID")`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD "ProductID" integer NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" DROP CONSTRAINT "PK_b553748826b9140d70b5b2d449e"`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD CONSTRAINT "PK_c50e7cb12a08c16a39426aa5b2a" PRIMARY KEY ("ProductID", "OrderID")`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD "GiftMessage" text NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD "Status" boolean NOT NULL DEFAULT false`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD "addressAddressID" integer`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD "paymentMethodPaymentMethodID" integer`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD "userUserID" uuid`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD "IsAnonymous" boolean NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD "IsGift" boolean NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD "OrderID" SERIAL NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD CONSTRAINT "PK_5e4fdc811f9f6bbae78635a44a7" PRIMARY KEY ("OrderID")`);
+        await queryRunner.query(`DROP TABLE "fatansize_test"."cart"`);
+        await queryRunner.query(`DROP TABLE "fatansize_test"."cart_package"`);
+        await queryRunner.query(`DROP TABLE "fatansize_test"."cart_product"`);
+        await queryRunner.query(`CREATE INDEX "IDX_d80c347d8341bbb6f7bb024159" ON "fatansize_test"."OrdersProducts" ("ProductID") `);
+        await queryRunner.query(`CREATE INDEX "IDX_b553748826b9140d70b5b2d449" ON "fatansize_test"."OrdersProducts" ("OrderID") `);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD CONSTRAINT "FK_b553748826b9140d70b5b2d449e" FOREIGN KEY ("OrderID") REFERENCES "fatansize_test"."orders_product"("OrderID") ON DELETE CASCADE ON UPDATE CASCADE`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."OrdersProducts" ADD CONSTRAINT "FK_d80c347d8341bbb6f7bb024159d" FOREIGN KEY ("ProductID") REFERENCES "fatansize_test"."products"("ProductID") ON DELETE CASCADE ON UPDATE CASCADE`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD CONSTRAINT "FK_1a86f9f09c659e26d0ed7d16778" FOREIGN KEY ("paymentMethodPaymentMethodID") REFERENCES "fatansize_test"."payment_methods"("PaymentMethodID") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD CONSTRAINT "FK_7a1123cd639fd65314a228f8c9f" FOREIGN KEY ("addressAddressID") REFERENCES "fatansize_test"."addresses"("AddressID") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "fatansize_test"."orders_packages" ADD CONSTRAINT "FK_385caf6d00386dca58fe45abe90" FOREIGN KEY ("userUserID") REFERENCES "fatansize_test"."users"("UserID") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+    }
+
+}

@@ -3,6 +3,7 @@ import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
 import { isAuthorized } from "../../middlewares/isAuthentecated";
 import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory, c_updateProduct } from "../../controllers/Products Controller/productController";
+import FavoriteProductRoute from "./favoriteProductsRoutes";
 
 const productRoute = express.Router();
 
@@ -17,7 +18,7 @@ const productRoute = express.Router();
  *  @access        Public
  */
 
-productRoute.get('/:CategoryID/:subCategoryID/getAllproducts',isAuthorized,c_getProductByCategoryAndSubCategory);
+productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', isAuthorized, c_getProductByCategoryAndSubCategory);
 
 /**
  *  @description   Get a single product by ID
@@ -25,7 +26,7 @@ productRoute.get('/:CategoryID/:subCategoryID/getAllproducts',isAuthorized,c_get
  *  @method        GET
  *  @access        Public
  */
-productRoute.get('/getProduct/:productId',isAuthorized,c_getProduct);
+productRoute.get('/getProduct/:productId', isAuthorized, c_getProduct);
 
 /**
  *  @description   Create a new product
@@ -33,7 +34,7 @@ productRoute.get('/getProduct/:productId',isAuthorized,c_getProduct);
  *  @method        POST
  *  @access        admin
  */
-productRoute.post('/createProduct',isAuthorized,c_createProduct);
+productRoute.post('/createProduct', isAuthorized, c_createProduct);
 
 /**
  *  @description   Update a product
@@ -41,7 +42,16 @@ productRoute.post('/createProduct',isAuthorized,c_createProduct);
  *  @method        PUT
  *  @access        admin
  */
-productRoute.put('/product/:productId',isAuthorized,c_updateProduct);
+productRoute.put('/product/:productId', isAuthorized, c_updateProduct);
+
+
+/**
+ * @description  Add a product to favorites
+ * @route        /product/:productId/favorites*
+ * @method      Get, Post, Delete (add, remove, get all) means use
+ * @access     private
+ *  */
+productRoute.use('/product/:productId', FavoriteProductRoute);
 
 
 

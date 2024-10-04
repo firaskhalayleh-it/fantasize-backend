@@ -15,8 +15,10 @@ import { FavoritePackages } from '../packages/FavoritePackages';
 import { PaymentMethods } from './PaymentMethods';
 import { Addresses } from './Addresses';
 import { Reviews } from '../Reviews';
-import { OrdersProduct } from '../products/OrdersProducts';
+import { OrdersProducts } from '../products/OrdersProducts';
 import { OrdersPackages } from '../packages/OrdersPackages';
+import { Cart } from '../Cart';
+import { Orders } from '../Orders';
 
 @Entity()
 export class Users extends BaseEntity {
@@ -26,10 +28,10 @@ export class Users extends BaseEntity {
   @ManyToOne(() => Roles, (role) => role.RoleID)
   Role: Relation<Roles>;
 
-  @Column('varchar',{unique:true})
+  @Column('varchar', { unique: true })
   Username: string;
 
-  @Column('varchar',{unique:true})
+  @Column('varchar', { unique: true })
   Email: string;
 
   @Column('varchar')
@@ -60,15 +62,13 @@ export class Users extends BaseEntity {
   @OneToMany(() => Reviews, (review) => review.User)
   Reviews: Reviews[];
 
-  @OneToMany(() => OrdersProduct, (order) => order.User)
-  Orders: OrdersProduct[];
-
-  @OneToMany(() => OrdersPackages, (order) => order.User)
-  OrdersPackages: OrdersPackages[];
+  @OneToMany(() => Orders, (order) => order.User)
+  Orders: Orders[];
 
 
 
-
+  @OneToMany(() => Cart, (cart) => cart.User)
+  Cart: Cart[];
 
   @Column('varchar', { nullable: true })
   firebaseUID: string;

@@ -1,6 +1,14 @@
 import express from 'express';
-import { authMiddleware } from '../../middlewares/auth_middleware';
-import { adminMiddleware } from '../../middlewares/admin_middleware';
+
+import { isAuthorized } from '../../middlewares/isAuthentecated';
+
+import {
+    c_getOfferByID, c_createOfferProduct,
+    c_createOfferPackage, c_getAllOffers,
+    c_getAllOffersForProduct, c_getAllOffersForPackage,
+    c_updateOffer, c_getAllOffersForHomePage
+} from '../../controllers/Offers Controller/offersController';
+import { s_homeOffers } from '../../services/Offers Services/offersServices';
 
 const offerRoute = express.Router();
 
@@ -10,7 +18,7 @@ const offerRoute = express.Router();
  *  @method        POST
  *  @access        private
  */
-offerRoute.post('/offers',authMiddleware,adminMiddleware );
+offerRoute.post('/offers', isAuthorized, c_createOfferProduct);
 
 /**
  *  @description   Get all offers
@@ -18,7 +26,7 @@ offerRoute.post('/offers',authMiddleware,adminMiddleware );
  *  @method        GET
  *  @access        admin
  */
-offerRoute.get('/offers',authMiddleware,adminMiddleware );
+offerRoute.get('/offers', isAuthorized, c_getAllOffers);
 
 /**
  *  @description   Get an offer by ID
@@ -26,7 +34,7 @@ offerRoute.get('/offers',authMiddleware,adminMiddleware );
  *  @method        GET
  *  @access        admin
  */
-offerRoute.get('/offers/:offerId',authMiddleware,adminMiddleware );
+offerRoute.get('/offers/:offerId', isAuthorized, c_getOfferByID);
 
 /**
  *  @description   Update an offer
@@ -34,7 +42,7 @@ offerRoute.get('/offers/:offerId',authMiddleware,adminMiddleware );
  *  @method        PUT
  *  @access        admin
  */
-offerRoute.put('/offers/:offerId',authMiddleware,adminMiddleware );
+offerRoute.put('/offers/:offerId', isAuthorized, c_updateOffer);
 
 
 
@@ -46,6 +54,44 @@ offerRoute.put('/offers/:offerId',authMiddleware,adminMiddleware );
  *  @method        GET
  *  @access        public
  */
-offerRoute.get('/offers/homeOffers' );
+offerRoute.get('/offers/homeOffers', isAuthorized, s_homeOffers);
+
+
+/**
+ *  @description   Create a new offer for a product
+ *  @route         /offers/product
+ *  @method        POST
+ *  @access        private
+ */
+offerRoute.post('/offers/product', isAuthorized, c_createOfferProduct);
+
+
+/**
+ *  @description   Create a new offer for a package
+ *  @route         /offers/package
+ *  @method        POST
+ *  @access        private
+ */
+offerRoute.post('/offers/package', isAuthorized, c_createOfferPackage);
+
+/**
+ *  @description   Get all offers for a product
+ *  @route         /offers/product/:productId
+ *  @method        GET
+ *  @access        public
+ */
+offerRoute.get('/offers/product/:productId', isAuthorized, c_getAllOffersForProduct);
+
+
+/**
+ *  @description   Get all offers for a package
+ *  @route         /offers/package/:packageId
+ *  @method        GET
+ *  @access        public
+ */
+offerRoute.get('/offers/package/:packageId', isAuthorized, c_getAllOffersForPackage);
+
+
+
 
 export default offerRoute;

@@ -1,6 +1,8 @@
 import express from "express"
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
+import { isAuthorized } from "../../middlewares/isAuthentecated";
+import { c_createPackage, c_getAllPackages, c_getAllPackagesUnderSpecificSubcategory, c_getPackageByID, c_updatePackage } from "../../controllers/Packages Controller/packagesController";
 
 const packageRoute = express.Router();
 
@@ -11,7 +13,7 @@ const packageRoute = express.Router();
  *  @method        POST
  *  @access        admin
  */
-packageRoute.post('/packages', authMiddleware, adminMiddleware);
+packageRoute.post('/packages', isAuthorized,c_createPackage);
 
 /**
  *  @description   Get all packages
@@ -19,7 +21,7 @@ packageRoute.post('/packages', authMiddleware, adminMiddleware);
  *  @method        GET
  *  @access        public
  */
-packageRoute.get('/packages');
+packageRoute.get('/packages' , c_getAllPackages);
 
 
 /**
@@ -28,7 +30,7 @@ packageRoute.get('/packages');
  *  @method        GET
  *  @access        public
  */
-packageRoute.get('/:categoryId/:subcategoryId/packages');
+packageRoute.get('/:categoryId/:subcategoryId/packages',c_getAllPackagesUnderSpecificSubcategory);
 
 /**
  *  @description   Get a package by ID
@@ -36,17 +38,15 @@ packageRoute.get('/:categoryId/:subcategoryId/packages');
  *  @method        GET
  *  @access        public
  */
-packageRoute.get('/packages/:packageId');
+packageRoute.get('/packages/:packageId',c_getPackageByID);
 
 /**
  *  @description   Update a package
  *  @route         /packages/:packageId
  *  @method        PUT
- *  @access        public
+ *  @access        private (admin)
  */
-packageRoute.put('/packages/:packageId', authMiddleware, adminMiddleware);
-
-
+packageRoute.put('/packages/:packageId', isAuthorized , c_updatePackage);
 
 
 export default packageRoute;

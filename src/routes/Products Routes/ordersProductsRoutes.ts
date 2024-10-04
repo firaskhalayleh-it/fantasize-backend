@@ -1,40 +1,41 @@
+// src/routes/orderProductRoute.ts
+
 import express from "express";
-import { authMiddleware } from "../../middlewares/auth_middleware";
-import { adminMiddleware } from "../../middlewares/admin_middleware";
+
+import {
+    c_createNewOrderUser,
+    c_deleteOrderProduct,
+    c_updateOrderProduct
+} from "../../controllers/Products Controller/ordersProductsController";
+import { isAuthorized, IsAuthenticated } from "../../middlewares/isAuthentecated";
+
 const orderProductRoute = express.Router();
 
 /**
  *  @description   Create a new order for a user
- *  @route         /users/:userId/orders
+ *  @route         /order
  *  @method        POST
  *  @access        private 
  */
-orderProductRoute.post('/order/:userId/orders',authMiddleware);
+orderProductRoute.post('/order', isAuthorized, c_createNewOrderUser);
 
 /**
- *  @description   Get all orders for a user
- *  @route         /users/:userId/orders
- *  @method        GET
+ *  @description   Update a specific product order
+ *  @route         /order/:orderId/:productId
+ *  @method        PUT
  *  @access        private
  */
-orderProductRoute.get('/order/:userId/orders',authMiddleware);
+orderProductRoute.put('/order/:orderId/:productId', isAuthorized, c_updateOrderProduct);
+
 
 /**
- *  @description   Get all orders
- *  @route         /orders
- *  @method        GET
- *  @access        admin
+ *  @description   Delete a specific product order
+ *  @route         /order/:orderId/:productId
+ *  @method        DELETE
+ *  @access        private
  */
-orderProductRoute.get('/orders',authMiddleware,adminMiddleware);
 
-/**
- * @description   Checkout an order
- * @route         /orders/:orderId
- * @method        put
- * @access        private
- * 
- */
-orderProductRoute.put('/checkout/:orderId',authMiddleware);//changes the status of order to true (complete)to make order not in cart view
+orderProductRoute.delete('/order/:orderId/:productId', isAuthorized, c_deleteOrderProduct);
 
 
 export default orderProductRoute;

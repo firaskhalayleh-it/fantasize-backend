@@ -2,42 +2,35 @@
 import express from 'express';
 import { authMiddleware } from '../../middlewares/auth_middleware';
 import { adminMiddleware } from '../../middlewares/admin_middleware';
+import { IsAuthenticated } from '../../middlewares/isAuthentecated';
+import { c_createNewOrderUser, c_deleteorderPackage, c_updateOrderPackage } from '../../controllers/Packages Controller/ordersPackagesController';
 
 const orderPackageRoute = express.Router();
 
 /**
  *  @description   Create a new order for a user
- *  @route         /users/:userId/orders
+ *  @route         /orderpackage
  *  @method        POST
  *  @access        private 
  */
-orderPackageRoute.post('/order/:userId/orders',authMiddleware);
+orderPackageRoute.post('/orderpackage',IsAuthenticated,c_createNewOrderUser);
 
 /**
- *  @description   Get all orders for a user
- *  @route         /users/:userId/orders
- *  @method        GET
+ *  @description   Update a specific package order
+ *  @route         /orderpackage/:orderId/:packageId
+ *  @method        PUT
  *  @access        private
  */
-orderPackageRoute.get('/order/:userId/orders',authMiddleware);
-
-
-/**
- *  @description   Get all orders
- *  @route         /orders
- *  @method        GET
- *  @access        admin
- */
-orderPackageRoute.get('/orders',authMiddleware,adminMiddleware);
+orderPackageRoute.put('/orderpackage/:orderId/:packageId',IsAuthenticated,c_updateOrderPackage);
 
 /**
- * @description   Checkout an order
- * @route         /orders/:orderId
- * @method        put
+ * @description   Delete a specific package order
+ * @route         /orderpackage/:orderId/:packageId
+ * @method        DELETE
  * @access        private
  * 
- */
-orderPackageRoute.put('/checkout/:orderId',authMiddleware);//changes the status of order to true (complete)to make order not in cart view
+    */
+orderPackageRoute.delete('/orderpackage/:orderId/:packageId',IsAuthenticated,c_deleteorderPackage);
 
 
 export default orderPackageRoute;

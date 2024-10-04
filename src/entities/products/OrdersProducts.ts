@@ -1,76 +1,47 @@
+// src/entities/products/OrdersProducts.ts
+
 import {
   Entity,
+  BaseEntity,
   PrimaryGeneratedColumn,
-  Column,
   ManyToOne,
+  Column,
   CreateDateColumn,
   UpdateDateColumn,
-  BaseEntity,
-  OneToMany,
-  ManyToMany,
-  JoinTable
-} from 'typeorm';
-import { Users } from '../users/Users';
-import { PaymentMethods } from '../users/PaymentMethods';
-import { Addresses } from '../users/Addresses';
-import { Products } from './Products';
-import { join } from 'path';
+  BeforeInsert,
+  BeforeUpdate,
+} from "typeorm";
+import { Orders } from "../Orders";
+import { Products } from "./Products";
 
-@Entity()
-export class OrdersProduct extends BaseEntity {
+@Entity({ name: 'OrdersProduct' })
+export class OrdersProducts extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
-  OrderID: number;
+  OrderProductID: number;
 
-  @ManyToOne(() => Users, (user) => user.UserID)
-  User: Users;
+  @ManyToOne(() => Orders, (order) => order.OrdersProducts, { onDelete: 'CASCADE' })
+  Order: Orders;
 
-  @ManyToMany(() => Products, (products) => products.ProductID)
-  @JoinTable(
-    {
-      name: 'OrdersProducts',
-      joinColumn: {
-        name: 'OrderID',
-        referencedColumnName: 'OrderID'
-      },
-      inverseJoinColumn: {
-        name: 'ProductID',
-        referencedColumnName: 'ProductID'
-      }
+  @ManyToOne(() => Products, (product) => product.OrdersProducts)
+  Product: Products;
 
-    }
+  @Column('int')
+  Quantity: number;
 
-  )
-  Products: Products[];
-
-  @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.PaymentMethodID)
-  PaymentMethod: PaymentMethods;
-
-  @ManyToOne(() => Addresses, (address) => address.AddressID)
-  Address: Addresses;
-
-
-  @Column('boolean', { default: false }) // complete and incomplete order
-  Status: boolean;
-
-  @Column('boolean')
-  IsGift: boolean;
-
-  @Column('text')
-  GiftMessage: string;
-
-  @Column('boolean')
-  IsAnonymous: boolean;
-
-  @Column('decimal')
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
   TotalPrice: number;
-
-
-
-
 
   @CreateDateColumn()
   CreatedAt: Date;
 
   @UpdateDateColumn()
   UpdatedAt: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  calculateTotalPrice() {
+    if (this.Product && this.Quantity) {
+      this.TotalPrice = Number(this.Product.Price) * this.Quantity;
+    }
+  }
 }
