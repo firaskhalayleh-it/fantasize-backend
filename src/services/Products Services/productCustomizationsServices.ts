@@ -9,7 +9,7 @@ export const s_createCustomizationProduct = async (req: Request, res: Response) 
         if (!title || !type || !typeOptions || !Array.isArray(typeOptions)) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
-        const validTypes = ["text", "button", "radio", "checkbox", "image"];
+        const validTypes = ["text", "button", "radio", "checkbox", "image",'message','colorOption'];
 
         if (!validTypes.includes(type)) {
             return res.status(400).send({ message: "Invalid type" });
