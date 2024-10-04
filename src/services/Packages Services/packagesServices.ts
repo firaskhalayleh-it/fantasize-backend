@@ -155,7 +155,7 @@ export const s_updatePackage = async (req: Request, res: Response) => {
 
         await existingPackage.save();
 
-        return res.status(200).json({ message: "Package updated successfully", package: existingPackage });
+        return  "Package updated successfully";
 
     } catch (err: any) {
         console.error("Error updating package:", err);
