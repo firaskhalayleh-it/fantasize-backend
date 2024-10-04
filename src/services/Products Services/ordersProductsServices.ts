@@ -5,6 +5,8 @@ import { Products } from '../../entities/products/Products';
 import { OrdersProducts } from '../../entities/products/OrdersProducts';
 import { Orders } from '../../entities/Orders';
 import { Users } from '../../entities/users/Users';
+import { Addresses } from '../../entities/users/Addresses';
+import { PaymentMethods } from '../../entities/users/PaymentMethods';
 
 //----------------------- Create a new order for a user-----------------------
 export const s_createNewOrderUser = async (req: Request, res: Response) => {
@@ -13,14 +15,14 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
         const userId = (req as any).user.payload.userId;
 
         // Extract product ID and quantity from the request body
-        const { productId, quantity,IsGift,IsAnonymous,PaymentMethodID, AddressID,} = req.body;
+        const { productId, quantity, } = req.body;
 
         // Validate quantity
         if (!quantity || quantity <= 0) {
             return res.status(400).send({ message: "Quantity must be a positive integer" });
         }
 
-        // Find the product
+
         const product = await Products.findOne({ where: { ProductID: productId } });
 
         if (!product) {
@@ -46,8 +48,15 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
                 User: user,
                 Status: false,
             });
+            const orderProduct = OrdersProducts.create({
+                Order: order,
+                Product: product,
+                Quantity: quantity,
+            });
+            await orderProduct.save();
+            order.OrdersProducts.push(orderProduct);
             await order.save();
-            order.OrdersProducts = [];
+
         }
 
         // Check if the product is already in the order
@@ -64,7 +73,6 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
                 Order: order,
                 Product: product,
                 Quantity: quantity,
-                TotalPrice: quantity * product.Price
             });
             await orderProduct.save();
             order.OrdersProducts.push(orderProduct);
@@ -89,81 +97,84 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
     }
 }
 
-//----------------------- Get all orders for a user-----------------------
-export const s_getAllOrdersForUser = async (req: Request, res: Response) => {
+//----------------------- Update a specific product order-----------------------
+export const s_updateOrderProduct = async (req: Request, res: Response) => {
     try {
-        // Extract user ID from authenticated user
-        const userId = (req as any).user.payload.userId;
-
-        // Find the user
-        const user = await Users.findOne({ where: { UserID: userId } });
-
-        if (!user) {
-            return res.status(404).send({ message: "User not found" });
-        }
-
-        // Get all orders for the user
-        const orders = await Orders.find({
-            where: { User: { UserID: user.UserID }, Status: false },
-            relations: ["OrdersProducts", "OrdersProducts.Product"]
-
-        });
-        // Return the orders
-        return res.status(200).json({ orders });
-
-    } catch (err: any) {
-        console.log(err);
-        res.status(500).send({ message: err.message });
-    }
-}
-
-//----------------------- Get all orders-----------------------
-export const s_getAllOrders = async (req: Request, res: Response) => {
-    try {
-        // Get all orders
-        const orders = await Orders.find({
-            relations: ["User", "OrdersProducts", "OrdersProducts.Product", "PaymentMethod", "Address"],
-        });
-
-        // Return the orders
-        return res.status(200).json({ orders });
-
-    } catch (err: any) {
-        console.log(err);
-        res.status(500).send({ message: err.message });
-    }
-}
-
-//----------------------- Checkout an order-----------------------
-export const s_checkoutOrder = async (req: Request, res: Response) => {
-    try {
-        // Extract user ID and order ID
-        const userId = (req as any).user.payload.userId;
         const orderId = Number(req.params.orderId);
+        const { productId, quantity } = req.body;
 
-        // Find the user
-        const user = await Users.findOne({ where: { UserID: userId } });
-
-        if (!user) {
-            return res.status(404).send({ message: "User not found" });
-        }
-
-        // Find the order
-        const order = await Orders.findOne({
-            where: { OrderID: orderId, Status: false },
-        });
+        const order = await Orders.findOne({ where: { OrderID: orderId } });
 
         if (!order) {
-            return res.status(404).send({ message: "Order not found or already checked out", orderId,order });
+            return res.status(404).send({ message: "Order not found" });
         }
 
-        // Update the order status to true (checked out)
-        order.Status = true;
+        const orderProduct = await OrdersProducts.findOne({
+            where: { Order: { OrderID: orderId }, Product: { ProductID: productId } }
+        });
+
+        if (!orderProduct) {
+            return res.status(404).send({ message: "Order Product not found" });
+        }
+
+        if (quantity && quantity !== orderProduct.Quantity) {
+            orderProduct.Quantity = quantity;
+            orderProduct.TotalPrice = quantity * orderProduct.Product.Price;
+            await orderProduct.save();
+        }
+
+        // Recalculate the total price of the order
         order.calculateTotalPrice();
         await order.save();
 
-        // Return success message
-        return res.status(200).json({ message: "Order checked out successfully", order });
+        // Reload the order with updated relations
+        const updatedOrder = await Orders.findOne({
+            where: { OrderID: orderId },
+            relations: ["OrdersProducts", "OrdersProducts.Product"]
+        });
+
+        return res.status(200).json({ message: "Order updated successfully", order: updatedOrder });
+
+    } catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message });
+    }
+}
+
+
+//----------------------- Delete a specific product order-----------------------
+export const s_deleteOrderProduct = async (req: Request, res: Response) => {
+    try {
+        const orderId = Number(req.params.orderId);
+        const productId = Number(req.params.productId);
+
+        const order = await Orders.findOne({ where: { OrderID: orderId } });
+
+        if (!order) {
+            return res.status(404).send({ message: "Order not found" });
+        }
+
+        const orderProduct = await OrdersProducts.findOne({
+            where: { Order: { OrderID: orderId }, Product: { ProductID: productId } }
+        });
+
+        if (!orderProduct) {
+            return res.status(404).send({ message: "Order Product not found" });
+        }
+
+        await orderProduct.remove();
+
+        // Recalculate the total price of the order
+        order.calculateTotalPrice();
+        await order.save();
+
+        // Reload the order with updated relations
+        const updatedOrder = await Orders.findOne({
+            where: { OrderID: orderId },
+            relations: ["OrdersProducts", "OrdersProducts.Product"]
+        });
+
+        return res.status(200).json({ message: "Order product deleted successfully", order: updatedOrder });
 
     } catch (err: any) {
         console.log(err);

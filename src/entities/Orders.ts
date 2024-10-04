@@ -21,7 +21,7 @@ import {
   
   @Entity({name:'orders'})
   export class Orders extends BaseEntity {
-    @PrimaryGeneratedColumn('increment')
+    @PrimaryGeneratedColumn('increment', { name: 'OrderID' })
     OrderID: number;
 
     @ManyToOne(() => Users, (user) => user.Orders)
@@ -40,8 +40,9 @@ import {
     @OneToMany(() => OrdersProducts, (ordersProduct) => ordersProduct.Order, { cascade: true  , eager:true})
     OrdersProducts: OrdersProducts[];
   
-    @OneToMany(() => OrdersPackages, (ordersPackages) => ordersPackages.Order,{ cascade: true , eager:true})
+    @OneToMany(() => OrdersPackages, (ordersPackages) => ordersPackages.Order)
     OrdersPackages: OrdersPackages[];
+    
   
     @Column('boolean', )
     Status: boolean; // false = pending, true = purchased

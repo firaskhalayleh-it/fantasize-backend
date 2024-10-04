@@ -56,28 +56,16 @@ export class Packages extends BaseEntity {
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Package, { eager: true })
   SubCategory: SubCategories;
 
-  @ManyToMany(() => PackageCustomizations, (packageCustomizations) => packageCustomizations.PackageCustomizationID)
-  @JoinTable({
-    name: 'PackagesCustomizations',  
-    joinColumn: {
-      name: 'PackageID',
-      referencedColumnName: 'PackageID'
-    },
-    inverseJoinColumn: {
-      name: 'PackageCustomizationID',
-      referencedColumnName: 'PackageCustomizationID'
-    }
-  })
-  PackageCustomization: PackageCustomizations[];
-
-  @ManyToMany(() => OrdersPackages, (pkgOrder) => pkgOrder.Package)
-  Orders: OrdersPackages[];
+  
 
   @OneToMany(() => Resources, (resource) => resource.ResourceID)
   Resource: Resources[];
 
   @OneToMany(() => Products, (product) => product.ProductID)
   Product: Products[];
+
+  @OneToMany(() => PackageCustomizations, (packageCustomization) => packageCustomization.Packages)
+  PackageCustomization: PackageCustomizations[];
 
 
   @OneToMany(()=>FavoritePackages, (favoritePackages)=>favoritePackages.Package)
