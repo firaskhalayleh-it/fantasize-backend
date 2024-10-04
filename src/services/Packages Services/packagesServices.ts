@@ -2,26 +2,38 @@ import { Request, Response } from 'express';
 import { SubCategories } from '../../entities/categories/SubCategories';
 import { Products } from '../../entities/products/Products';
 import { Packages } from '../../entities/packages/Packages';
+import { In } from 'typeorm';
 
 //----------------------- Create a new package-----------------------
-export const s_createPackage = async (req:Request , res:Response) =>{
-try{
-    const {Name , Description, Price, Validity,Quantity ,Message ,Size ,SubCategoryId ,productName}=req.body
-    const subcategory = await SubCategories.findOne({where:{SubCategoryID:SubCategoryId}});
-    if(! subcategory){
-        return res.status(400).send({ message:"SubCategory not found"});
-    }
-        const products = await Promise.all(
-            productName.map( async (Pname :string) =>{
-                const product = await Products.findOne({where : {Name :Pname}});
-                if(! product){
-                    // return `the product ${Pname} not found`; 
-                    throw new Error(`the product ${Pname} not found`);
-                }
-                // product.Quantity -=Quantity
-                return product
-            })
-        );
+export const s_createPackage = async (req: Request, res: Response) => {
+    try {
+        const { Name, Description, Price, Quantity, Message, Size, SubCategoryId, products } = req.body;
+
+        const subcategory = await SubCategories.findOne({ where: { SubCategoryID: SubCategoryId } });
+        if (!subcategory) {
+            return res.status(400).send({ message: "SubCategory not found" });
+        }
+
+        const productName = products.map((pN: { productName: string }) => pN.productName);
+        const quantity = products.map((q: { quantity: number }) => q.quantity);
+
+        const pNameIsExist = await Products.find({ where: { Name: In(productName) } });
+        if (pNameIsExist.length !== productName.length) {
+            return res.status(400).send({ message: "Sorry, some products do not exist" });
+        }
+
+        for (let i = 0; i < pNameIsExist.length; i++) {
+            const productInDB = pNameIsExist[i];
+            const requestedQuantity = quantity[i];
+
+            if (productInDB.Quantity < requestedQuantity) {
+                return res.status(400).send({ message: `Insufficient quantity for ${productInDB.Name}` });
+            }
+
+            productInDB.Quantity -= requestedQuantity;
+            await productInDB.save();
+        }
+
         const addPackage = await Packages.create({
             Name: Name,
             Description: Description,
@@ -30,15 +42,18 @@ try{
             Size: Size,
             SubCategory: subcategory,
             Product: products
-        }).save();
-        return addPackage ;
-    
-}catch (err: any) {
-        console.log(err);
-        res.status(500).send({ message: err.message })
-    }
+        });
 
-} 
+        await addPackage.save();
+
+        return `Added successfully`;
+
+    } catch (err: any) {
+        console.log(err);
+        return res.status(500).send({ message: err.message });
+    }
+};
+
 
 //----------------------- Get all packages-----------------------
 export const s_getAllPackages = async (req:Request , res:Response) =>{
