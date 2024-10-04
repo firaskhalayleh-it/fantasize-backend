@@ -105,6 +105,7 @@ export const s_getPackageByID = async (req:Request , res:Response) =>{
 } 
 
 //----------------------- Update a package-----------------------
+
 export const s_updatePackage = async (req: Request, res: Response) => {
     try {
         const { packageId, Name, Description, Price, Quantity, Size, SubCategoryId, products } = req.body;
