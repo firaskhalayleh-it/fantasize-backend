@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { s_checkoutOrder, s_createNewOrderUser, s_getAllOrders, s_getAllOrdersForUser } from '../../services/Packages Services/ordersPackagesServices';
+import {  s_createNewOrderUser, s_deleteOrderPackage, s_updateOrderPackage } from '../../services/Packages Services/ordersPackagesServices';
 
 //----------------------- Create a new order for a user-----------------------
 export const c_createNewOrderUser = async (req:Request , res:Response) =>{
@@ -9,23 +9,16 @@ export const c_createNewOrderUser = async (req:Request , res:Response) =>{
 
 } 
 
-//----------------------- Get all orders for a user-----------------------
-export const c_getAllOrdersForUser = async (req:Request , res:Response) =>{
+//----------------------- Update a specific pakcage order-----------------------
+export const c_updateOrderPackage = async (req:Request , res:Response) =>{
 
-    const result = await s_getAllOrdersForUser(req, res);
+    const result = await s_updateOrderPackage(req, res);
     res.status(200).json(result);
-} 
 
-//----------------------- Get all orders-----------------------
-export const c_getAllOrders = async (req:Request , res:Response) =>{
+}
 
-    const result = await s_getAllOrders(req, res);
+//----------------------- delete a specific package order-----------------------
+export const c_deleteorderPackage = async (req:Request , res:Response) =>{
+    const result = await s_deleteOrderPackage(req, res);
     res.status(200).json(result);
-} 
-
-//----------------------- Checkout an order-----------------------
-export const c_checkoutOrder = async (req:Request , res:Response) =>{
-
-    const result = await s_checkoutOrder(req, res);
-    res.status(200).json(result);
-} 
+}

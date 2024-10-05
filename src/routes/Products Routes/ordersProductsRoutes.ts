@@ -3,10 +3,9 @@
 import express from "express";
 
 import {
-    c_checkoutOrder,
     c_createNewOrderUser,
-    c_getAllOrders,
-    c_getAllOrdersForUser
+    c_deleteOrderProduct,
+    c_updateOrderProduct
 } from "../../controllers/Products Controller/ordersProductsController";
 import { isAuthorized, IsAuthenticated } from "../../middlewares/isAuthentecated";
 
@@ -21,27 +20,22 @@ const orderProductRoute = express.Router();
 orderProductRoute.post('/order', isAuthorized, c_createNewOrderUser);
 
 /**
- *  @description   Get all orders for a user
- *  @route         /order
- *  @method        GET
+ *  @description   Update a specific product order
+ *  @route         /order/:orderId/:productId
+ *  @method        PUT
  *  @access        private
  */
-orderProductRoute.get('/order', IsAuthenticated, c_getAllOrdersForUser);
+orderProductRoute.put('/order/:orderId/:productId', isAuthorized, c_updateOrderProduct);
+
 
 /**
- *  @description   Get all orders
- *  @route         /orders
- *  @method        GET
- *  @access        admin
+ *  @description   Delete a specific product order
+ *  @route         /order/:orderId/:productId
+ *  @method        DELETE
+ *  @access        private
  */
-orderProductRoute.get('/orders', isAuthorized, c_getAllOrders);
 
-/**
- * @description   Checkout an order
- * @route         /order/:orderId/checkout
- * @method        PUT
- * @access        private
- */
-orderProductRoute.put('/order/:orderId/checkout', IsAuthenticated, c_checkoutOrder);
+orderProductRoute.delete('/order/:orderId/:productId', isAuthorized, c_deleteOrderProduct);
+
 
 export default orderProductRoute;

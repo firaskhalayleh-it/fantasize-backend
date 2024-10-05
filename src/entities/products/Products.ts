@@ -9,6 +9,7 @@ import { FavoriteProducts } from './FavoriteProducts';
 import { OrdersProducts } from './OrdersProducts';
 import { Packages } from '../packages/Packages';
 import { OrdersPackages } from '../packages/OrdersPackages';
+import { PackageProduct } from '../packages/packageProduct';
 
 @Entity()
 export class Products extends BaseEntity {
@@ -51,8 +52,10 @@ export class Products extends BaseEntity {
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Products,)
   SubCategory: SubCategories;
 
-  @ManyToOne(() => Packages, (pkg) => pkg.Product,)
-  Package: Packages;
+  // @ManyToOne(() => Packages, (pkg) => pkg.Product,)
+  // Package: Packages;
+  @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Product)
+  PackageProduct: PackageProduct[];
 
   @ManyToOne(() => Offers, (offer) => offer.OfferID)
   Offer: Offers;
@@ -60,7 +63,7 @@ export class Products extends BaseEntity {
   @OneToMany(() => Resources, (resource) => resource.ResourceID,)
   Resource: Resources[];
 
-  @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products,)
+  @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products,{ eager: true })
   @JoinTable({
     name: 'ProductsCustomizations',
     joinColumn: {
@@ -92,7 +95,7 @@ export class Products extends BaseEntity {
   @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product)
   FavoriteProducts: FavoriteProducts[];
 
-  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product ,{ eager: true })
+  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product )
   OrdersProducts: OrdersProducts[];
 
   

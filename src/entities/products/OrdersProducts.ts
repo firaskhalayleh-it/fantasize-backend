@@ -22,7 +22,7 @@ export class OrdersProducts extends BaseEntity {
   @ManyToOne(() => Orders, (order) => order.OrdersProducts, { onDelete: 'CASCADE' })
   Order: Orders;
 
-  @ManyToOne(() => Products, (product) => product.OrdersProducts)
+  @ManyToOne(() => Products, (product) => product.OrdersProducts, { eager: true })
   Product: Products;
 
   @Column('int')

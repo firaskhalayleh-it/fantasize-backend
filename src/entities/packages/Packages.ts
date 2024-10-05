@@ -19,6 +19,7 @@ import { SubCategories } from '../categories/SubCategories';
 import { Resources } from '../Resources';
 import { FavoritePackages } from './FavoritePackages';
 import { OrdersPackages } from './OrdersPackages';
+import { PackageProduct } from './packageProduct';
 
 @Entity()
 export class Packages extends BaseEntity {
@@ -38,6 +39,7 @@ export class Packages extends BaseEntity {
   @Column('int')
   Quantity: number;
 
+ 
 
   @Column('enum', { enum: ['out of stock', 'in stock', 'running low'], default: 'in stock' })
   Status: string;
@@ -51,28 +53,18 @@ export class Packages extends BaseEntity {
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Package, { eager: true })
   SubCategory: SubCategories;
 
-  @ManyToMany(() => PackageCustomizations, (packageCustomizations) => packageCustomizations.PackageCustomizationID)
-  @JoinTable({
-    name: 'PackagesCustomizations',  
-    joinColumn: {
-      name: 'PackageID',
-      referencedColumnName: 'PackageID'
-    },
-    inverseJoinColumn: {
-      name: 'PackageCustomizationID',
-      referencedColumnName: 'PackageCustomizationID'
-    }
-  })
-  PackageCustomization: PackageCustomizations[];
+  
 
-  @ManyToMany(() => OrdersPackages, (pkgOrder) => pkgOrder.Package)
-  Orders: OrdersPackages[];
-
-  @OneToMany(() => Resources, (resource) => resource.ResourceID)
+  @OneToMany(() => Resources, (resource) => resource.Package)
   Resource: Resources[];
 
-  @OneToMany(() => Products, (product) => product.ProductID)
-  Product: Products[];
+  // @OneToMany(() => Products, (product) => product.Package)
+  // Product: Products[];
+  @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Package)
+  PackageProduct: PackageProduct[];
+
+  @OneToMany(() => PackageCustomizations, (packageCustomization) => packageCustomization.Packages)
+  PackageCustomization: PackageCustomizations[];
 
 
   @OneToMany(()=>FavoritePackages, (favoritePackages)=>favoritePackages.Package)
@@ -92,7 +84,6 @@ export class Packages extends BaseEntity {
   })
   Review: Reviews[];
 
-  @CreateDateColumn()
   CreatedAt: Date;
 
   @CreateDateColumn()

@@ -2,8 +2,10 @@ import { Request, Response } from 'express';
 import { SubCategories } from '../../entities/categories/SubCategories';
 import { Products } from '../../entities/products/Products';
 import { Packages } from '../../entities/packages/Packages';
-import { In } from 'typeorm';
+import { In, Not } from 'typeorm';
 import { database } from '../../config/database';
+import { PackageProduct } from '../../entities/packages/packageProduct';
+
 
 //----------------------- Create a new package-----------------------
 export const s_createPackage = async (req: Request, res: Response) => {
@@ -13,48 +15,66 @@ export const s_createPackage = async (req: Request, res: Response) => {
         await queryRunner.startTransaction();
         const { Name, Description, Price, Quantity, SubCategoryId, products } = req.body;
 
+        //Check subcategory
         const subcategory = await SubCategories.findOne({ where: { SubCategoryID: SubCategoryId } });
         if (!subcategory) {
             await queryRunner.rollbackTransaction();
             return res.status(400).send({ message: "SubCategory not found" });
         }
 
+        // Extract product names and quantities
         const productNames = products.map((pN: { productName: string }) => pN.productName);
         const quantities = products.map((q: { quantity: number }) => q.quantity);
 
+        // Check if the required products are available
         const pNameIsExist = await Products.find({ where: { Name: In(productNames) } });
         if (pNameIsExist.length !== productNames.length) {
             await queryRunner.rollbackTransaction();
             return res.status(400).send({ message: "Sorry, some products do not exist" });
         }
 
+        //Check and update available quantities.
         for (let i = 0; i < pNameIsExist.length; i++) {
-            let productInDB  = pNameIsExist[i];
-            let requestedQuantity =0;
-            requestedQuantity = quantities[i] * Quantity;
+            let productInDB = pNameIsExist[i];
+            let requestedQuantity = quantities[i] * Quantity;
+
+            // Check availability Quantity
             if (productInDB.Quantity < requestedQuantity) {
                 await queryRunner.rollbackTransaction();
                 return res.status(400).send({ message: `Insufficient quantity for ${productInDB.Name}` });
             }
 
+            // Update product quantity in stock
             productInDB.Quantity -= requestedQuantity;
             await queryRunner.manager.save(productInDB);
         }
 
-        const addPackage = Packages.create({
+        //Create new package
+        const newPackage = Packages.create({
             Name: Name,
             Description: Description,
-            Price: Price,
+            Price: Price, // السعر يخص جدول Packages فقط
             Quantity: Quantity,
             SubCategory: subcategory,
-            Product: products
         });
 
-        await queryRunner.manager.save(addPackage);
+        await queryRunner.manager.save(newPackage);
+
+        //Add products with quantity to PackageProduct intermediate table with ProductName column added
+        for (let i = 0; i < pNameIsExist.length; i++) {
+            const packageProduct = PackageProduct.create({
+                Package: newPackage,
+                Product: pNameIsExist[i],
+                Quantity: quantities[i] * Quantity, //Quantity allocated for each product within the package
+                ProductName: pNameIsExist[i].Name,  // Add the product name in the new column ProductName.
+            });
+
+            await queryRunner.manager.save(packageProduct);
+        }
 
         await queryRunner.commitTransaction();
 
-        return res.status(201).send({ message: "Added successfully" });
+        return res.status(201).send({ message: "Package added successfully" });
 
     } catch (err: any) {
         await queryRunner.rollbackTransaction();
@@ -67,15 +87,15 @@ export const s_createPackage = async (req: Request, res: Response) => {
 
 
 
+
 //----------------------- Get all packages-----------------------
 export const s_getAllPackages = async (req:Request , res:Response) =>{
     try{
-        const getAllPackages = await Packages.find({relations:['products' ,'Review']});
+        const getAllPackages = await Packages.find({relations:['PackageProduct','Review']});
         if(!getAllPackages || getAllPackages.length===0){
             return `Not Found Packages` ;
         }
-        return getAllPackages;
-
+        return getAllPackages
     }catch (err: any) {
             console.log(err);
             res.status(500).send({ message: err.message })
@@ -90,7 +110,7 @@ export const s_getAllPackagesUnderSpecificSubcategory = async (req:Request , res
         if(!CategoryID || !subCategoryID){
             return res.status(400).send({ message: "Please fill all the fields" });
         }
-        const pkg = await Packages.find({ where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID } }, relations: ['SubCategory' ,'products'] });
+        const pkg = await Packages.find({ where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID } }, relations: ['SubCategory' ,'PackageProduct'] });
         if(!pkg){
             return `the packagies not found`;
         }
@@ -117,66 +137,88 @@ export const s_getPackageByID = async (req:Request , res:Response) =>{
 } 
 
 //----------------------- Update a package-----------------------
+
 export const s_updatePackage = async (req: Request, res: Response) => {
     const queryRunner = database.createQueryRunner();
+    const packageId :any= req.params.packageId;
+    const packageData = req.body;
 
     try {
         await queryRunner.startTransaction();
 
-        const { PackageId, Name, Description, Price, Quantity, SubCategoryId, products } = req.body;
+        // Find the existing package
+        const existingPackage = await queryRunner.manager.findOne(Packages, packageId);
 
-        const packageToUpdate = await Packages.findOne({ where: { PackageID: PackageId } });
-        if (!packageToUpdate) {
-            await queryRunner.rollbackTransaction();
-            return res.status(404).json({ message: "Package not found" });
+        if (!existingPackage) {
+            throw new Error('Package not found');
         }
 
-        const subcategory = await SubCategories.findOne({ where: { SubCategoryID: SubCategoryId } });
-        if (!subcategory) {
-            await queryRunner.rollbackTransaction();
-            return res.status(400).json({ message: "SubCategory not found" });
-        }
-
-        const productNames = products.map((p: { productName: string }) => p.productName);
-        const quantities = products.map((p: { quantity: number }) => p.quantity);
-
-        const existingProducts = await Products.find({ where: { Name: In(productNames) } });
-        if (existingProducts.length !== productNames.length) {
-            await queryRunner.rollbackTransaction();
-            return res.status(400).json({ message: "Some products do not exist" });
-        }
-
-        for (let i = 0; i < existingProducts.length; i++) {
-            const productInDB = existingProducts[i];
-            const requestedQuantity = quantities[i] * Quantity;
-
-            if (productInDB.Quantity < requestedQuantity) {
-                await queryRunner.rollbackTransaction();
-                return res.status(400).json({ message: `Insufficient quantity for ${productInDB.Name}` });
+        // Update the package details
+        await queryRunner.manager.update(
+            Packages,
+            { PackageID: packageId },
+            {
+                Name: packageData.Name,
+                Description: packageData.Description,
+                Price: packageData.Price,
+                Status: packageData.Status,
+                Offer: packageData.Offer,
+                SubCategory: packageData.SubCategory,
             }
+        );
 
-            productInDB.Quantity -= requestedQuantity;
-            await queryRunner.manager.save(productInDB);
+        // Handle the PackageProduct updates
+        if (packageData.PackageProducts) {
+            for (const prod of packageData.PackageProducts) {
+                const existingPackageProduct = await queryRunner.manager.findOne(PackageProduct, { where: { PackageProductId: prod.PackageProductId } });
+
+                if (!existingPackageProduct) {
+                    throw new Error(`PackageProduct with id ${prod.PackageProductId} not found`);
+                }
+
+                // Compare the new quantity with the existing one in the PackageProduct table
+                const existingQuantity = existingPackageProduct.Quantity;
+                const newQuantity = prod.Quantity;
+
+                if (newQuantity > existingQuantity) {
+                    // New quantity is greater: decrease product quantity in Products table
+                    const product = await queryRunner.manager.findOne(Products, { where: { ProductID: existingPackageProduct.Product.ProductID } });
+                    if (!product) throw new Error(`Product with id ${existingPackageProduct.Product.ProductID} not found`);
+
+                    const difference = newQuantity - existingQuantity;
+                    if (product.Quantity < difference) {
+                        throw new Error(`Insufficient product quantity for product ${product.Name}`);
+                    }
+
+                    await queryRunner.manager.update(Products, { ProductID: product.ProductID }, { Quantity: product.Quantity - difference });
+                } else if (newQuantity < existingQuantity) {
+                    // New quantity is less: increase product quantity in Products table
+                    const product = await queryRunner.manager.findOne(Products, { where: { ProductID: existingPackageProduct.Product.ProductID } });
+                    if (!product) throw new Error(`Product with id ${existingPackageProduct.Product.ProductID} not found`);
+
+                    const difference = existingQuantity - newQuantity;
+                    await queryRunner.manager.update(Products, { ProductID: product.ProductID }, { Quantity: product.Quantity + difference });
+                }
+
+                // Update the quantity in the PackageProduct table
+                if (newQuantity !== existingQuantity) {
+                    await queryRunner.manager.update(PackageProduct, { PackageProductId: prod.PackageProductId }, { Quantity: newQuantity });
+                }
+            }
         }
 
-        packageToUpdate.Name = Name;
-        packageToUpdate.Description = Description;
-        packageToUpdate.Price = Price;
-        packageToUpdate.Quantity = Quantity;
-        packageToUpdate.SubCategory = subcategory;
-        packageToUpdate.Product = products;
-
-        await queryRunner.manager.save(packageToUpdate);
-
+        // Commit the transaction
         await queryRunner.commitTransaction();
 
-        return res.status(200).json({ message: "Package updated successfully" });
-
+        return res.status(200).send({ message: 'Package updated successfully' });
     } catch (err: any) {
         await queryRunner.rollbackTransaction();
-        console.error("Error updating package:", err);
-        return res.status(500).json({ message: "An error occurred", error: err.message });
+        console.log(err);
+        return res.status(500).send({ message: err.message });
     } finally {
         await queryRunner.release();
     }
 };
+
+
+
