@@ -2,89 +2,108 @@ import { Request, Response } from 'express';
 import { SubCategories } from '../../entities/categories/SubCategories';
 import { Products } from '../../entities/products/Products';
 import { Packages } from '../../entities/packages/Packages';
+import { In, Not } from 'typeorm';
+import { database } from '../../config/database';
+import { PackageProduct } from '../../entities/packages/packageProduct';
+
 import { getRepository } from 'typeorm';
 import { uploadFiles } from '../../config/Multer config/multerConfig';
 import { Resources } from '../../entities/Resources';
 
 //----------------------- Create a new package-----------------------
 export const s_createPackage = async (req: Request, res: Response) => {
+    const queryRunner = database.createQueryRunner();
+
     try {
-        const { Name, Description, Price, Validity, Quantity, Message, Size, SubCategoryId, productName } = req.body;
+        await queryRunner.startTransaction();
+        const { Name, Description, Price, Quantity, SubCategoryId, products } = req.body;
 
-        if (!Name || !Description || !Price || !Quantity || !SubCategoryId || !productName) {
-            return res.status(400).send({ message: "Please fill all required fields" });
-        }
-
+        //Check subcategory
         const subcategory = await SubCategories.findOne({ where: { SubCategoryID: SubCategoryId } });
         if (!subcategory) {
+            await queryRunner.rollbackTransaction();
             return res.status(400).send({ message: "SubCategory not found" });
         }
 
-        const products = await Promise.all(
-            productName.map(async (Pname: string) => {
-                const product = await Products.findOne({ where: { Name: Pname } });
-                if (!product) {
-                    throw new Error(`The product ${Pname} not found`);
-                }
+        // Extract product names and quantities
+        const productNames = products.map((pN: { productName: string }) => pN.productName);
+        const quantities = products.map((q: { quantity: number }) => q.quantity);
 
-                if (product.Quantity < Quantity) {
-                    throw new Error(`Insufficient quantity for product ${Pname}`);
-                }
-                product.Quantity -= Quantity;
-                await product.save();
+        // Check if the required products are available
+        const pNameIsExist = await Products.find({ where: { Name: In(productNames) } });
+        if (pNameIsExist.length !== productNames.length) {
+            await queryRunner.rollbackTransaction();
+            return res.status(400).send({ message: "Sorry, some products do not exist" });
+        }
 
-                return product;
-            })
-        );
+        //Check and update available quantities.
+        for (let i = 0; i < pNameIsExist.length; i++) {
+            let productInDB = pNameIsExist[i];
+            let requestedQuantity = quantities[i] * Quantity;
 
+            // Check availability Quantity
+            if (productInDB.Quantity < requestedQuantity) {
+                await queryRunner.rollbackTransaction();
+                return res.status(400).send({ message: `Insufficient quantity for ${productInDB.Name}` });
+            }
+
+            // Update product quantity in stock
+            productInDB.Quantity -= requestedQuantity;
+            await queryRunner.manager.save(productInDB);
+        }
+
+        //Create new package
         const newPackage = Packages.create({
             Name: Name,
             Description: Description,
-            Price: Number(Price),
-            Quantity: Number(Quantity),
+            Price: Price, // السعر يخص جدول Packages فقط
+            Quantity: Quantity,
             SubCategory: subcategory,
-            Product: products,
         });
 
-        await newPackage.save();
+        await queryRunner.manager.save(newPackage);
 
-        if (req.files) {
-            const files = await uploadFiles(req);
-            const resourcesRepository = (Resources);
+        //Add products with quantity to PackageProduct intermediate table with ProductName column added
+        for (let i = 0; i < pNameIsExist.length; i++) {
+            const packageProduct = PackageProduct.create({
+                Package: newPackage,
+                Product: pNameIsExist[i],
+                Quantity: quantities[i] * Quantity, //Quantity allocated for each product within the package
+                ProductName: pNameIsExist[i].Name,  // Add the product name in the new column ProductName.
+            });
 
-            for (const file of files) {
-                const resource = new Resources();
-                resource.entityType = 'package';
-                resource.fileType = file.mimetype.includes('image') ? 'image' : 'video';
-                resource.filePath = `/resources/packages/${newPackage.PackageID}/${file.filename}`;
-                resource.Package = newPackage;
-
-                await resourcesRepository.save(resource);
-            }
+            await queryRunner.manager.save(packageProduct);
         }
 
-        return res.status(201).send({ message: "Package created successfully", package: newPackage });
+        await queryRunner.commitTransaction();
+
+        return res.status(201).send({ message: "Package added successfully" });
 
     } catch (err: any) {
+        await queryRunner.rollbackTransaction();
         console.log(err);
         return res.status(500).send({ message: err.message });
+    } finally {
+        await queryRunner.release();
     }
 };
 
-//----------------------- Get all packages-----------------------
-export const s_getAllPackages = async (req: Request, res: Response) => {
-    try {
-        const getAllPackages = await Packages.find({ relations: ['products', 'Review'] });
-        if (!getAllPackages || getAllPackages.length === 0) {
-            return `Not Found Packages`;
-        }
-        return getAllPackages;
 
-    } catch (err: any) {
-        console.log(err);
-        res.status(500).send({ message: err.message })
-    }
-}
+
+
+//----------------------- Get all packages-----------------------
+export const s_getAllPackages = async (req:Request , res:Response) =>{
+    try{
+        const getAllPackages = await Packages.find({relations:['PackageProduct','Review']});
+        if(!getAllPackages || getAllPackages.length===0){
+            return `Not Found Packages` ;
+        }
+        return getAllPackages
+    }catch (err: any) {
+            console.log(err);
+            res.status(500).send({ message: err.message })
+        }
+} 
 
 //-----------------------Get all packages under a specific subcategory-----------------------
 export const s_getAllPackagesUnderSpecificSubcategory = async (req: Request, res: Response) => {
@@ -94,8 +113,8 @@ export const s_getAllPackagesUnderSpecificSubcategory = async (req: Request, res
         if (!CategoryID || !subCategoryID) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
-        const pkg = await Packages.find({ where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID } }, relations: ['SubCategory', 'products'] });
-        if (!pkg) {
+        const pkg = await Packages.find({ where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID } }, relations: ['SubCategory' ,'PackageProduct'] });
+        if(!pkg){
             return `the packagies not found`;
         }
         return pkg;
@@ -121,73 +140,88 @@ export const s_getPackageByID = async (req: Request, res: Response) => {
 }
 
 //----------------------- Update a package-----------------------
+
 export const s_updatePackage = async (req: Request, res: Response) => {
+    const queryRunner = database.createQueryRunner();
+    const packageId :any= req.params.packageId;
+    const packageData = req.body;
+
     try {
-        const packageId: any = req.params.packageId;
-        const { Name, Description, Price, Quantity, SubCategoryId, productName } = req.body;
+        await queryRunner.startTransaction();
 
-        const packageRepository = getRepository(Packages);
-        const packageToUpdate = await packageRepository.findOne({ where: { PackageID: packageId }, relations: ["Product", "SubCategory"] });
-        if (!packageToUpdate) {
-            return res.status(404).send({ message: "Package not found" });
+        // Find the existing package
+        const existingPackage = await queryRunner.manager.findOne(Packages, packageId);
+
+        if (!existingPackage) {
+            throw new Error('Package not found');
         }
 
-        // Update package fields if provided
-        packageToUpdate.Name = Name || packageToUpdate.Name;
-        packageToUpdate.Description = Description || packageToUpdate.Description;
-        packageToUpdate.Price = Price ? Number(Price) : packageToUpdate.Price;
-        packageToUpdate.Quantity = Quantity ? Number(Quantity) : packageToUpdate.Quantity;
-
-        // Update SubCategory if provided
-        if (SubCategoryId) {
-            const subcategory = await SubCategories.findOne({ where: { SubCategoryID: SubCategoryId } });
-            if (!subcategory) {
-                return res.status(400).send({ message: "SubCategory not found" });
+        // Update the package details
+        await queryRunner.manager.update(
+            Packages,
+            { PackageID: packageId },
+            {
+                Name: packageData.Name,
+                Description: packageData.Description,
+                Price: packageData.Price,
+                Status: packageData.Status,
+                Offer: packageData.Offer,
+                SubCategory: packageData.SubCategory,
             }
-            packageToUpdate.SubCategory = subcategory;
-        }
+        );
 
-        // Update associated products if provided
-        if (productName && productName.length > 0) {
-            const products = await Promise.all(
-                productName.map(async (Pname: string) => {
-                    const product = await Products.findOne({ where: { Name: Pname } });
-                    if (!product) {
-                        throw new Error(`The product ${Pname} not found`);
+        // Handle the PackageProduct updates
+        if (packageData.PackageProducts) {
+            for (const prod of packageData.PackageProducts) {
+                const existingPackageProduct = await queryRunner.manager.findOne(PackageProduct, { where: { PackageProductId: prod.PackageProductId } });
+
+                if (!existingPackageProduct) {
+                    throw new Error(`PackageProduct with id ${prod.PackageProductId} not found`);
+                }
+
+                // Compare the new quantity with the existing one in the PackageProduct table
+                const existingQuantity = existingPackageProduct.Quantity;
+                const newQuantity = prod.Quantity;
+
+                if (newQuantity > existingQuantity) {
+                    // New quantity is greater: decrease product quantity in Products table
+                    const product = await queryRunner.manager.findOne(Products, { where: { ProductID: existingPackageProduct.Product.ProductID } });
+                    if (!product) throw new Error(`Product with id ${existingPackageProduct.Product.ProductID} not found`);
+
+                    const difference = newQuantity - existingQuantity;
+                    if (product.Quantity < difference) {
+                        throw new Error(`Insufficient product quantity for product ${product.Name}`);
                     }
-                    return product;
-                })
-            );
-            packageToUpdate.Product = products;
-        }
 
-        // Handle file uploads (optional update)
-        if (req.files) {
-            const resourcesRepository = getRepository(Resources);
+                    await queryRunner.manager.update(Products, { ProductID: product.ProductID }, { Quantity: product.Quantity - difference });
+                } else if (newQuantity < existingQuantity) {
+                    // New quantity is less: increase product quantity in Products table
+                    const product = await queryRunner.manager.findOne(Products, { where: { ProductID: existingPackageProduct.Product.ProductID } });
+                    if (!product) throw new Error(`Product with id ${existingPackageProduct.Product.ProductID} not found`);
 
-            // Remove existing resources linked to the package
-            const existingResources = await resourcesRepository.find({ where: { Package: packageToUpdate } });
-            await resourcesRepository.remove(existingResources);
+                    const difference = existingQuantity - newQuantity;
+                    await queryRunner.manager.update(Products, { ProductID: product.ProductID }, { Quantity: product.Quantity + difference });
+                }
 
-            // Save new uploaded resources
-            const files = await uploadFiles(req);
-            for (const file of files) {
-                const resource = new Resources();
-                resource.entityType = 'package';
-                resource.fileType = file.mimetype.includes('image') ? 'image' : 'video';
-                resource.filePath = `/resources/packages/${packageToUpdate.PackageID}/${file.filename}`;
-                resource.Package = packageToUpdate;
-
-                await resourcesRepository.save(resource);
+                // Update the quantity in the PackageProduct table
+                if (newQuantity !== existingQuantity) {
+                    await queryRunner.manager.update(PackageProduct, { PackageProductId: prod.PackageProductId }, { Quantity: newQuantity });
+                }
             }
         }
 
-        const updatedPackage = await packageRepository.save(packageToUpdate);
+        // Commit the transaction
+        await queryRunner.commitTransaction();
 
-        return res.status(200).send({ message: "Package updated successfully", package: updatedPackage });
-
+        return res.status(200).send({ message: 'Package updated successfully' });
     } catch (err: any) {
+        await queryRunner.rollbackTransaction();
         console.log(err);
-        res.status(500).send({ message: err.message });
+        return res.status(500).send({ message: err.message });
+    } finally {
+        await queryRunner.release();
     }
 };
+
+
+

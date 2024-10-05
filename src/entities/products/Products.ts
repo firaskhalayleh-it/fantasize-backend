@@ -9,6 +9,7 @@ import { FavoriteProducts } from './FavoriteProducts';
 import { OrdersProducts } from './OrdersProducts';
 import { Packages } from '../packages/Packages';
 import { OrdersPackages } from '../packages/OrdersPackages';
+import { PackageProduct } from '../packages/packageProduct';
 
 @Entity()
 export class Products extends BaseEntity {
@@ -51,8 +52,10 @@ export class Products extends BaseEntity {
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Products,)
   SubCategory: SubCategories;
 
-  @ManyToOne(() => Packages, (pkg) => pkg.Product,)
-  Package: Packages;
+  // @ManyToOne(() => Packages, (pkg) => pkg.Product,)
+  // Package: Packages;
+  @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Product)
+  PackageProduct: PackageProduct[];
 
   @ManyToOne(() => Offers, (offer) => offer.OfferID)
   Offer: Offers;
