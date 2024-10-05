@@ -15,11 +15,9 @@ import { FavoritePackages } from '../packages/FavoritePackages';
 import { PaymentMethods } from './PaymentMethods';
 import { Addresses } from './Addresses';
 import { Reviews } from '../Reviews';
-import { OrdersProducts } from '../products/OrdersProducts';
-import { OrdersPackages } from '../packages/OrdersPackages';
-import { Cart } from '../Cart';
 import { Orders } from '../Orders';
 import { Resources } from '../Resources';
+import { Notifications } from './Notifications';
 
 @Entity()
 export class Users extends BaseEntity {
@@ -38,15 +36,31 @@ export class Users extends BaseEntity {
   @Column('varchar')
   Password: string;
 
-  @OneToOne(() =>Resources, (resource) => resource.ResourceID)
-  UserProfilePicture: string;
+  @Column('varchar', { nullable: true })
+  dateofbirth: string;
 
+  
+  @Column('varchar', { nullable: true })
+  resetPasswordToken: string; 
+
+  @Column('timestamp', { nullable: true })
+  resetPasswordExpires: Date; 
+
+  @Column('varchar', { nullable: true })
+  FirebaseToken: string;
+  
   @Column('varchar', { nullable: true, unique: true })
   PhoneNumber: string;
 
+  @Column('timestamp', { nullable: true })
+  lastlogin: Date;
+  
   @Column('varchar', { nullable: true })
   Gender: string;
 
+  @OneToOne(() => Resources, (resource) => resource.ResourceID)
+  UserProfilePicture: string;
+  
   @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.User)
   FavoriteProducts: FavoriteProducts[];
 
@@ -66,10 +80,10 @@ export class Users extends BaseEntity {
   @OneToMany(() => Orders, (order) => order.User)
   Orders: Orders[];
 
+  @OneToMany(() => Notifications, (notification) => notification.user)
+  notifications: Notifications[];
 
 
-  @OneToMany(() => Cart, (cart) => cart.User)
-  Cart: Cart[];
 
   @Column('varchar', { nullable: true })
   firebaseUID: string;

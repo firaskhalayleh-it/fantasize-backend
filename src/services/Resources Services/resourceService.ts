@@ -39,7 +39,6 @@ export const saveMultipleResources = async (
                     value: `${index + 1}`
                 };
 
-                // Add image path if type is "image"
                 if (type === 'image') {
                     return {
                         ...baseOption,

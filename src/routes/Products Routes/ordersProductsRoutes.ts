@@ -17,7 +17,7 @@ const orderProductRoute = express.Router();
  *  @method        POST
  *  @access        private 
  */
-orderProductRoute.post('/order', isAuthorized, c_createNewOrderUser);
+orderProductRoute.post('/order', IsAuthenticated, c_createNewOrderUser);
 
 /**
  *  @description   Update a specific product order

@@ -10,7 +10,7 @@ import createCookie from "../../utils/cookie-config";
 export const s_signUpUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
-        if (email! || password!) {
+        if (!email|| !password) {
             return 'Please provide an email and password';
         }
         const isExist = await Users.findOne({ where: { Email: email } })
