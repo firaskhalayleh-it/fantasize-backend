@@ -1,26 +1,39 @@
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    UpdateDateColumn,
-    BaseEntity
-  } from 'typeorm';
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  BaseEntity,
+  CreateDateColumn
+} from 'typeorm';
+import { Users } from './Users';
 
-  @Entity()
-  export class Notifications extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    NotificationID: number;
+@Entity()
+export class Notifications extends BaseEntity {
+  @PrimaryGeneratedColumn()
+  notificationID: number;
 
-    @Column('varchar')
-    Subject: string;
+  @ManyToOne(() => Users, (user) => user.notifications)
+  user: Users;
 
-    @Column('text')
-    Message: string;
+  @Column('varchar')
+  type: 'email' | 'push'; 
 
-    @CreateDateColumn()
-    CreatedAt: Date;
+  @Column('jsonb')
+  template: any;  
 
-    @CreateDateColumn()
-    UpdatedAt: Date;
-  }
+  @Column('boolean', { default: false })
+  isRead: boolean;
+
+  @Column('varchar', { nullable: true })
+  deliveryMethod: 'smtp' | 'push'; 
+
+  @Column('boolean', { default: false })
+  sent: boolean; 
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @CreateDateColumn()
+  updatedAt: Date;
+}

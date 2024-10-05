@@ -12,7 +12,7 @@ const orderRoute = express.Router();
  *  @method        POST
  *  @access        private 
  */
-orderRoute.post('/order', IsAuthenticated, c_checkoutOrderUser);
+orderRoute.post('/checkout', IsAuthenticated, c_checkoutOrderUser);
 
 /**
  *  @description   Get all orders
@@ -20,7 +20,7 @@ orderRoute.post('/order', IsAuthenticated, c_checkoutOrderUser);
  *  @method        GET
  *  @access        private
  */
-orderRoute.get('/orders', IsAuthenticated, c_getAllOrders);
+orderRoute.get('/orders/all', IsAuthenticated, c_getAllOrders);
 
 /**
  *  @description   Get all orders for a user

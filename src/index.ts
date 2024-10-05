@@ -21,6 +21,8 @@ import reviewsRoute from "./routes/Reviews Routes/reviewsRoutes";
 import offerRoute from "./routes/Offers Routes/offersRoutes";
 import orderRoute from "./routes/Order Routes/orderRoute";
 import customizationPackageRoute from "./routes/Packages Routes/customizationPackageRoute";
+import notificationRoute from "./routes/Notification Routes/notificationRoute";
+import adminDashboardRoutes from "./routes/Admin Dashboard Rotue/adminDashbourdRoute";
 
 
 const app = express();
@@ -50,6 +52,8 @@ app.use("/api", reviewsRoute);
 app.use("/api", offerRoute);
 app.use("/api", orderRoute);
 app.use("/api", customizationPackageRoute);
+app.use("/api", adminDashboardRoutes);
+app.use("/api", notificationRoute);
 
 
 app.use(notFound);

@@ -16,13 +16,15 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
 
         // Extract product ID and quantity from the request body
         const { productId, quantity } = req.body;
+        console.log({ productId, quantity });
 
         // Validate quantity
         if (!quantity || quantity <= 0) {
             return res.status(400).send({ message: "Quantity must be a positive integer" });
         }
+        
 
-
+        // Find the product
         const product = await Products.findOne({ where: { ProductID: productId } });
 
         if (!product) {
@@ -39,44 +41,54 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
         // Check if the user has an existing pending order (cart)
         let order = await Orders.findOne({
             where: { User: user, Status: false },
-            relations: ["OrdersProducts", "OrdersProducts.Product"]
+            relations: ["OrdersProducts"], // Ensure OrdersProducts is loaded
         });
 
         if (!order) {
-            // Create a new order if none exists
+            // Create a new order if none exists and initialize OrdersProducts as an empty array
             order = Orders.create({
                 User: user,
                 Status: false,
+                OrdersProducts: [],
             });
+
+            await order.save(); // Save the new order to get an OrderID
+
+            // Create a new order product
+            console.log({ quantity });
             const orderProduct = OrdersProducts.create({
                 Order: order,
                 Product: product,
                 Quantity: quantity,
             });
             await orderProduct.save();
-            order.OrdersProducts.push(orderProduct);
-            await order.save();
 
+            // Add the new order product to the order's OrdersProducts array
+            order.OrdersProducts.push(orderProduct);
+            await order.save(); // Save the updated order
         }
 
-        // Check if the product is already in the order
-        let orderProduct = order.OrdersProducts.find(op => op.Product.ProductID === productId);
+        // // Check if the product is already in the order
+        // let orderProduct = order.OrdersProducts.find(op => op.Product.ProductID === productId);
 
-        if (orderProduct) {
-            // Update the quantity and total price if it exists
-            orderProduct.Quantity += quantity;
-            orderProduct.TotalPrice = orderProduct.Quantity * product.Price;
-            await orderProduct.save();
-        } else {
-            // Create a new order product entry
-            orderProduct = OrdersProducts.create({
-                Order: order,
-                Product: product,
-                Quantity: quantity,
-            });
-            await orderProduct.save();
-            order.OrdersProducts.push(orderProduct);
-        }
+        // if (orderProduct) {
+        //     // Update the quantity and total price if it exists
+        //     orderProduct.Quantity += quantity;
+        //     orderProduct.TotalPrice = orderProduct.Quantity * product.Price;
+        //     await orderProduct.save();
+        // } else {
+        //     // Create a new order product entry
+        //     orderProduct = OrdersProducts.create({
+        //         Order: order,
+        //         Product: product,
+        //         Quantity: quantity,
+        //     });
+        //     await orderProduct.save();
+
+        //     // Push the new order product to the order's OrdersProducts array
+        //     order.OrdersProducts.push(orderProduct);
+        //     await order.save(); // Save the updated order
+        // }
 
         // Recalculate the total price of the order
         order.calculateTotalPrice();
@@ -85,7 +97,7 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
         // Reload the order with updated relations
         order = await Orders.findOne({
             where: { OrderID: order.OrderID },
-            relations: ["OrdersProducts", "OrdersProducts.Product"]
+            relations: ["OrdersProducts", "OrdersProducts.Product"],
         });
 
         // Return the updated order
@@ -95,7 +107,7 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
         console.log(err);
         res.status(500).send({ message: err.message });
     }
-}
+};
 
 //----------------------- Update a specific product order-----------------------
 export const s_updateOrderProduct = async (req: Request, res: Response) => {

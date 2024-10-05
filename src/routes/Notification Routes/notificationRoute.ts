@@ -1,47 +1,32 @@
 import express from 'express';
-import { authMiddleware } from '../../middlewares/auth_middleware';
-import { adminMiddleware } from '../../middlewares/admin_middleware';
+import { NotificationController } from '../../controllers/Notification Controller/notificationController';
+import { isAuthorized } from '../../middlewares/isAuthentecated';
+
 
 const notificationRoute = express.Router();
 
 /**
- *  @description  Create a new notification for a specific user
- *  @route        POST /notifications/:userId
- *  @method       POST
- *  @access       Private (Admin)
+ *  @description   Send notification to a user
+ *  @route         POST /notifications/send
+ *  @method        POST
+ *  @access        Private (Admin)
  */
-notificationRoute.post("/notifications/:userId", authMiddleware, adminMiddleware, );
+notificationRoute.post('/notifications/send', isAuthorized, NotificationController.sendNotification);
 
 /**
- *  @description  Create a new notification for all users
- *  @route        POST /notifications
- *  @method       POST
- *  @access       Private (Admin)
+ *  @description   Get notifications for a user
+ *  @route         GET /notifications/:userId
+ *  @method        GET
+ *  @access        Private (Authenticated User)
  */
-notificationRoute.post('/notifications', authMiddleware, adminMiddleware, );
+notificationRoute.get('/notifications/:userId', isAuthorized, NotificationController.getUserNotifications);
 
 /**
- *  @description  Get notifications for a specific user
- *  @route        GET /notifications/:userId
- *  @method       GET
- *  @access       Private (Authenticated User)
+ *  @description   Mark a notification as read
+ *  @route         PATCH /notifications/:notificationId/read
+ *  @method        PATCH
+ *  @access        Private (Authenticated User)
  */
-notificationRoute.get("/:userId/notifications", authMiddleware, );
-
-/**
- *  @description  Send a notification to a specific user
- *  @route        POST /notifications/send/:userId
- *  @method       POST
- *  @access       Private (Admin)
- */
-notificationRoute.post("/notifications/send/:userId", authMiddleware, adminMiddleware, );
-
-/**
- *  @description  Send notifications to all users
- *  @route        POST /notifications/sendAll
- *  @method       POST
- *  @access       Private (Admin)
- */
-notificationRoute.post("/notifications/sendAll", authMiddleware, adminMiddleware, );
+notificationRoute.patch('/notifications/:notificationId/read', isAuthorized, NotificationController.markNotificationAsRead);
 
 export default notificationRoute;
