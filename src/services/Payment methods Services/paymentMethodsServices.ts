@@ -6,7 +6,7 @@ import { Users } from '../../entities/users/Users';
 export const s_createPaymentMethod = async (req: Request, res: Response) => {
     try {
         const { CardType, CardNumber, ExpiryDate, CVV, CardholderName, Method } = req.body;
-        const UserId: any = req.params.UserId;
+        const UserId = (req as any).user.payload.userId;
 
         if (!CardType || !CardNumber || !ExpiryDate || !CVV || !CardholderName || !Method) {
             return res.status(400).send({ message: "Please fill all the fields" })
@@ -46,7 +46,7 @@ export const s_updatePaymentMethod = async (req: Request, res: Response) => {
     try {
 
         const { CardType, CardNumber, ExpiryDate, CVV, PaymentMethodID, Method } = req.body;
-        const UserId: any = req.params.UserId;
+        const UserId = (req as any).user.payload.userId;
         if (!CardType || !CardNumber || !ExpiryDate || !CVV || !PaymentMethodID || !Method) {
             return res.status(400).send({ message: "Please fill all the fields" })
         }
@@ -81,8 +81,8 @@ export const s_updatePaymentMethod = async (req: Request, res: Response) => {
 //----------------------- get user payment Method by userId-----------------------
 export const s_getPaymentMethod = async (req: Request, res: Response) => {
     try {
-        const userId = req.params.UserId;
-        const user = await Users.findOne({ where: { UserID: userId }, relations: ["PaymentMethods"] });
+        const UserId = (req as any).user.payload.userId;
+        const user = await Users.findOne({ where: { UserID: UserId }, relations: ["PaymentMethods"] });
         if (!user) {
             return res.status(404).json({ message: 'User not found!' });
         }
@@ -102,8 +102,8 @@ export const s_getPaymentMethod = async (req: Request, res: Response) => {
 //----------------------- delete user payment Method by userId-----------------------
 export const s_deletePaymentMethod = async (req: Request, res: Response) => {
     try {
-        const userId: any = req.params.UserId
-        const isExist = Users.findOne({ where: { UserID: userId } })
+        const UserId = (req as any).user.payload.userId;
+        const isExist = Users.findOne({ where: { UserID: UserId } })
         if (!isExist) {
             return `not found user !`;
         }

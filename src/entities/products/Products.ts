@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn, Index, UpdateDateColumn, BeforeInsert, BeforeUpdate, AfterLoad } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn, Index, UpdateDateColumn, BeforeInsert, BeforeUpdate, AfterLoad, JoinColumn } from 'typeorm';
 import { Brands } from '../Brands';
 import { Offers } from '../Offers';
 import { Resources } from '../Resources';
@@ -60,7 +60,7 @@ export class Products extends BaseEntity {
   @ManyToOne(() => Offers, (offer) => offer.OfferID)
   Offer: Offers;
 
-  @OneToMany(() => Resources, (resource) => resource.ResourceID,)
+  @OneToMany(() => Resources, (resource) => resource.Product, { eager: true })
   Resource: Resources[];
 
   @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products,{ eager: true })
@@ -118,14 +118,15 @@ export class Products extends BaseEntity {
     }
   }
 
-  @AfterLoad()
-  calculateAvgRating = () => {
-    if (this.Review.length == 0) {
-      this.AvgRating = 0;
+  
+@AfterLoad()
+calculateAvgRating = () => {
+    if (!Array.isArray(this.Review) || this.Review.length === 0) {
+        this.AvgRating = 0;
     } else {
-      const totalRating = this.Review.reduce((acc, review) => acc + review.Rating, 0);
-      this.AvgRating = totalRating / this.Review.length;
+        const totalRating = this.Review.reduce((acc, review) => acc + review.Rating, 0);
+        this.AvgRating = totalRating / this.Review.length;
     }
-  }
+}
 
 }

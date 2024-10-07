@@ -44,4 +44,5 @@ export class OrdersProducts extends BaseEntity {
       this.TotalPrice = Number(this.Product.Price) * this.Quantity;
     }
   }
+
 }

@@ -3,20 +3,20 @@ import { Packages } from './Packages';
 import { Products } from '../products/Products';
 
 
-@Entity()
+@Entity({ name: 'PackageProduct' })
 export class PackageProduct extends BaseEntity {
   @PrimaryGeneratedColumn()
   PackageProductId: number;
 
   @Column('varchar')
-  ProductName:string
-    
+  ProductName: string
+
   @Column('int')
   Quantity: number;
 
-  @ManyToOne(() => Packages, (pkg) => pkg.PackageProduct, { onDelete: 'CASCADE' })
-  Package: Packages;
+  @ManyToOne(() => Packages, (pkg) => pkg.PackageProduct, { onDelete: 'CASCADE' ,eager: true})
+  Package: Packages;  
 
-  @ManyToOne(() => Products, (product) => product.PackageProduct, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Products, (product) => product.PackageProduct, { onDelete: 'CASCADE' ,eager: true})
   Product: Products;
 }

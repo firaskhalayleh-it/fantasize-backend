@@ -22,7 +22,6 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
         if (!quantity || quantity <= 0) {
             return res.status(400).send({ message: "Quantity must be a positive integer" });
         }
-        
 
         // Find the product
         const product = await Products.findOne({ where: { ProductID: productId } });
@@ -40,8 +39,8 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
 
         // Check if the user has an existing pending order (cart)
         let order = await Orders.findOne({
-            where: { User: user, Status: false },
-            relations: ["OrdersProducts"], // Ensure OrdersProducts is loaded
+            where: { User: { UserID: userId }, Status: false },
+            relations: ["OrdersProducts", "OrdersProducts.Product"], // Ensure OrdersProducts and Products are loaded
         });
 
         if (!order) {
@@ -51,44 +50,34 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
                 Status: false,
                 OrdersProducts: [],
             });
-
             await order.save(); // Save the new order to get an OrderID
+        }
 
-            // Create a new order product
-            console.log({ quantity });
-            const orderProduct = OrdersProducts.create({
+        // Check if the product is already in the order
+        let orderProduct = order.OrdersProducts.find(
+            (op) => op.Product.ProductID === productId
+        );
+
+        if (orderProduct) {
+            // Update the quantity and total price if it exists
+            orderProduct.Quantity += quantity;
+            orderProduct.TotalPrice = parseFloat(
+                (orderProduct.Quantity * (product.Price)).toFixed(2)
+            );
+            await orderProduct.save();
+        } else {
+            // Create a new order product entry
+            orderProduct = OrdersProducts.create({
                 Order: order,
                 Product: product,
                 Quantity: quantity,
+                TotalPrice: parseFloat((quantity * product.Price).toFixed(2)),
             });
             await orderProduct.save();
 
-            // Add the new order product to the order's OrdersProducts array
+            // Push the new order product to the order's OrdersProducts array
             order.OrdersProducts.push(orderProduct);
-            await order.save(); // Save the updated order
         }
-
-        // // Check if the product is already in the order
-        // let orderProduct = order.OrdersProducts.find(op => op.Product.ProductID === productId);
-
-        // if (orderProduct) {
-        //     // Update the quantity and total price if it exists
-        //     orderProduct.Quantity += quantity;
-        //     orderProduct.TotalPrice = orderProduct.Quantity * product.Price;
-        //     await orderProduct.save();
-        // } else {
-        //     // Create a new order product entry
-        //     orderProduct = OrdersProducts.create({
-        //         Order: order,
-        //         Product: product,
-        //         Quantity: quantity,
-        //     });
-        //     await orderProduct.save();
-
-        //     // Push the new order product to the order's OrdersProducts array
-        //     order.OrdersProducts.push(orderProduct);
-        //     await order.save(); // Save the updated order
-        // }
 
         // Recalculate the total price of the order
         order.calculateTotalPrice();
@@ -97,17 +86,23 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
         // Reload the order with updated relations
         order = await Orders.findOne({
             where: { OrderID: order.OrderID },
-            relations: ["OrdersProducts", "OrdersProducts.Product"],
+            relations: [
+                "User",
+                "OrdersProducts",
+                "OrdersProducts.Product",
+                "OrdersProducts.Product.SubCategory",
+                "OrdersProducts.Product.ProductCustomization",
+            ],
         });
 
         // Return the updated order
         return res.status(200).json({ message: "Product added to order successfully", order });
-
     } catch (err: any) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({ message: err.message });
     }
 };
+
 
 //----------------------- Update a specific product order-----------------------
 export const s_updateOrderProduct = async (req: Request, res: Response) => {

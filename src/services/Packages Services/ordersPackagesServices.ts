@@ -4,54 +4,108 @@ import { Users } from '../../entities/users/Users';
 import { OrdersPackages } from '../../entities/packages/OrdersPackages';
 import { Orders } from '../../entities/Orders';
 
-//----------------------- Create a new order for a user-----------------------
 export const s_createNewOrderUser = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).user.payload.userId;
-        const { packageId, quantity } = req.body
-        if (!quantity || quantity <= 0) {
-            return res.status(400).send({ message: "Quantity must be a positive integer" });
-        }
-        const packages = await Packages.findOne({ where: { PackageID: packageId } });
-        if (!packages) {
-            return ({ message: "package not found" })
-        }
-        const user = await Users.findOne({ where: { UserID: userId } });
-        if (!user) {
-            return res.status(404).send({ message: "User not found" });
-        }
-
-        const orderPkg = await OrdersPackages.findOne({ where: { Package: { PackageID: packageId } } });
-        if (!orderPkg) {
-            const addOrder = OrdersPackages.create({
-                Package: { PackageID: packageId },
-                quantity: quantity,
-            });
-            await addOrder.save();
-            const order = Orders.create({
-                User: user,
-                Status: false,
-                
-            });
-            order.OrdersPackages.push(addOrder);
-            await order.save();
-            return 'package added successfully';
-        }
-        return `the package is already added`;
+      // Extract user ID from authenticated user
+      const userId = (req as any).user.payload.userId;
+  
+      // Extract package ID and quantity from the request body
+      const { packageId, quantity } = req.body;
+      console.log({ packageId, quantity });
+  
+      // Validate quantity
+      if (!quantity || quantity <= 0) {
+        return res.status(400).send({ message: "Quantity must be a positive integer" });
+      }
+  
+      // Find the package
+      const packageEntity = await Packages.findOne({ where: { PackageID: packageId } });
+      if (!packageEntity) {
+        return res.status(404).send({ message: "Package not found" });
+      }
+  
+      // Find or create the user (assuming users exist)
+      const user = await Users.findOne({ where: { UserID: userId } });
+      if (!user) {
+        return res.status(404).send({ message: "User not found" });
+      }
+  
+      // Check if the user has an existing pending order
+      let order = await Orders.findOne({
+        where: {
+          User: { UserID: userId },
+          Status: false,
+        },
+        relations: ["User", "OrdersPackages", "OrdersPackages.Package"],
+      });
+  
+      if (!order) {
+        // If no pending order exists, create a new one
+        order = Orders.create({
+          User: user,
+          Status: false,
+          OrdersPackages: [],
+        });
+        await order.save();
+      }
+  
+      // Check if the package is already in the order
+      let orderPackage = order.OrdersPackages.find(
+        (op) => op.Package.PackageID === packageId
+      );
+  
+      if (orderPackage) {
+        // Update quantity and total price
+        orderPackage.quantity += quantity;
+        orderPackage.TotalPrice = parseFloat(
+          (orderPackage.quantity * packageEntity.Price).toFixed(2)
+        );
+        await orderPackage.save();
+      } else {
+        // Create a new OrdersPackage
+        const newOrderPackage = OrdersPackages.create({
+          Order: order,
+          Package: packageEntity,
+          quantity: quantity,
+          TotalPrice: parseFloat((quantity * packageEntity.Price).toFixed(2)),
+        });
+        await newOrderPackage.save();
+  
+        // Update the order's OrdersPackages array
+        order.OrdersPackages.push(newOrderPackage);
+      }
+  
+      // Recalculate the total price of the order
+      order.calculateTotalPrice();
+      await order.save();
+  
+      // Reload the order with all relations
+      order = await Orders.findOne({
+        where: { OrderID: order.OrderID },
+        relations: [
+          "User",
+          "OrdersPackages",
+          "OrdersPackages.Package",
+          "OrdersPackages.Package.SubCategory",
+          "OrdersPackages.Package.PackageCustomization",
+        ],
+      });
+  
+      // Return the updated order
+      return res.status(200).json({ message: "Package added to order successfully", order });
     } catch (err: any) {
-        console.log(err);
-        res.status(500).send({ message: err.message })
+      console.error(err);
+      res.status(500).send({ message: err.message });
     }
-
-
-}
+  };
+  
 
 //----------------------- Update a specific pakcage order-----------------------
 export const s_updateOrderPackage = async (req: Request, res: Response) => {
     try {
         const orderId = Number(req.params.orderId);
         const packageId = Number(req.params.packageId);
-        const quantity  = req.body;
+        const {quantity} = req.body;
         const order = await Orders.findOne({ where: { OrderID: orderId } });
         if (!order) {
             return res.status(404).send({ message: "Order not found" });
@@ -64,6 +118,9 @@ export const s_updateOrderPackage = async (req: Request, res: Response) => {
             orderPkg.quantity = quantity;
             await orderPkg.save();
         }
+        // Recalculate the total price of the order
+        order.calculateTotalPrice();
+        await order.save();
         return orderPkg;
     } catch (err: any) {
         console.log(err);

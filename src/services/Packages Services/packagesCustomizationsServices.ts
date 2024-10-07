@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { PackageCustomizations } from '../../entities/packages/PackageCustomizations';
 import { Packages } from '../../entities/packages/Packages';
-import { uploadFiles } from '../../config/Multer config/multerConfig';
+// import { uploadFiles } from '../../config/Multer config/multerConfig';
 
 //----------------------- Create a new customization for a package -----------------------
 export const s_createCustomizationPackage = async (req: Request, res: Response) => {
@@ -18,37 +18,29 @@ export const s_createCustomizationPackage = async (req: Request, res: Response) 
         }
 
         let formattedTypeOptions;
-
-        // If type is "image", handle file uploads
-        if (type === "image" && req.files) {
-            const files = await uploadFiles(req);
+        if(type === "image" && req.files) {
+            const files = req.files as Express.Multer.File[];
             formattedTypeOptions = files.map((file, index) => ({
                 option: typeOptions[index]?.option || `Option ${index + 1}`,
                 value: typeOptions[index]?.value || `Value ${index + 1}`,
-                imagePath: `/resources/package_customizations/${title}/${file.filename}` // Store the file path
+                imagePath: `/resources/${file.filename}` 
             }));
         } else {
-            // For other types, use the provided typeOptions
-            formattedTypeOptions = typeOptions.map((opt) => ({
-                option: opt.option,
-                value: opt.value,
-            }));
-        }
 
         const customizationObj = {
             title: title,
             type: type,
             typeOptions: formattedTypeOptions,
         };
-
+    
         const customization = PackageCustomizations.create({
             Options: customizationObj,
         });
-
+    
         await customization.save();
 
         return res.status(201).send({ message: "Customization created successfully", customization });
-
+    }
     } catch (err: any) {
         console.log(err);
         return res.status(500).send({ message: err.message });
@@ -80,17 +72,14 @@ export const s_updateCustomizationPackage = async (req: Request, res: Response) 
         let formattedTypeOptions;
 
         if (type === "image" && req.files) {
-            const files = await uploadFiles(req);
+            const files = req.files as Express.Multer.File[];
             formattedTypeOptions = files.map((file, index) => ({
                 option: typeOptions[index]?.option || `Option ${index + 1}`,
                 value: typeOptions[index]?.value || `Value ${index + 1}`,
-                imagePath: `/resources/package_customizations/${customizationId}/${file.filename}` 
+                imagePath: `/resources/${file.filename}`
             }));
         } else {
-            formattedTypeOptions = typeOptions.map((opt) => ({
-                option: opt.option,
-                value: opt.value,
-            }));
+            formattedTypeOptions = typeOptions;
         }
 
         customization.Options = {
@@ -153,11 +142,12 @@ export const s_assignCustomizationToPackage = async (req: Request, res: Response
             return res.status(404).send({ message: "Package not found" });
         }
 
-        const customization = await PackageCustomizations.findOne({ where: { PackageCustomizationID: customizationId } });
+        const customization = await PackageCustomizations.findOne({ where: { PackageCustomizationID: customizationId } ,});
         if (!customization) {
             return res.status(404).send({ message: "Customization not found" });
         }
 
+        
         if (!packageItem.PackageCustomization) {
             packageItem.PackageCustomization = [];
         }

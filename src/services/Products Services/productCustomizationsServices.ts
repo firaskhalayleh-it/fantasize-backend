@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { ProductCustomizations } from '../../entities/products/ProductCustomizations';
 import { Products } from '../../entities/products/Products';
-import { uploadFiles } from '../../config/Multer config/multerConfig';
 
 //----------------------- Create a new customization product----------------------------
 export const s_createCustomizationProduct = async (req: Request, res: Response) => {
@@ -19,22 +18,14 @@ export const s_createCustomizationProduct = async (req: Request, res: Response) 
 
         let formattedTypeOptions;
 
-        // If the type is "image", handle image uploads and include the image paths in typeOptions
-        if (type === "image" && req.files) {
-            const files = await uploadFiles(req);
-            formattedTypeOptions = files.map((file: Express.Multer.File, index: number) => ({
+        if(type === "image" && req.files) {
+            const files = req.files as Express.Multer.File[];
+            formattedTypeOptions = files.map((file, index) => ({
                 option: typeOptions[index]?.option || `Option ${index + 1}`,
                 value: typeOptions[index]?.value || `Value ${index + 1}`,
-                imagePath: `/resources/product_customizations/${title}/${file.filename}`, // Store the file path
+                imagePath: `/resources/${file.filename}` 
             }));
-        } else {
-            // For non-image types, just format the provided options
-            formattedTypeOptions = typeOptions.map((opt) => ({
-                option: opt.option,
-                value: opt.value,
-            }));
-        }
-
+        }else {
         const customizationObj = {
             title: title,
             type: type,
@@ -48,7 +39,7 @@ export const s_createCustomizationProduct = async (req: Request, res: Response) 
         await customization.save();
 
         return res.status(201).send({ message: "Customization created successfully", customization });
-
+    }
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message });
@@ -84,27 +75,21 @@ export const s_updateCustomizationProduct = async (req: Request, res: Response) 
             return res.status(400).send({ message: "Invalid type" });
         }
 
-        // If the type is "image", handle image uploads and include the image paths in type
         let formattedTypeOptions;
         if (type === "image" && req.files) {
-            const files = await uploadFiles(req);
-            formattedTypeOptions = files.map((file: Express.Multer.File, index: number) => ({
+            const files = req.files as Express.Multer.File[];
+            formattedTypeOptions = files.map((file, index) => ({
                 option: typeOptions[index]?.option || `Option ${index + 1}`,
                 value: typeOptions[index]?.value || `Value ${index + 1}`,
-                imagePath: `/resources/product_customizations/${title}/${file.filename}`, // Store the file path
+                imagePath: `/resources/${file.filename}`
             }));
         } else {
-            // For non-image types, just format the provided options
-            formattedTypeOptions = typeOptions.map((opt) => ({
-                option: opt.option,
-                value: opt.value,
-            }));
+            formattedTypeOptions = typeOptions;
         }
-
         const customizationObj = {
             title: title,
             type: type,
-            typeOptions: formattedTypeOptions,
+             typeOptions: formattedTypeOptions,
         };
 
         const customization = await ProductCustomizations.findOne({ where: { ProductCustomizationID: customizationId } });

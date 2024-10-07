@@ -1,6 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { Categories } from '../../entities/categories/Categories';
 import { SubCategories } from '../../entities/categories/SubCategories';
+import { Resources } from '../../entities/Resources';
 
 //-----------------------Get all categories -----------------------
 export const s_getAllCategories = async (req: Request, res: Response) => {
@@ -57,7 +58,19 @@ export const s_createCategory = async (req: Request, res: Response) => {
             Name: Name,
             IsActive: IsActive
         });
+        if (req.file){
+            const imageResources = await Resources.create({
+                entityName: req.file.filename,
+                fileType: req.file.mimetype,
+                filePath: req.file.path,
+                Category: category
+            }).save();
 
+            category.Image = imageResources;
+
+        }
+        
+        
         const createdCategory = await category.save();
         if (createdCategory) {
             return res.status(201).json(createdCategory);
@@ -65,7 +78,7 @@ export const s_createCategory = async (req: Request, res: Response) => {
             return res.status(400).send({ message: 'Category could not be created' });
         }
 
-
+    
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message })
@@ -77,14 +90,21 @@ export const s_createCategory = async (req: Request, res: Response) => {
 export const s_updateCategory = async (req: Request, res: Response) => {
     try {
         const categoryId = Number(req.params.id);
-        const { Name, Image, IsActive } = req.body;
+        const { Name, IsActive } = req.body;
         const category = await Categories.findOne({ where: { CategoryID: categoryId } });
 
         if (category) {
             category.Name = Name || category.Name;
-            category.Image = Image || category.Image;
             category.IsActive = IsActive || category.IsActive;
-
+            if (req.file){
+                const imageResources = await Resources.create({
+                    entityName: req.file.filename,
+                    fileType: req.file.mimetype,
+                    filePath: req.file.path,
+                    Category: category
+                }).save();
+    
+            }
             const updatedCategory = await category.save();
             if (updatedCategory) {
                 return res.status(200).json(updatedCategory);

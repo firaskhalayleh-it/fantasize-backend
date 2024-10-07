@@ -19,7 +19,7 @@ import { Packages } from './Packages';
 import { Orders } from '../Orders';
 import { before } from 'node:test';
 
-@Entity()
+@Entity({ name: 'OrdersPackages' })
 export class OrdersPackages extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { name: 'OrderPackageID' })
   OrderPackageID: number;
@@ -27,9 +27,8 @@ export class OrdersPackages extends BaseEntity {
 
 
   @ManyToOne(() => Orders, (order) => order.OrdersPackages, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'OrderID', referencedColumnName: 'OrderID' })
   Order: Orders;
-  
+
   @Column('int', { nullable: true })
   quantity: number;
 
@@ -38,10 +37,9 @@ export class OrdersPackages extends BaseEntity {
 
 
 
-  @ManyToOne(() => Packages, (pkg) => pkg.OrdersPackages)
-  @JoinColumn({ name: 'PackageID', referencedColumnName: 'PackageID' })
+  @ManyToOne(() => Packages, (pkg) => pkg.OrdersPackages, { onDelete: 'CASCADE', eager: true })
   Package: Packages;
-  
+
 
   @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.PaymentMethodID)
   PaymentMethod: PaymentMethods;
@@ -56,9 +54,15 @@ export class OrdersPackages extends BaseEntity {
   UpdatedAt: Date;
 
 
+
   @BeforeInsert()
   @BeforeUpdate()
-  async setTotalPrice() {
-    this.TotalPrice = this.quantity * this.Package.Price;
+  async calculateTotalPrice() {
+    if (this.Package && this.Package.Price && this.quantity) {
+      this.TotalPrice = (this.Package.Price) * this.quantity;
+    }
   }
+
+
+
 }

@@ -4,6 +4,7 @@ import { adminMiddleware } from "../../middlewares/admin_middleware";
 import { isAuthorized } from "../../middlewares/isAuthentecated";
 import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory, c_updateProduct } from "../../controllers/Products Controller/productController";
 import FavoriteProductRoute from "./favoriteProductsRoutes";
+import { uploadFields } from "../../config/Multer config/multerConfig";
 
 const productRoute = express.Router();
 
@@ -34,7 +35,7 @@ productRoute.get('/getProduct/:productId', isAuthorized, c_getProduct);
  *  @method        POST
  *  @access        admin
  */
-productRoute.post('/createProduct', isAuthorized, c_createProduct);
+productRoute.post('/createProduct', isAuthorized,uploadFields, c_createProduct);
 
 /**
  *  @description   Update a product
@@ -42,7 +43,7 @@ productRoute.post('/createProduct', isAuthorized, c_createProduct);
  *  @method        PUT
  *  @access        admin
  */
-productRoute.put('/product/:productId', isAuthorized, c_updateProduct);
+productRoute.put('/product/:productId', isAuthorized,uploadFields, c_updateProduct);
 
 
 /**

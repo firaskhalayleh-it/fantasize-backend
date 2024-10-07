@@ -12,35 +12,35 @@ const  paymentMethodRoute = Router();
  *  @access       private 
  * 
  */
-paymentMethodRoute.post("/user/create_payment_method_user/:userId",isAuthorized,c_createPaymentMethod);
+paymentMethodRoute.post("/user/create_payment_method_user",isAuthorized,c_createPaymentMethod);
 
 /**
  *  @description  update user payment Method by userId
- *  @route        /update_address_user/:userId
+ *  @route        /update_address_user
  *  @method       Put
  *  @access       private
  * 
  */
 
-paymentMethodRoute.put("/user/update_payment_method_user/:userId",isAuthorized,c_updatePaymentMethod);
+paymentMethodRoute.put("/user/update_payment_method_user",isAuthorized,c_updatePaymentMethod);
 
 /**
  *  @description  get user payment Method by userId
- *  @route        /get_address_user/:userId
+ *  @route        /get_address_user
  *  @method       Get
  *  @access       private
  * 
  */
-paymentMethodRoute.get("/user/get_payment_method_user/:userId",isAuthorized,c_getPaymentMethod);
+paymentMethodRoute.get("/user/get_payment_method_user",isAuthorized,c_getPaymentMethod);
 
 /**
  *  @description  delete user payment Method by userId
- *  @route        /delete_address_user/:userId
+ *  @route        /delete_address_user
  *  @method       Delete
  *  @access       private
  * 
  */
-paymentMethodRoute.delete("/user/delete_payment_method_user/:userId",isAuthorized,c_deletePaymentMethod);
+paymentMethodRoute.delete("/user/delete_payment_method_user",isAuthorized,c_deletePaymentMethod);
 
 
 export default paymentMethodRoute;

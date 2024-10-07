@@ -17,19 +17,19 @@ export class Notifications extends BaseEntity {
   user: Users;
 
   @Column('varchar')
-  type: 'email' | 'push'; 
+  type: 'email' | 'push';
 
   @Column('jsonb')
-  template: any;  
+  template: any;
 
   @Column('boolean', { default: false })
   isRead: boolean;
 
   @Column('varchar', { nullable: true })
-  deliveryMethod: 'smtp' | 'push'; 
+  deliveryMethod: 'smtp' | 'push';
 
   @Column('boolean', { default: false })
-  sent: boolean; 
+  sent: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

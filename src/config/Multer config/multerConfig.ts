@@ -1,40 +1,42 @@
-import multer, { StorageEngine } from 'multer';
+import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
-import { Request } from 'express';
 
-const storage: StorageEngine = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const { entityType, entityName } = req.body;
-        const baseFolder = path.join('resources', entityType, entityName);
-        if (!fs.existsSync(baseFolder)) {
-            fs.mkdirSync(baseFolder, { recursive: true });
-        }
-        cb(null, baseFolder);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        const fileExtension = path.extname(file.originalname);
-        cb(null, `${file.fieldname}-${uniqueSuffix}${fileExtension}`);
-    }
+// Define storage configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'resources/'); // Save files to the 'resources' directory
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, `${uniqueSuffix}-${file.originalname}`);
+  },
 });
 
-export const upload = multer({
-    storage,
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
-});
+// File filter to accept images and videos
+const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const fileTypes = /jpeg|jpg|png|gif|mp4|mkv|avi|mov/;
+  const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = fileTypes.test(file.mimetype);
 
-
-export const uploadFiles = (req: Request): Promise<Express.Multer.File[]> => {
-    return new Promise((resolve, reject) => {
-        upload.array('files')(req, {} as any, (error: any) => {
-            if (error) {
-                reject(error);
-            } else if (!req.files || req.files.length === 0) {
-                reject(new Error("File uploads required"));
-            } else {
-                resolve(req.files as Express.Multer.File[]);
-            }
-        });
-    });
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    cb(new Error('Only images and videos are allowed'));
+  }
 };
+
+// Multer configuration for multiple files
+const upload = multer({
+    
+  storage,
+  limits: { fileSize: 1024 * 1024 * 50 }, // 50 MB file size limit
+  fileFilter,
+});
+
+export const uploadSingle = upload.single('file'); // For single file
+export const uploadMultiple = upload.array('files', 10); // For multiple files, up to 10 files
+export const uploadFields = upload.fields([
+  { name: 'images', maxCount: 5 },
+  { name: 'videos', maxCount: 5 },
+]);
+

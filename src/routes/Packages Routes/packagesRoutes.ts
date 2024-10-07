@@ -3,6 +3,7 @@ import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
 import { isAuthorized } from "../../middlewares/isAuthentecated";
 import { c_createPackage, c_getAllPackages, c_getAllPackagesUnderSpecificSubcategory, c_getPackageByID, c_updatePackage } from "../../controllers/Packages Controller/packagesController";
+import { uploadFields } from "../../config/Multer config/multerConfig";
 
 const packageRoute = express.Router();
 
@@ -13,7 +14,7 @@ const packageRoute = express.Router();
  *  @method        POST
  *  @access        admin
  */
-packageRoute.post('/packages', isAuthorized,c_createPackage);
+packageRoute.post('/packages', isAuthorized, uploadFields, c_createPackage);
 
 /**
  *  @description   Get all packages
@@ -21,7 +22,7 @@ packageRoute.post('/packages', isAuthorized,c_createPackage);
  *  @method        GET
  *  @access        public
  */
-packageRoute.get('/packages' , c_getAllPackages);
+packageRoute.get('/packages', c_getAllPackages);
 
 
 /**
@@ -30,7 +31,7 @@ packageRoute.get('/packages' , c_getAllPackages);
  *  @method        GET
  *  @access        public
  */
-packageRoute.get('/:categoryId/:subcategoryId/packages',c_getAllPackagesUnderSpecificSubcategory);
+packageRoute.get('/:categoryId/:subcategoryId/packages', c_getAllPackagesUnderSpecificSubcategory);
 
 /**
  *  @description   Get a package by ID
@@ -38,7 +39,7 @@ packageRoute.get('/:categoryId/:subcategoryId/packages',c_getAllPackagesUnderSpe
  *  @method        GET
  *  @access        public
  */
-packageRoute.get('/packages/:packageId',c_getPackageByID);
+packageRoute.get('/packages/:packageId', c_getPackageByID);
 
 /**
  *  @description   Update a package
@@ -46,7 +47,7 @@ packageRoute.get('/packages/:packageId',c_getPackageByID);
  *  @method        PUT
  *  @access        private (admin)
  */
-packageRoute.put('/packages/:packageId', isAuthorized , c_updatePackage);
+packageRoute.put('/packages/:packageId', isAuthorized,uploadFields, c_updatePackage);
 
 
 export default packageRoute;

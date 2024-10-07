@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BaseEntity, JoinColumn, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BaseEntity, JoinColumn, Index, OneToOne } from 'typeorm';
 import { SubCategories } from './SubCategories';
 import { join } from 'path';
+import { Resources } from '../Resources';
 
 @Entity()
 export class Categories extends BaseEntity {
@@ -11,8 +12,8 @@ export class Categories extends BaseEntity {
   @Index()
   Name: string;
 
-  @Column('varchar', { nullable: true })
-  Image: string;
+  @OneToOne(() => Resources, (resource) => resource.Category)
+  Image: Resources;
 
   @Column('boolean', { default: true })
   IsActive: boolean;

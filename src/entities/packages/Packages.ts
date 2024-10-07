@@ -9,7 +9,10 @@ import {
   JoinTable,
   OneToMany,
   JoinColumn,
-  Relation
+  Relation,
+  BeforeInsert,
+  BeforeUpdate,
+  AfterLoad
 } from 'typeorm';
 import { Offers } from '../Offers';
 import { Reviews } from '../Reviews';
@@ -22,7 +25,8 @@ import { OrdersPackages } from './OrdersPackages';
 import { PackageProduct } from './packageProduct';
 
 @Entity()
-export class Packages extends BaseEntity {
+
+export class  Packages extends BaseEntity {
   @PrimaryGeneratedColumn()
   PackageID: number;
 
@@ -47,15 +51,20 @@ export class Packages extends BaseEntity {
   @ManyToOne(() => Offers, (offer) => offer.OfferID)
   Offer: Offers;
 
-  @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.Package)
+  @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.Package , )
   OrdersPackages: OrdersPackages[];
   
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Package, { eager: true })
   SubCategory: SubCategories;
 
+
+  @Column('int', { default: 0 })
+  AvgRating: number;
+
   
 
-  @OneToMany(() => Resources, (resource) => resource.Package)
+  @OneToMany(() => Resources, (resource) => resource.Package, { eager: true })
+  @JoinColumn()
   Resource: Resources[];
 
   // @OneToMany(() => Products, (product) => product.Package)
@@ -63,7 +72,18 @@ export class Packages extends BaseEntity {
   @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Package)
   PackageProduct: PackageProduct[];
 
-  @OneToMany(() => PackageCustomizations, (packageCustomization) => packageCustomization.Packages)
+  @ManyToMany(() => PackageCustomizations, (pkgCustom) => pkgCustom.Packages,{ eager: true })
+  @JoinTable({
+    name: 'PackagesCustomizations',
+    joinColumn: {
+      name: 'PackageID',
+      referencedColumnName: 'PackageID'
+    },
+    inverseJoinColumn: {
+      name: 'PackageCustomizationID',
+      referencedColumnName: 'PackageCustomizationID'
+    }
+  })
   PackageCustomization: PackageCustomizations[];
 
 
@@ -82,10 +102,35 @@ export class Packages extends BaseEntity {
       referencedColumnName: 'ReviewID'
     }
   })
-  Review: Reviews[];
+  Reviews: Reviews[];
 
   CreatedAt: Date;
 
   @CreateDateColumn()
   UpdatedAt: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  checkStatus = () => {
+    if (this.Quantity == 0) {
+      this.Status = 'out of stock';
+    } else if (this.Quantity < 10) {
+      this.Status = 'running low';
+    } else {
+      this.Status = 'in stock';
+    }
+  }
+
+
+  @AfterLoad()
+  calculateAvgRating() {
+    // Check if the ratings array exists and has items
+    if (this.Reviews && this.Reviews.length > 0) {
+      const totalRating = this.Reviews.reduce((sum, review) => sum + review.Rating, 0);
+      this.AvgRating = totalRating / this.Reviews.length;
+    } else {
+      this.AvgRating = 0; // Or any default value
+    }
+  }
+  
 }
