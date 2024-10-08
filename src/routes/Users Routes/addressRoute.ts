@@ -30,7 +30,7 @@ addressRoute.put("/user/update_address_user",IsAuthenticated,c_updateUserAddress
  *  @access       private
  * 
  */
-addressRoute.delete("/user/delete_address_user",IsAuthenticated,c_deleteUserAddress);
+addressRoute.delete("/user/delete_address_user/:addressId",IsAuthenticated,c_deleteUserAddress);
 
 
 /**

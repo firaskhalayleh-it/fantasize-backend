@@ -90,7 +90,10 @@ export const s_deleteUserAddress = async (req: Request, res: Response) => {
         }
         const addressId = Number(req.params.addressId)
         const deleteAddress = await Addresses.delete({ AddressID: addressId });
-        return deleteAddress
+        if(deleteAddress.affected==0){
+            return `Not found address to delete`
+        }
+        return `Deleted successfully`
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message })

@@ -4,8 +4,8 @@ import { c_getAllUser, c_getUser, c_getUserNameWithProfilePic, c_searchUser, c_u
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
 import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
+import { uploadSingle } from "../../middlewares/multerMiddleware";
 // import { extractEntityData } from "../../middlewares/extract_data_middleware";
-import {uploadSingle} from "../../config/Multer config/multerConfig";
 const userRoute = express.Router();
 
 /**

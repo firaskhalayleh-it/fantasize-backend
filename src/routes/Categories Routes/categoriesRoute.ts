@@ -3,7 +3,7 @@ import { c_createCategory, c_createSubcategory, c_deleteCategory, c_DeleteSubcat
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
 import { isAuthorized } from "../../middlewares/isAuthentecated";
-import { uploadFields, uploadSingle } from "../../config/Multer config/multerConfig";
+import { uploadSingle } from "../../middlewares/multerMiddleware";
 const categoryRoute = express.Router();
 
 /**

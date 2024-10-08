@@ -54,6 +54,10 @@ export const s_createCategory = async (req: Request, res: Response) => {
         if (!Name || Name === '') {
             return res.status(400).send({ message: 'Please provide a category name ' });
         }
+        const isExist= await Categories.findOne({where:{Name:Name}})
+        if(isExist){
+            return `the category : '${Name}' is alredy exist`;
+        }
         const category = Categories.create({
             Name: Name,
             IsActive: IsActive

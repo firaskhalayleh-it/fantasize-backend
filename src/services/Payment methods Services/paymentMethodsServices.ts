@@ -87,7 +87,7 @@ export const s_getPaymentMethod = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'User not found!' });
         }
         const paymentMethod = user.PaymentMethods;
-        if (!paymentMethod) {
+        if (!paymentMethod || paymentMethod.length === 0) {
             return res.status(404).json({ message: 'paymentMethod not found!' });
         }
         return res.status(200).json(paymentMethod);
