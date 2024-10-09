@@ -4,7 +4,26 @@ import { Products } from "../../entities/products/Products";
 import { Packages } from "../../entities/packages/Packages";
 
 
+//----------------------- Create a new offer  -----------------------
+export const s_createNewOffer = async (req: Request, res: Response) => {
+    try {
+        const { IsActive, Discount, ValidFrom, ValidTo} = req.body;
+        const validfrom = new Date(ValidFrom);
+        const validto = new Date(ValidTo);
+        const addNewOffer = Offers.create({
+            Discount: Discount,
+            IsActive: IsActive,
+            ValidFrom: validfrom,
+            ValidTo: validto,
+        });
 
+        await addNewOffer.save();
+        return `Add an offer successfully`;
+    } catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message })
+    }
+}
 //----------------------- Create a new offer for Product -----------------------
 export const s_createOfferProduct = async (req: Request, res: Response) => {
     try {
@@ -170,8 +189,8 @@ export const s_getOfferByID = async (req: Request, res: Response) => {
 //------------------------ home offers -----------------------
 export const s_homeOffers = async (req: Request, res: Response) => {
     try {
-        const offers = await Offers.find({ relations: ["Products", "Packages"], take: 3 }); 
-        if (!offers) {
+        const offers = await Offers.find({ relations: ["Products", "Packages"],take:3}); 
+        if (offers.length === 0) {
             return res.status(404).send({ message: "No offers found" });
         }
         offers.map((offer) => {

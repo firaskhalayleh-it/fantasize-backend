@@ -1,8 +1,13 @@
 //controller for offers
 
 import { Request, Response } from 'express';
-import { s_createOfferProduct,s_createOfferPackage, s_getAllOffers,s_getAllOffersForProduct,s_getAllOffersForPackage, s_getOfferByID, s_updateOffer } from '../../services/Offers Services/offersServices';
+import { s_createOfferProduct,s_createOfferPackage, s_getAllOffers,s_getAllOffersForProduct,s_getAllOffersForPackage, s_getOfferByID, s_updateOffer, s_homeOffers, s_createNewOffer } from '../../services/Offers Services/offersServices';
 
+//----------------------- Create a new offer for Product -----------------------
+export const c_createNewOffer = async (req:Request , res:Response) =>{
+   const result = await s_createNewOffer(req, res);
+   res.status(200).json(result);
+}
 //----------------------- Create a new offer for Product -----------------------
 export const c_createOfferProduct = async (req:Request , res:Response) =>{
    const result = await s_createOfferProduct(req, res);
@@ -58,6 +63,11 @@ export const c_getAllOffersForHomePage = async (req:Request , res:Response) =>{
 
 }
 
+//----------------------- home offer -----------------------
+export const c_homeOffers = async (req:Request , res:Response) =>{
+    const result = await s_homeOffers(req, res);
+    res.status(200).json(result);
 
+}
 
 
