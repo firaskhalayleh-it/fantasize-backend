@@ -23,6 +23,7 @@ import orderRoute from "./routes/Order Routes/orderRoute";
 import customizationPackageRoute from "./routes/Packages Routes/customizationPackageRoute";
 import notificationRoute from "./routes/Notification Routes/notificationRoute";
 import adminDashboardRoutes from "./routes/Admin Dashboard Rotue/adminDashbourdRoute";
+import { setupSwagger } from "./swagger/swagger";
 
 
 const app = express();
@@ -35,6 +36,7 @@ const PORT = process.env.APP_PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+setupSwagger(app);
 app.use("/api", authRoute);
 app.use("/api", userRoute);
 app.use("/api", addressRoute);
