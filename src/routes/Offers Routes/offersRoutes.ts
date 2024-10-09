@@ -57,13 +57,13 @@ offerRoute.put('/offers/:offerId', isAuthorized, c_updateOffer);
 offerRoute.get('/offers/homeOffers', isAuthorized, s_homeOffers);
 
 
-/**
- *  @description   Create a new offer for a product
- *  @route         /offers/product
- *  @method        POST
- *  @access        private
- */
-offerRoute.post('/offers/product', isAuthorized, c_createOfferProduct);
+// /**
+//  *  @description   Create a new offer for a product
+//  *  @route         /offers/product
+//  *  @method        POST
+//  *  @access        private
+//  */
+// offerRoute.post('/offers/product', isAuthorized, c_createOfferProduct);
 
 
 /**

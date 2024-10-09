@@ -57,7 +57,7 @@ export class Products extends BaseEntity {
   @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Product)
   PackageProduct: PackageProduct[];
 
-  @ManyToOne(() => Offers, (offer) => offer.OfferID)
+  @ManyToOne(() => Offers, (offer) => offer.Products, { eager: true })
   Offer: Offers;
 
   @OneToMany(() => Resources, (resource) => resource.Product, { eager: true })

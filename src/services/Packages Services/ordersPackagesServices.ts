@@ -17,7 +17,7 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
       if (!quantity || quantity <= 0) {
         return res.status(400).send({ message: "Quantity must be a positive integer" });
       }
-  
+      
       // Find the package
       const packageEntity = await Packages.findOne({ where: { PackageID: packageId } });
       if (!packageEntity) {

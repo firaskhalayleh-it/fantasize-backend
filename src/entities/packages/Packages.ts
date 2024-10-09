@@ -48,7 +48,7 @@ export class  Packages extends BaseEntity {
   @Column('enum', { enum: ['out of stock', 'in stock', 'running low'], default: 'in stock' })
   Status: string;
 
-  @ManyToOne(() => Offers, (offer) => offer.OfferID)
+  @ManyToOne(() => Offers, (offer) => offer.Packages)
   Offer: Offers;
 
   @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.Package , )
