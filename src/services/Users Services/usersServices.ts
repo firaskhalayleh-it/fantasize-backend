@@ -52,13 +52,14 @@ export const s_updateUser = async (req: Request, res: Response) => {
                 entityName: req.file.filename,
                 fileType: req.file.mimetype,
                 filePath: req.file.path,
+                User:user
             });
 
             await profilePicture.save();
             user.UserProfilePicture = profilePicture;
 
           }
-      
+
 
         // Save updated user
         await user.save();
