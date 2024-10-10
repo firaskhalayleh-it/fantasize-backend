@@ -2,7 +2,7 @@
 import express from 'express';
 import { c_assignCustomizationToPackage, c_assignCustomizationToProduct, c_createCustomization, c_getAllCustomizations, c_removeCustomizationFromPackage, c_removeCustomizationFromProduct, c_updateCustomization } from '../../controllers/Customizations Controller/customizationController';
 import { IsAuthenticated,isAuthorized } from '../../middlewares/isAuthentecated';
-import { uploadSingle } from '../../config/Multer config/multerConfig';
+import { uploadSingle } from '../../middlewares/multerMiddleware';
 
 const customizationRoute = express.Router();
 

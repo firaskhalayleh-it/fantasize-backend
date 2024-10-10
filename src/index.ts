@@ -22,6 +22,7 @@ import orderRoute from "./routes/Order Routes/orderRoute";
 import notificationRoute from "./routes/Notification Routes/notificationRoute";
 import adminDashboardRoutes from "./routes/Admin Dashboard Rotue/adminDashbourdRoute";
 import customizationRoute from "./routes/CustomizationRoute/customizationRoute";
+import { setupSwagger } from "./swagger/swagger";
 
 
 const app = express();
