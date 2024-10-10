@@ -51,7 +51,7 @@ export class Users extends BaseEntity {
   resetPasswordToken: string; 
 
   @Column('timestamp', { nullable: true })
-  resetPasswordExpires: Date; 
+  resetPasswordExpires: Date;  
 
   @Column('varchar', { nullable: true })
   FirebaseToken: string;

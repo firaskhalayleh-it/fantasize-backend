@@ -45,50 +45,54 @@ export const s_getCategory = async (req: Request, res: Response) => {
 }
 
 
-//----------------------- Create a new category-----------------------
 export const s_createCategory = async (req: Request, res: Response) => {
     try {
-
         const { Name, IsActive } = req.body;
 
-        if (!Name || Name === '') {
-            return res.status(400).send({ message: 'Please provide a category name ' });
+        // Validate the input
+        if (!Name || Name.trim() === '') {
+            return res.status(400).send({ message: 'Please provide a category name' });
         }
-        const isExist= await Categories.findOne({where:{Name:Name}})
-        if(isExist){
-            return `the category : '${Name}' is alredy exist`;
-        }
+
+        // Create the category
         const category = Categories.create({
             Name: Name,
             IsActive: IsActive
         });
-        if (req.file){
-            const imageResources = await Resources.create({
+
+        // Save the category first to get its ID
+        await category.save();
+
+        // If an image file is provided, create a resource and associate it with the category
+        if (req.file) {
+            const imageResource = Resources.create({
                 entityName: req.file.filename,
                 fileType: req.file.mimetype,
                 filePath: req.file.path,
-                Category: category
-            }).save();
+                Category: category 
+            });
 
-            category.Image = imageResources;
+            // Save the image resource
+            await imageResource.save();
 
+            // Set the category's Image property after saving the resource
+            category.Image = imageResource;
         }
-        
-        
+
+        // Save the category again if an image resource was added
         const createdCategory = await category.save();
+
         if (createdCategory) {
             return res.status(201).json(createdCategory);
         } else {
             return res.status(400).send({ message: 'Category could not be created' });
         }
 
-    
     } catch (err: any) {
-        console.log(err);
-        res.status(500).send({ message: err.message })
+        console.error(err);
+        res.status(500).send({ message: err.message });
     }
-}
-
+};
 
 //----------------------- Update a category by ID-----------------------
 export const s_updateCategory = async (req: Request, res: Response) => {
@@ -108,10 +112,15 @@ export const s_updateCategory = async (req: Request, res: Response) => {
                     Category: category
                 }).save();
     
+                category.Image = imageResources || category.Image;
             }
+
             const updatedCategory = await category.save();
+
+
+            const savedCategory = await Categories.findOne({ where: { CategoryID: categoryId }, });
             if (updatedCategory) {
-                return res.status(200).json(updatedCategory);
+                return res.status(200).json(savedCategory);
             } else {
                 return res.status(400).send({ message: 'Category could not be updated' });
             }
@@ -151,7 +160,7 @@ export const s_deleteCategory = async (req: Request, res: Response) => {
 export const s_getAllSubcategories = async (req: Request, res: Response) => {
     try {
         const categoryId = Number(req.params.categoryId);
-        const category = await Categories.findOne({ where: { CategoryID: categoryId }, relations: ['SubCategory'] });
+        const category = await Categories.findOne({ where: { CategoryID: categoryId }, relations: ['SubCategory','Image'] });
 
         if (category) {
             return res.status(200).json(category.SubCategory);

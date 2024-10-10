@@ -27,7 +27,7 @@ productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', isAuthorized, c_g
  *  @method        GET
  *  @access        Public
  */
-productRoute.get('/getProduct/:productId', isAuthorized, c_getProduct);
+productRoute.get('/getProduct/:id', isAuthorized, c_getProduct);
 
 /**
  *  @description   Create a new product
@@ -43,7 +43,7 @@ productRoute.post('/createProduct', isAuthorized,uploadFields, c_createProduct);
  *  @method        PUT
  *  @access        admin
  */
-productRoute.put('/product/:productId', isAuthorized,uploadFields, c_updateProduct);
+productRoute.put('/product/:productId', isAuthorized, c_updateProduct);
 
 
 /**

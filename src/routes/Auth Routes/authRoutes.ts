@@ -1,9 +1,7 @@
 // register(create user and role) , log in , log out
 import express from "express"
 import { c_loginUser, c_logOutUser, c_registerUser,c_resetPassword } from "../../controllers/Auth Controller/authController";
-import { authMiddleware } from "../../middlewares/auth_middleware";
 import { IsAuthenticated } from "../../middlewares/isAuthentecated";
-import { auth } from "firebase-admin";
 const authRoute = express.Router();
 
 /**

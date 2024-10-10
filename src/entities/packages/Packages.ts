@@ -17,16 +17,15 @@ import {
 import { Offers } from '../Offers';
 import { Reviews } from '../Reviews';
 import { Products } from '../products/Products';
-import { PackageCustomizations } from './PackageCustomizations';
 import { SubCategories } from '../categories/SubCategories';
 import { Resources } from '../Resources';
 import { FavoritePackages } from './FavoritePackages';
 import { OrdersPackages } from './OrdersPackages';
 import { PackageProduct } from './packageProduct';
-
+import { Customization } from '../Customization';
 @Entity()
 
-export class  Packages extends BaseEntity {
+export class Packages extends BaseEntity {
   @PrimaryGeneratedColumn()
   PackageID: number;
 
@@ -39,11 +38,11 @@ export class  Packages extends BaseEntity {
   @Column('decimal')
   Price: number;
 
-  
+
   @Column('int')
   Quantity: number;
 
- 
+
 
   @Column('enum', { enum: ['out of stock', 'in stock', 'running low'], default: 'in stock' })
   Status: string;
@@ -51,9 +50,9 @@ export class  Packages extends BaseEntity {
   @ManyToOne(() => Offers, (offer) => offer.Packages)
   Offer: Offers;
 
-  @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.Package , )
+  @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.Package,)
   OrdersPackages: OrdersPackages[];
-  
+
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Package, { eager: true })
   SubCategory: SubCategories;
 
@@ -61,7 +60,7 @@ export class  Packages extends BaseEntity {
   @Column('int', { default: 0 })
   AvgRating: number;
 
-  
+
 
   @OneToMany(() => Resources, (resource) => resource.Package, { eager: true })
   @JoinColumn()
@@ -72,27 +71,27 @@ export class  Packages extends BaseEntity {
   @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Package)
   PackageProduct: PackageProduct[];
 
-  @ManyToMany(() => PackageCustomizations, (pkgCustom) => pkgCustom.Packages,{ eager: true })
+  @ManyToMany(() => Customization, (pkgCustom) => pkgCustom.Packages, { eager: true })
   @JoinTable({
-    name: 'PackagesCustomizations',
+    name: 'PackagesCustomization',
     joinColumn: {
       name: 'PackageID',
       referencedColumnName: 'PackageID'
     },
     inverseJoinColumn: {
-      name: 'PackageCustomizationID',
-      referencedColumnName: 'PackageCustomizationID'
+      name: 'CustomizationID',
+      referencedColumnName: 'CustomizationID'
     }
   })
-  PackageCustomization: PackageCustomizations[];
+  Customization: Customization[];
 
 
-  @OneToMany(()=>FavoritePackages, (favoritePackages)=>favoritePackages.Package)
+  @OneToMany(() => FavoritePackages, (favoritePackages) => favoritePackages.Package)
   FavoritePackages: FavoritePackages[];
 
   @ManyToMany(() => Reviews, (review) => review.Products)
   @JoinTable({
-    name: 'PackagesReviews',  
+    name: 'PackagesReviews',
     joinColumn: {
       name: 'PackageID',
       referencedColumnName: 'PackageID'
@@ -132,5 +131,5 @@ export class  Packages extends BaseEntity {
       this.AvgRating = 0; // Or any default value
     }
   }
-  
+
 }

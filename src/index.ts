@@ -11,7 +11,6 @@ import paymentMethodRoute from "./routes/Payment methods Routes/paymentMethodsRo
 import categoryRoute from "./routes/Categories Routes/categoriesRoute";
 import packageRoute from "./routes/Packages Routes/packagesRoutes";
 import productRoute from "./routes/Products Routes/productRoutes";
-import customizationProductRoute from "./routes/Products Routes/customizationProductRoute";
 import { userFaves } from "./routes/Products Routes/favoriteProductsRoutes";
 import orderProductRoute from "./routes/Products Routes/ordersProductsRoutes";
 import favoritePackagesRoute from "./routes/Packages Routes/favoritePackagesRoutes";
@@ -20,10 +19,9 @@ import orderPackageRoute from "./routes/Packages Routes/ordersPackagesRoutes";
 import reviewsRoute from "./routes/Reviews Routes/reviewsRoutes";
 import offerRoute from "./routes/Offers Routes/offersRoutes";
 import orderRoute from "./routes/Order Routes/orderRoute";
-import customizationPackageRoute from "./routes/Packages Routes/customizationPackageRoute";
 import notificationRoute from "./routes/Notification Routes/notificationRoute";
 import adminDashboardRoutes from "./routes/Admin Dashboard Rotue/adminDashbourdRoute";
-import { setupSwagger } from "./swagger/swagger";
+import customizationRoute from "./routes/CustomizationRoute/customizationRoute";
 
 
 const app = express();
@@ -43,7 +41,6 @@ app.use("/api", addressRoute);
 app.use("/api", paymentMethodRoute);
 app.use("/api", categoryRoute);
 app.use("/api", productRoute);
-app.use("/api", customizationProductRoute);
 app.use("/api", userFaves);
 app.use("/api", orderProductRoute);
 app.use("/api", packageRoute);
@@ -53,9 +50,9 @@ app.use("/api", brandRoute);
 app.use("/api", reviewsRoute);
 app.use("/api", offerRoute);
 app.use("/api", orderRoute);
-app.use("/api", customizationPackageRoute);
 app.use("/api", adminDashboardRoutes);
 app.use("/api", notificationRoute);
+app.use("/api", customizationRoute);
 
 
 app.use(notFound);

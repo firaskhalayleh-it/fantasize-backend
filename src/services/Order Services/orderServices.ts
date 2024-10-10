@@ -12,7 +12,7 @@ import { EmailOptions, orderConfirmationTemplate, sendEmail } from "../../utils/
 export const s_checkoutOrderUser = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user.payload.userId;
-        const { PaymentMethodID, AddressID, IsGift, IsAnonymous } = req.body;
+        const { PaymentMethodID, AddressID, IsGift, IsAnonymous,GiftMessage } = req.body;
 
         // Find the user
         const user = await Users.findOne({ where: { UserID: userId } });
@@ -93,6 +93,7 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
         order.Status = true;
         order.IsGift = IsGift ?? false;
         order.IsAnonymous = IsAnonymous ?? false;
+        order.GiftMessage = GiftMessage ?? "";
 
         await order.save();
         await sendEmail(emailOptions);

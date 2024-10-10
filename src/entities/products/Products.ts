@@ -4,12 +4,10 @@ import { Offers } from '../Offers';
 import { Resources } from '../Resources';
 import { Reviews } from '../Reviews';
 import { SubCategories } from '../categories/SubCategories';
-import { ProductCustomizations } from './ProductCustomizations';
 import { FavoriteProducts } from './FavoriteProducts';
 import { OrdersProducts } from './OrdersProducts';
-import { Packages } from '../packages/Packages';
-import { OrdersPackages } from '../packages/OrdersPackages';
 import { PackageProduct } from '../packages/packageProduct';
+import { Customization } from '../Customization';
 
 @Entity()
 export class Products extends BaseEntity {
@@ -63,19 +61,19 @@ export class Products extends BaseEntity {
   @OneToMany(() => Resources, (resource) => resource.Product, { eager: true })
   Resource: Resources[];
 
-  @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products,{ eager: true })
+  @ManyToMany(() => Customization, (customization) => customization.Product, { eager: true })
   @JoinTable({
-    name: 'ProductsCustomizations',
+    name: 'ProductsCustomization',
     joinColumn: {
       name: 'ProductID',
       referencedColumnName: 'ProductID'
     },
     inverseJoinColumn: {
-      name: 'ProductCustomizationID',
-      referencedColumnName: 'ProductCustomizationID'
+      name: 'CustomizationID',
+      referencedColumnName: 'CustomizationID'
     }
   })
-  ProductCustomization: ProductCustomizations[];
+  Customization: Customization[];
 
   @ManyToMany(() => Reviews, (review) => review.Products, { eager: true })
   @JoinTable({

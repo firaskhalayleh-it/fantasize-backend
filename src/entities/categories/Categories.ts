@@ -12,7 +12,7 @@ export class Categories extends BaseEntity {
   @Index()
   Name: string;
 
-  @OneToOne(() => Resources, (resource) => resource.Category)
+  @OneToOne(() => Resources, (resource) => resource.Category, { eager: true })
   Image: Resources;
 
   @Column('boolean', { default: true })

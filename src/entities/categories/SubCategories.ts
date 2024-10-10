@@ -8,7 +8,7 @@ export class SubCategories extends BaseEntity {
   @PrimaryGeneratedColumn()
   SubCategoryID: number;
 
-  @Column('varchar', { unique: true })
+  @Column('varchar',)
   @Index()
   Name: string;
 

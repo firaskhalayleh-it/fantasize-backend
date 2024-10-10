@@ -52,6 +52,9 @@ export class Orders extends BaseEntity {
   @Column('boolean', { default: false })
   IsGift: boolean;
 
+  @Column('varchar', { nullable: true })
+  GiftMessage: string;
+
   @Column('boolean', { default: false })
   IsAnonymous: boolean;
 
