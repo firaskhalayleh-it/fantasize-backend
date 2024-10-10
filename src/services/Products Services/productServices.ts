@@ -163,8 +163,8 @@ export const s_updateProduct = async (req: Request, res: Response) => {
         const productId = Number(req.params.productId);
         const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Material } = req.body;
 
-        const productRepository = getRepository(Products);
-        const product = await productRepository.findOne({ where: { ProductID: productId }, relations: ["Resource"] });
+        const productRepository = (Products);
+        const product = await productRepository.findOne({ where: { ProductID: productId }, relations: ["Resource",] });
         
         if (!product) {
             return res.status(404).send({ message: "Product not found" });
@@ -199,25 +199,7 @@ export const s_updateProduct = async (req: Request, res: Response) => {
             }
             product.SubCategory = subCategory;
         }
-
-        // if (req.files) {
-        //     const resourcesRepository = (Resources);
-        //     const existingResources = await resourcesRepository.find({ where: { Product: product } });
-        //     await resourcesRepository.remove(existingResources);
-
-        //     // Save new images
-        //     const filesArray = Array.isArray(req.files) ? req.files : Object.values(req.files).flat();
-        //     const files = await uploadFiles(filesArray, 'products', 'product');
-        //     for (const file of files) {
-        //         const resource = new Resources();
-        //         resource.entityType = 'product';
-        //         resource.fileType = file.mimetype.includes('image') ? 'image' : 'video';
-        //         resource.filePath = `/resources/products/${product.ProductID}/${file.filename}`;
-        //         resource.Product = product;
-
-        //         await resourcesRepository.save(resource);
-        //     }
-        // }
+        
 
         await productRepository.save(product);
 

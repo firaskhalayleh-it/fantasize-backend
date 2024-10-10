@@ -160,7 +160,7 @@ export const s_deleteCategory = async (req: Request, res: Response) => {
 export const s_getAllSubcategories = async (req: Request, res: Response) => {
     try {
         const categoryId = Number(req.params.categoryId);
-        const category = await Categories.findOne({ where: { CategoryID: categoryId }, relations: ['SubCategory'] });
+        const category = await Categories.findOne({ where: { CategoryID: categoryId }, relations: ['SubCategory','Image'] });
 
         if (category) {
             return res.status(200).json(category.SubCategory);

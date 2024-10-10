@@ -22,6 +22,9 @@ export class Notifications extends BaseEntity {
   @Column('jsonb')
   template: any;
 
+  @Column('varchar')
+  subject: string;
+
   @Column('boolean', { default: false })
   isRead: boolean;
 

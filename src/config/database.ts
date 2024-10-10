@@ -13,6 +13,7 @@ export const database = new DataSource({
     schema: 'fatansize_test',
     entities: [
         'src/entities/**/*.ts',
+        'src/entities/*.ts',
     ],
     migrations: ['src/migrations/*.ts'],
     

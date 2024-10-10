@@ -148,7 +148,7 @@ export const s_getAllUser = async (req: Request, res: Response) => {
 export const s_getUserNameWithProfilePic = async (req: Request, res: Response) => {
     try {
         const userId: any = req.params.id;
-        const user = await Users.findOne({ where: { UserID: userId } });
+        const user = await Users.findOne({ where: { UserID: userId } , relations: ['UserProfilePicture'] });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }

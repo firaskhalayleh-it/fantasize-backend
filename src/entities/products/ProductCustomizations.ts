@@ -1,24 +1,24 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, BaseEntity } from 'typeorm';
-import { Products } from './Products';
+// import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, BaseEntity } from 'typeorm';
+// import { Products } from './Products';
 
-@Entity()
-export class ProductCustomizations extends BaseEntity {
-    @PrimaryGeneratedColumn('increment')
-    ProductCustomizationID: number;
+// @Entity()
+// export class ProductCustomizations extends BaseEntity {
+//     @PrimaryGeneratedColumn('increment')
+//     ProductCustomizationID: number;
 
-    // size included in options 
-    // color included in options
-    // material included in options
-    // attachment included in options
-    // message included in options
-    @Column('jsonb')
-    Options: Record<string, any>;
+//     // size included in options 
+//     // color included in options
+//     // material included in options
+//     // attachment included in options
+//     // message included in options
+//     @Column('jsonb')
+//     Options: Record<string, any>;
 
-    @ManyToMany(() => Products, (product) => product.ProductCustomization,)
-    Products: Products[];
+//     @ManyToMany(() => Products, (product) => product.Customization,)
+//     Products: Products[];
 
-    @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-    CreatedAt: Date;
+//     @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
+//     CreatedAt: Date;
 
 
-}
+// }
