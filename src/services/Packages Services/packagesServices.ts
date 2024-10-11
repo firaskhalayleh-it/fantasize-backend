@@ -16,44 +16,53 @@ export const s_createPackage = async (req: Request, res: Response) => {
 
     try {
         await queryRunner.startTransaction();
+
         const { Name, Description, Price, Quantity, SubCategoryId, products } = req.body;
 
-        // Validate input fields
-        if (!Name || !Description || !Price || !Quantity || !SubCategoryId || !Array.isArray(products)) {
+        // Parse products if it's a string (as it comes from multipart/form-data)
+        let parsedProducts;
+        try {
+            parsedProducts = JSON.parse(products);
+        } catch (error) {
             await queryRunner.rollbackTransaction();
-            return res.status(400).send({ message: "Please fill all the required fields" });
+            return res.status(400).send({ message: "Invalid products format. Must be a JSON array." });
         }
 
-        // Check subcategory
+        // Validate input fields
+        // if (!Name || !Description || !Price || !Quantity || !SubCategoryId || !Array.isArray(parsedProducts)) {
+        //     await queryRunner.rollbackTransaction();
+        //     return res.status(400).send({ message: "Please fill all the required fields" });
+        // }
+
+        // Check if the subcategory exists
         const subcategory = await queryRunner.manager.findOne(SubCategories, { where: { SubCategoryID: SubCategoryId } });
         if (!subcategory) {
             await queryRunner.rollbackTransaction();
             return res.status(400).send({ message: "SubCategory not found" });
         }
 
-        // Handle files (images and videos)
+        // Handle files
         const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
         const images = files?.['images'] || [];
         const videos = files?.['videos'] || [];
 
         // Extract product names and quantities
-        const productNames = products.map((p: { productName: string }) => p.productName);
-        const quantities = products.map((p: { quantity: number }) => p.quantity);
+        const productNames = parsedProducts.map((p: { productName: string }) => p.productName);
+        const quantities = parsedProducts.map((p: { quantity: number }) => p.quantity);
 
-        // Check if the required products are available
+        // Check if the required products are available in the database
         const productsInDB = await queryRunner.manager.find(Products, { where: { Name: In(productNames) } });
         if (productsInDB.length !== productNames.length) {
             await queryRunner.rollbackTransaction();
             return res.status(400).send({ message: "Sorry, some products do not exist" });
         }
 
-        // Check and update available quantities
+        // Check and update available quantities for each product
         for (let i = 0; i < productsInDB.length; i++) {
             const productInDB = productsInDB[i];
             const requestedQuantity = quantities[i] * Quantity;
-            console.log(productInDB.Quantity, requestedQuantity);
 
-            // Check availability quantity
+            // Check if there's enough stock
             if (productInDB.Quantity < requestedQuantity) {
                 await queryRunner.rollbackTransaction();
                 return res.status(400).send({ message: `Insufficient quantity for ${productInDB.Name}` });
@@ -103,16 +112,14 @@ export const s_createPackage = async (req: Request, res: Response) => {
                 Package: newPackage,
                 Product: productsInDB[i],
                 Quantity: quantities[i] * Quantity, // Quantity allocated for each product within the package
-                ProductName: productsInDB[i].Name,  // Add the product name in the new column ProductName.
+                ProductName: productsInDB[i].Name,
             });
 
             await queryRunner.manager.save(packageProduct);
         }
 
         await queryRunner.commitTransaction();
-
-
-        return res.status(201).send({ message: "Package added successfully",  });
+        return res.status(201).send({ message: "Package added successfully" });
 
     } catch (err: any) {
         await queryRunner.rollbackTransaction();
@@ -124,11 +131,11 @@ export const s_createPackage = async (req: Request, res: Response) => {
 };
 
 
+
 //----------------------- Get all packages-----------------------
 export const s_getAllPackages = async (req: Request, res: Response) => {
     try {
-        const getAllPackages = await Packages.find({ relations: ['PackageProduct', 'Reviews',
-            'SubCategory', 'Resource', 'PackageCustomization'
+        const getAllPackages = await Packages.find({ relations: ['PackageProduct', 'Reviews','SubCategory', 'Resource', 'PackageCustomization'
         ] });
         if (!getAllPackages || getAllPackages.length === 0) {
             return `Not Found Packages`;
