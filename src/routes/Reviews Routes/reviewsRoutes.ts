@@ -1,6 +1,7 @@
 import express from 'express';
 import { authMiddleware } from '../../middlewares/auth_middleware';
-import { c_createReviewPackage, c_createReviewProduct, c_deleteReview, c_getAllReviewsPackage, c_getAllReviewsProduct } from '../../controllers/Reviews Controller/reviewsController';
+import { c_createReviewPackage, c_createReviewProduct, c_deleteReview, c_getAllReviewsPackage, c_getAllReviewsProduct, c_updateReview } from '../../controllers/Reviews Controller/reviewsController';
+import { IsAuthenticated } from '../../middlewares/isAuthentecated';
 const reviewsRoute = express.Router();
 
 /**
@@ -9,7 +10,7 @@ const reviewsRoute = express.Router();
  *  @method        POST
  *  @access        private
  */
-reviewsRoute.post('/reviews/product', authMiddleware, c_createReviewProduct);
+reviewsRoute.post('/reviews/product', IsAuthenticated, c_createReviewProduct);
 
 
 /**
@@ -18,7 +19,7 @@ reviewsRoute.post('/reviews/product', authMiddleware, c_createReviewProduct);
  *  @method        POST
  *  @access        private
  */
-reviewsRoute.post('/reviews/package', authMiddleware, c_createReviewPackage);
+reviewsRoute.post('/reviews/package', IsAuthenticated, c_createReviewPackage);
 
 
 /**
@@ -27,7 +28,7 @@ reviewsRoute.post('/reviews/package', authMiddleware, c_createReviewPackage);
  *  @method        GET
  *  @access        private
  */
-reviewsRoute.get('/reviews/product', authMiddleware, c_getAllReviewsProduct);
+reviewsRoute.get('/reviews/product', IsAuthenticated, c_getAllReviewsProduct);
 
 
 /**
@@ -36,7 +37,7 @@ reviewsRoute.get('/reviews/product', authMiddleware, c_getAllReviewsProduct);
  *  @method        GET
  *  @access        private
  */
-reviewsRoute.get('/reviews/package', authMiddleware, c_getAllReviewsPackage);
+reviewsRoute.get('/reviews/package', IsAuthenticated, c_getAllReviewsPackage);
 
 
 /**
@@ -45,9 +46,14 @@ reviewsRoute.get('/reviews/package', authMiddleware, c_getAllReviewsPackage);
  *  @method        DELETE
  *  @access        private
  */
-reviewsRoute.delete('/reviews/:reviewId', authMiddleware, c_deleteReview);
+reviewsRoute.delete('/reviews/:reviewId', IsAuthenticated, c_deleteReview);
 
-
-
+/**
+ *  @description   Update a review
+ *  @route         /reviews/:reviewId
+ *  @method        update
+ *  @access        private
+ */
+reviewsRoute.put('/reviews/:reviewId', IsAuthenticated, c_updateReview);
 
 export default reviewsRoute;
