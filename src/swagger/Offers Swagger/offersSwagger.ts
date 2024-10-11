@@ -81,7 +81,7 @@
 
 /**
  * @swagger
- * /offers:
+ * /api/offers:
  *   get:
  *     summary: Retrieve all offers
  *     tags: [Offers]
