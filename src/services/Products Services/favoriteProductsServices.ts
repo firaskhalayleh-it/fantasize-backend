@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Products } from '../../entities/products/Products';
 import { FavoriteProducts } from '../../entities/products/FavoriteProducts';
+import { Users } from '../../entities/users/Users';
 
 //----------------------- Add a product to favorites-----------------------
 export const s_addProductFavorites = async (req:Request , res:Response) =>{
@@ -32,20 +33,32 @@ export const s_addProductFavorites = async (req:Request , res:Response) =>{
 } 
 
 //----------------------- Get all favorite products for a user-----------------------
-export const s_getAllFavoriteProductsUser = async (req:Request , res:Response) =>{
+export const s_getAllFavoriteProductsUser = async (req: Request, res: Response) => {
     try {
-        const { userId } = (req as any).user.payload.userId;
-        const favoriteProducts = await FavoriteProducts.find({ where: { User: {UserID:userId}, } ,relations: ["Product"] });
-        if (!favoriteProducts) {
+        const userId = (req as any).user.payload.userId;
+        const user = await Users.findOne({ where: { UserID: userId } });
+        
+        if (!user) {
+            return res.status(404).send({ message: "User not found" });
+        }
+
+        const favoriteProducts = await FavoriteProducts.find({ 
+            where: { User: { UserID: userId } }, 
+            relations: ["Product"] 
+        });
+
+        if (favoriteProducts.length === 0) {
             return res.status(404).send({ message: "No favorite products found" });
         }
-        return favoriteProducts;
+
+        return res.status(200).send(favoriteProducts);
     
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        res.status(500).send({ message: err.message });
     }
-} 
+};
+
 
 
 //----------------------- Remove a product from favorites-----------------------
