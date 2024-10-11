@@ -3,7 +3,7 @@
  * /api/order:
  *   post:
  *     summary: Create  an order for the authenticated user
- *     tags: [Orders]
+ *     tags: [Order Products]
  *     description: Creates a new order
  *     security:
  *       - bearerAuth: []
@@ -72,7 +72,7 @@
  * /api/order/{orderId}:
  *   put:
  *     summary: Update an existing order's product
- *     tags: [Orders]
+ *     tags: [Order Products]
  *     description: Updates the quantity and customization options of a product in the specified order.
  *     security:
  *       - bearerAuth: []
@@ -147,7 +147,7 @@
  * /api/order/{orderId}/{productId}:
  *   delete:
  *     summary: Delete a product from an existing order
- *     tags: [Orders]
+ *     tags: [Order Products]
  *     description: Removes a product from the specified order and recalculates the order's total price.
  *     security:
  *       - bearerAuth: []
