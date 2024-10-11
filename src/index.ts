@@ -22,6 +22,7 @@ import orderRoute from "./routes/Order Routes/orderRoute";
 import notificationRoute from "./routes/Notification Routes/notificationRoute";
 import adminDashboardRoutes from "./routes/Admin Dashboard Rotue/adminDashbourdRoute";
 import customizationRoute from "./routes/CustomizationRoute/customizationRoute";
+import exploreRoute from "./routes/Explore Route/exploreRoute";
 
 
 const app = express();
@@ -52,7 +53,7 @@ app.use("/api", orderRoute);
 app.use("/api", adminDashboardRoutes);
 app.use("/api", notificationRoute);
 app.use("/api", customizationRoute);
-
+app.use("/api", exploreRoute);
 
 app.use(notFound);
 app.use(errorHandler);
