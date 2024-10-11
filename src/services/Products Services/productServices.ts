@@ -203,7 +203,7 @@ export const s_updateProduct = async (req: Request, res: Response) => {
 
         await productRepository.save(product);
 
-        return res.status(200).send({ message: "Product updated successfully", product });
+        return   "Product updated successfully" ;
     } catch (err: any) {
         if (err.code === '23505') {
             console.error("Unique constraint violation:", err.detail);

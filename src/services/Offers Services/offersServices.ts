@@ -4,7 +4,26 @@ import { Products } from "../../entities/products/Products";
 import { Packages } from "../../entities/packages/Packages";
 
 
+//----------------------- Create a new offer  -----------------------
+export const s_createNewOffer = async (req: Request, res: Response) => {
+    try {
+        const { IsActive, Discount, ValidFrom, ValidTo} = req.body;
+        const validfrom = new Date(ValidFrom);
+        const validto = new Date(ValidTo);
+        const addNewOffer = Offers.create({
+            Discount: Discount,
+            IsActive: IsActive,
+            ValidFrom: validfrom,
+            ValidTo: validto,
+        });
 
+        await addNewOffer.save();
+        return `Add an offer successfully`;
+    } catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message })
+    }
+}
 //----------------------- Create a new offer for Product -----------------------
 export const s_createOfferProduct = async (req: Request, res: Response) => {
     try {
@@ -22,12 +41,14 @@ export const s_createOfferProduct = async (req: Request, res: Response) => {
             ValidTo: validto,
         });
 
-        productOffer.Products = [product];
+        // productOffer.Products = [product];
         await productOffer.save();
+        product.Offer = productOffer;
+
+        await product.save();
 
 
-
-        return productOffer;
+        return `Add a product offer successfully`;
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message })
@@ -51,8 +72,12 @@ export const s_createOfferPackage = async (req: Request, res: Response) => {
             ValidTo: validto,
         });
 
-        packageOffer.Packages = [pkg];
+        packageOffer.Packages = [PackageID];
         await packageOffer.save();
+        pkg.Offer =packageOffer;
+        await pkg.save();
+
+        return `Add a package offer successfully`
 
     } catch (err: any) {
         console.log(err);
@@ -66,7 +91,7 @@ export const s_createOfferPackage = async (req: Request, res: Response) => {
 export const s_getAllOffers = async (req: Request, res: Response) => {
     try {
         const offers = await Offers.find({ relations: ["Products", "Packages"] });
-        if (!offers) {
+        if (offers.length === 0) {
             return res.status(404).send({ message: "No offers found" });
         }
         return offers;
@@ -133,7 +158,7 @@ export const s_updateOffer = async (req: Request, res: Response) => {
             return res.status(404).send({ message: "Offer not found" });
         }
         offer.Discount = Discount || offer.Discount;
-        offer.IsActive = IsActive || offer.IsActive;
+        offer.IsActive = IsActive
         offer.ValidFrom = validfrom || offer.ValidFrom;
         offer.ValidTo = validto || offer.ValidTo;
         await offer.save();
@@ -164,8 +189,8 @@ export const s_getOfferByID = async (req: Request, res: Response) => {
 //------------------------ home offers -----------------------
 export const s_homeOffers = async (req: Request, res: Response) => {
     try {
-        const offers = await Offers.find({ relations: ["Products", "Packages"], take: 3 });
-        if (!offers) {
+        const offers = await Offers.find({ relations: ["Products", "Packages"],take:3}); 
+        if (offers.length === 0) {
             return res.status(404).send({ message: "No offers found" });
         }
         offers.map((offer) => {

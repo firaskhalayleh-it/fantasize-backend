@@ -10,7 +10,7 @@ const FavoriteProductRoute = express.Router({ mergeParams: true });
  *  @method        POST
  *  @access        Public
  */
-FavoriteProductRoute.post('/favorites' , isAuthorized ,c_addProductFavorites);
+FavoriteProductRoute.post('/favorites' , IsAuthenticated ,c_addProductFavorites);
 
 /**
  *  @description   Get all favorite products for a user

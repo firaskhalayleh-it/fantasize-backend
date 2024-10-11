@@ -23,6 +23,7 @@ import notificationRoute from "./routes/Notification Routes/notificationRoute";
 import adminDashboardRoutes from "./routes/Admin Dashboard Rotue/adminDashbourdRoute";
 import customizationRoute from "./routes/CustomizationRoute/customizationRoute";
 import exploreRoute from "./routes/Explore Route/exploreRoute";
+import { setupSwagger } from "./swagger/swagger";
 
 
 const app = express();
@@ -35,6 +36,7 @@ const PORT = process.env.APP_PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+setupSwagger(app);
 app.use("/api", authRoute);
 app.use("/api", userRoute);
 app.use("/api", addressRoute);

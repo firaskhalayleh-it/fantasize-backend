@@ -48,9 +48,16 @@ export class OrdersProducts extends BaseEntity {
 
   @BeforeInsert()
   @BeforeUpdate()
-  calculateTotalPrice() {
+  async calculateTotalPrice() {
     if (this.Product && this.Quantity) {
-      this.TotalPrice = Number(this.Product.Price) * this.Quantity;
+      let finalPrice = Number(this.Product.Price);
+      
+      if (this.Product.Offer && this.Product.Offer.IsActive) {
+        const discount = this.Product.Offer.Discount;
+        finalPrice = finalPrice - (finalPrice * (discount / 100));
+      }
+
+      this.TotalPrice = finalPrice * this.Quantity;
     }
   }
 }

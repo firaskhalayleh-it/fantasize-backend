@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, JoinColumn } from 'typeorm';
 import { Products } from './products/Products';
 import { Packages } from './packages/Packages';
 
@@ -13,10 +13,10 @@ export class Offers extends BaseEntity {
   @Column('bool', { default: true })
   IsActive: boolean;
 
-  @OneToMany(() => Products, (product) => product.ProductID)
+  @OneToMany(() => Products, (product) => product.Offer )
   Products: Products[];
-
-  @OneToMany(() => Packages, (pkg) => pkg.PackageID)
+  
+  @OneToMany(() => Packages, (pkg) => pkg.Offer )
   Packages: Packages[];
 
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
