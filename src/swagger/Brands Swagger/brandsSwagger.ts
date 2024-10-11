@@ -4,7 +4,7 @@
  *   post:
  *     summary: Add a new brand
  *     tags: [Brands]
- *     description: Creates a new brand in the system. Only authorized users can perform this operation.
+ *     description: Creates a new brand in the system.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
