@@ -1,14 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn, Index, UpdateDateColumn, BeforeInsert, BeforeUpdate, AfterLoad } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, BaseEntity, CreateDateColumn, Index, UpdateDateColumn, BeforeInsert, BeforeUpdate, AfterLoad, JoinColumn } from 'typeorm';
 import { Brands } from '../Brands';
 import { Offers } from '../Offers';
 import { Resources } from '../Resources';
 import { Reviews } from '../Reviews';
 import { SubCategories } from '../categories/SubCategories';
-import { ProductCustomizations } from './ProductCustomizations';
 import { FavoriteProducts } from './FavoriteProducts';
 import { OrdersProducts } from './OrdersProducts';
-import { Packages } from '../packages/Packages';
-import { OrdersPackages } from '../packages/OrdersPackages';
+import { PackageProduct } from '../packages/packageProduct';
+import { Customization } from '../Customization';
 
 @Entity()
 export class Products extends BaseEntity {
@@ -51,28 +50,30 @@ export class Products extends BaseEntity {
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Products,)
   SubCategory: SubCategories;
 
-  @ManyToOne(() => Packages, (pkg) => pkg.Product,)
-  Package: Packages;
+  // @ManyToOne(() => Packages, (pkg) => pkg.Product,)
+  // Package: Packages;
+  @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Product)
+  PackageProduct: PackageProduct[];
 
-  @ManyToOne(() => Offers, (offer) => offer.OfferID)
+  @ManyToOne(() => Offers, (offer) => offer.Products, { eager: true })
   Offer: Offers;
 
-  @OneToMany(() => Resources, (resource) => resource.ResourceID,)
+  @OneToMany(() => Resources, (resource) => resource.Product, { eager: true })
   Resource: Resources[];
 
-  @ManyToMany(() => ProductCustomizations, (productCustomization) => productCustomization.Products,{ eager: true })
+  @ManyToMany(() => Customization, (customization) => customization.Product, { eager: true })
   @JoinTable({
-    name: 'ProductsCustomizations',
+    name: 'ProductsCustomization',
     joinColumn: {
       name: 'ProductID',
       referencedColumnName: 'ProductID'
     },
     inverseJoinColumn: {
-      name: 'ProductCustomizationID',
-      referencedColumnName: 'ProductCustomizationID'
+      name: 'CustomizationID',
+      referencedColumnName: 'CustomizationID'
     }
   })
-  ProductCustomization: ProductCustomizations[];
+  Customization: Customization[];
 
   @ManyToMany(() => Reviews, (review) => review.Products, { eager: true })
   @JoinTable({
@@ -115,14 +116,15 @@ export class Products extends BaseEntity {
     }
   }
 
-  @AfterLoad()
-  calculateAvgRating = () => {
-    if (this.Review.length == 0) {
-      this.AvgRating = 0;
+  
+@AfterLoad()
+calculateAvgRating = () => {
+    if (!Array.isArray(this.Review) || this.Review.length === 0) {
+        this.AvgRating = 0;
     } else {
-      const totalRating = this.Review.reduce((acc, review) => acc + review.Rating, 0);
-      this.AvgRating = totalRating / this.Review.length;
+        const totalRating = this.Review.reduce((acc, review) => acc + review.Rating, 0);
+        this.AvgRating = totalRating / this.Review.length;
     }
-  }
+}
 
 }

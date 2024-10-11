@@ -7,7 +7,9 @@ import {
   BaseEntity,
   Relation,
   OneToOne,
-  OneToMany
+  OneToMany,
+  Index,
+  JoinColumn
 } from 'typeorm';
 import { Roles } from './Roles';
 import { FavoriteProducts } from '../products/FavoriteProducts';
@@ -18,6 +20,7 @@ import { Reviews } from '../Reviews';
 import { Orders } from '../Orders';
 import { Resources } from '../Resources';
 import { Notifications } from './Notifications';
+import { join } from 'path';
 
 @Entity()
 export class Users extends BaseEntity {
@@ -39,12 +42,16 @@ export class Users extends BaseEntity {
   @Column('varchar', { nullable: true })
   dateofbirth: string;
 
+  @Column('varchar', { nullable: true })
+  DeviceToken: string;
+
   
   @Column('varchar', { nullable: true })
+  @Index()
   resetPasswordToken: string; 
 
   @Column('timestamp', { nullable: true })
-  resetPasswordExpires: Date; 
+  resetPasswordExpires: Date;  
 
   @Column('varchar', { nullable: true })
   FirebaseToken: string;
@@ -58,8 +65,9 @@ export class Users extends BaseEntity {
   @Column('varchar', { nullable: true })
   Gender: string;
 
-  @OneToOne(() => Resources, (resource) => resource.ResourceID)
-  UserProfilePicture: string;
+  @OneToOne(() => Resources, (resource) => resource.User,{nullable:true})
+  @JoinColumn()
+  UserProfilePicture: Resources;
   
   @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.User)
   FavoriteProducts: FavoriteProducts[];

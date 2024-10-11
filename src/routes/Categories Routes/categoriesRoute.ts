@@ -3,6 +3,7 @@ import { c_createCategory, c_createSubcategory, c_deleteCategory, c_DeleteSubcat
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
 import { isAuthorized } from "../../middlewares/isAuthentecated";
+import { uploadSingle } from "../../middlewares/multerMiddleware";
 const categoryRoute = express.Router();
 
 /**
@@ -20,7 +21,7 @@ categoryRoute.get('/categories', c_getAllCategories);
  *  @method        POST
  *  @access        Admin
  */
-categoryRoute.post('/categories', isAuthorized, c_createCategory);
+categoryRoute.post('/categories', isAuthorized,uploadSingle, c_createCategory);
 
 /**
  *  @description   Update a category by ID
@@ -28,7 +29,7 @@ categoryRoute.post('/categories', isAuthorized, c_createCategory);
  *  @method        PUT
  *  @access        admin
  */
-categoryRoute.put('/category/:id', isAuthorized, c_updateCategory);
+categoryRoute.put('/category/:id', isAuthorized,uploadSingle, c_updateCategory);
 
 
 

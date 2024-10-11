@@ -4,9 +4,9 @@ import { Brands } from "../../entities/Brands";
 import { SubCategories } from "../../entities/categories/SubCategories";
 import { Offers } from "../../entities/Offers";
 import { getRepository } from "typeorm";
-import { Resources } from "../../entities/Resources";
-import { } from "../Resources Services/resourceService";
-import { uploadFiles } from "../../config/Multer config/multerConfig";
+import {  Resources } from "../../entities/Resources";
+// import { } from "../Resources Services/resourceService";
+// import { uploadFiles } from "../../config/Multer config/multerConfig";
 
 
 // ---------------------> Get all products <---------------------
@@ -96,6 +96,19 @@ export const s_createProduct = async (req: Request, res: Response) => {
             return res.status(400).send({ message: "SubCategory not found" });
         }
 
+        // Safely access req.files and handle cases where it might be undefined
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+
+        // Initialize images and videos as empty arrays if they do not exist
+        const images = files?.['images'] ?? [];
+        const videos = files?.['videos'] ?? [];
+
+        // Check if both arrays are empty
+        if (images.length === 0 && videos.length === 0) {
+            return res.status(400).send({ message: "Please provide at least one image or video" });
+        }
+
+        // Create the product entity
         const product = Products.create({
             Name: String(Name),
             Price: Number(Price),
@@ -105,31 +118,42 @@ export const s_createProduct = async (req: Request, res: Response) => {
             Brand: brand,
             SubCategory: subCategory,
         });
+
+        // Save the product before associating resources
         await product.save();
 
-        // Handle image/video file uploads
-        if (req.files) {
-            const files = await uploadFiles(req);
-            const resourcesRepository = getRepository(Resources);
+        const resources = Resources;
+        const imageResources = await Promise.all(images.map(async (image) => {
+            const resource = resources.create({
+                entityName: image.filename,
+                filePath: image.path,
+                fileType: image.mimetype,
+                Product: product // Associate product with resource
+            });
+            return await resources.save(resource);
+        }));
 
-            for (const file of files) {
-                const resource = new Resources();
-                resource.entityType = 'product';
-                resource.fileType = file.mimetype.includes('image') ? 'image' : 'video';
-                resource.filePath = `/resources/products/${product.ProductID}/${file.filename}`;
-                resource.Product = product;
+        const videoResources = await Promise.all(videos.map(async (video) => {
+            const resource = resources.create({
+                entityName: video.filename,
+                filePath: video.path,
+                fileType: video.mimetype,
+                Product: product // Associate product with resource
+            });
+            return await resources.save(resource);
+        }));
 
-                await resourcesRepository.save(resource);
-            }
-        }
+        await product.save();
 
-        return res.status(201).send({ message: "Product created successfully", product });
+
+        return res.status(201).send({ message: "Product created successfully" });
 
     } catch (err: any) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({ message: err.message });
     }
 };
+
 
 // ---------------------> Update a product <---------------------
 
@@ -139,8 +163,8 @@ export const s_updateProduct = async (req: Request, res: Response) => {
         const productId = Number(req.params.productId);
         const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Material } = req.body;
 
-        const productRepository = getRepository(Products);
-        const product = await productRepository.findOne({ where: { ProductID: productId }, relations: ["Resource"] });
+        const productRepository = (Products);
+        const product = await productRepository.findOne({ where: { ProductID: productId }, relations: ["Resource",] });
         
         if (!product) {
             return res.status(404).send({ message: "Product not found" });
@@ -175,28 +199,11 @@ export const s_updateProduct = async (req: Request, res: Response) => {
             }
             product.SubCategory = subCategory;
         }
-
-        if (req.files) {
-            const resourcesRepository = (Resources);
-            const existingResources = await resourcesRepository.find({ where: { Product: product } });
-            await resourcesRepository.remove(existingResources);
-
-            // Save new images
-            const files = await uploadFiles(req);
-            for (const file of files) {
-                const resource = new Resources();
-                resource.entityType = 'product';
-                resource.fileType = file.mimetype.includes('image') ? 'image' : 'video';
-                resource.filePath = `/resources/products/${product.ProductID}/${file.filename}`;
-                resource.Product = product;
-
-                await resourcesRepository.save(resource);
-            }
-        }
+        
 
         await productRepository.save(product);
 
-        return res.status(200).send({ message: "Product updated successfully", product });
+        return   "Product updated successfully" ;
     } catch (err: any) {
         if (err.code === '23505') {
             console.error("Unique constraint violation:", err.detail);

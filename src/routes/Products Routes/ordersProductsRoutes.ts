@@ -21,11 +21,11 @@ orderProductRoute.post('/order', IsAuthenticated, c_createNewOrderUser);
 
 /**
  *  @description   Update a specific product order
- *  @route         /order/:orderId/:productId
+ *  @route         /order/:orderId
  *  @method        PUT
  *  @access        private
  */
-orderProductRoute.put('/order/:orderId/:productId', isAuthorized, c_updateOrderProduct);
+orderProductRoute.put('/order/:orderId', isAuthorized, c_updateOrderProduct);
 
 
 /**

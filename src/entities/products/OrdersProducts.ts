@@ -10,9 +10,13 @@ import {
   UpdateDateColumn,
   BeforeInsert,
   BeforeUpdate,
+  OneToMany,
+  OneToOne,
+  JoinColumn,
 } from "typeorm";
 import { Orders } from "../Orders";
 import { Products } from "./Products";
+import { OrderedCustomization } from "../OrderedCustomization";
 
 @Entity({ name: 'OrdersProducts' })
 export class OrdersProducts extends BaseEntity {
@@ -24,6 +28,11 @@ export class OrdersProducts extends BaseEntity {
 
   @ManyToOne(() => Products, (product) => product.OrdersProducts, { eager: true })
   Product: Products;
+
+  @OneToOne(() => OrderedCustomization, (orderedCustomization) => orderedCustomization.OrdersProducts, { eager: true })
+  @JoinColumn()
+  OrderedCustomization: OrderedCustomization;
+  
 
   @Column('int')
   Quantity: number;
@@ -39,9 +48,16 @@ export class OrdersProducts extends BaseEntity {
 
   @BeforeInsert()
   @BeforeUpdate()
-  calculateTotalPrice() {
+  async calculateTotalPrice() {
     if (this.Product && this.Quantity) {
-      this.TotalPrice = Number(this.Product.Price) * this.Quantity;
+      let finalPrice = Number(this.Product.Price);
+      
+      if (this.Product.Offer && this.Product.Offer.IsActive) {
+        const discount = this.Product.Offer.Discount;
+        finalPrice = finalPrice - (finalPrice * (discount / 100));
+      }
+
+      this.TotalPrice = finalPrice * this.Quantity;
     }
   }
 }

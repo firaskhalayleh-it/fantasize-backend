@@ -8,6 +8,10 @@ try {
     if(!Name){
         return `please enter the name a brand`
     }
+    const isExist = await Brands.findOne({where : {Name:Name}})
+    if(isExist){
+        return `its alrady exist`;
+    }
      const addNewBrand = Brands.create({
         Name:Name
      });
@@ -46,6 +50,10 @@ try {
      const brand =  await Brands.findOne({where: {BrandID :brandId}})
      if(!brand){
         return `sorry its not found brand : ${Name}`
+    }
+    const isExist = await Brands.findOne({where : {Name:Name}})
+    if(isExist){
+        return `this brand : '${Name}' alrady exist`;
     }
     brand.Name=Name;
     await brand.save();

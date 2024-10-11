@@ -18,6 +18,7 @@ import { Addresses } from './users/Addresses';
 import { PaymentMethods } from './users/PaymentMethods';
 import { Users } from './users/Users';
 import { OrdersProducts } from './products/OrdersProducts';
+import { before } from 'node:test';
 
 @Entity({ name: 'Orders' })
 export class Orders extends BaseEntity {
@@ -38,10 +39,11 @@ export class Orders extends BaseEntity {
   Address: Addresses;
 
   @OneToMany(() => OrdersProducts, (ordersProduct) => ordersProduct.Order, { cascade: true, eager: true })
-  OrdersProducts: OrdersProducts[];
-
+  OrdersProducts: OrdersProducts[] 
+  
   @OneToMany(() => OrdersPackages, (ordersPackages) => ordersPackages.Order, { cascade: true, eager: true })
-  OrdersPackages: OrdersPackages[];
+  OrdersPackages: OrdersPackages[]
+  
 
 
   @Column('boolean',)
@@ -49,6 +51,9 @@ export class Orders extends BaseEntity {
 
   @Column('boolean', { default: false })
   IsGift: boolean;
+
+  @Column('varchar', { nullable: true })
+  GiftMessage: string;
 
   @Column('boolean', { default: false })
   IsAnonymous: boolean;
@@ -64,37 +69,43 @@ export class Orders extends BaseEntity {
 
   @BeforeInsert()
   @BeforeUpdate()
-  calculateTotalPrice() {
+   calculateTotalPrice() {
     let totalPrice = 0;
-
-
-    if (this.OrdersProducts && this.OrdersProducts.length > 0) {
+  
+    if (Array.isArray(this.OrdersProducts) && this.OrdersProducts.length > 0) {
       this.OrdersProducts.forEach((orderProduct) => {
         totalPrice += Number(orderProduct.TotalPrice);
       });
     }
-
-    if (this.OrdersPackages && this.OrdersPackages.length > 0) {
+  
+    if (Array.isArray(this.OrdersPackages) && this.OrdersPackages.length > 0) {
       this.OrdersPackages.forEach((orderPackage) => {
         totalPrice += Number(orderPackage.TotalPrice);
       });
     }
-
+  
     this.TotalPrice = totalPrice;
   }
 
+
   @BeforeInsert()
-  checkIfTheUserHasMoreThanOneCart = async () => {
-    const user = await Users.findOne({ where: { UserID: this.User.UserID }, relations: ['Orders'] });
+  async checkIfUserHasPendingOrder() {
+    const user = await Users.findOne({ where: { UserID: this.User.UserID } });
     if (!user) {
       throw new Error('User not found');
     }
-    const pendingOrders = user.Orders.filter((order) => order.Status === false);
-    if (pendingOrders.length >= 1) {
-      await Orders.delete({ OrderID: this.OrderID });
-      throw new Error('You can only have one pending order at a time');
-    } else {
-      return;
+
+    const pendingOrder = await Orders.findOne({
+      where: { User: user, Status: false },
+      relations: ['OrdersPackages', 'OrdersProducts'],
+    });
+
+    if (pendingOrder) {
+      throw new Error('User already has a pending order');
     }
+
+    
   }
+  
+ 
 }

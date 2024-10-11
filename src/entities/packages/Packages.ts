@@ -9,18 +9,22 @@ import {
   JoinTable,
   OneToMany,
   JoinColumn,
-  Relation
+  Relation,
+  BeforeInsert,
+  BeforeUpdate,
+  AfterLoad
 } from 'typeorm';
 import { Offers } from '../Offers';
 import { Reviews } from '../Reviews';
 import { Products } from '../products/Products';
-import { PackageCustomizations } from './PackageCustomizations';
 import { SubCategories } from '../categories/SubCategories';
 import { Resources } from '../Resources';
 import { FavoritePackages } from './FavoritePackages';
 import { OrdersPackages } from './OrdersPackages';
-
+import { PackageProduct } from './packageProduct';
+import { Customization } from '../Customization';
 @Entity()
+
 export class Packages extends BaseEntity {
   @PrimaryGeneratedColumn()
   PackageID: number;
@@ -34,42 +38,60 @@ export class Packages extends BaseEntity {
   @Column('decimal')
   Price: number;
 
-  
+
   @Column('int')
   Quantity: number;
 
- 
+
 
   @Column('enum', { enum: ['out of stock', 'in stock', 'running low'], default: 'in stock' })
   Status: string;
 
-  @ManyToOne(() => Offers, (offer) => offer.OfferID)
+  @ManyToOne(() => Offers, (offer) => offer.Packages)
   Offer: Offers;
 
-  @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.Package)
+  @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.Package,)
   OrdersPackages: OrdersPackages[];
-  
+
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Package, { eager: true })
   SubCategory: SubCategories;
 
-  
 
-  @OneToMany(() => Resources, (resource) => resource.ResourceID)
+  @Column('int', { default: 0 })
+  AvgRating: number;
+
+
+
+  @OneToMany(() => Resources, (resource) => resource.Package, { eager: true })
+  @JoinColumn()
   Resource: Resources[];
 
-  @OneToMany(() => Products, (product) => product.ProductID)
-  Product: Products[];
+  // @OneToMany(() => Products, (product) => product.Package)
+  // Product: Products[];
+  @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Package)
+  PackageProduct: PackageProduct[];
 
-  @OneToMany(() => PackageCustomizations, (packageCustomization) => packageCustomization.Packages)
-  PackageCustomization: PackageCustomizations[];
+  @ManyToMany(() => Customization, (pkgCustom) => pkgCustom.Packages, { eager: true })
+  @JoinTable({
+    name: 'PackagesCustomization',
+    joinColumn: {
+      name: 'PackageID',
+      referencedColumnName: 'PackageID'
+    },
+    inverseJoinColumn: {
+      name: 'CustomizationID',
+      referencedColumnName: 'CustomizationID'
+    }
+  })
+  Customization: Customization[];
 
 
-  @OneToMany(()=>FavoritePackages, (favoritePackages)=>favoritePackages.Package)
+  @OneToMany(() => FavoritePackages, (favoritePackages) => favoritePackages.Package)
   FavoritePackages: FavoritePackages[];
 
   @ManyToMany(() => Reviews, (review) => review.Products)
   @JoinTable({
-    name: 'PackagesReviews',  
+    name: 'PackagesReviews',
     joinColumn: {
       name: 'PackageID',
       referencedColumnName: 'PackageID'
@@ -79,11 +101,35 @@ export class Packages extends BaseEntity {
       referencedColumnName: 'ReviewID'
     }
   })
-  Review: Reviews[];
+  Reviews: Reviews[];
 
-  @CreateDateColumn()
   CreatedAt: Date;
 
   @CreateDateColumn()
   UpdatedAt: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  checkStatus = () => {
+    if (this.Quantity == 0) {
+      this.Status = 'out of stock';
+    } else if (this.Quantity < 10) {
+      this.Status = 'running low';
+    } else {
+      this.Status = 'in stock';
+    }
+  }
+
+
+  @AfterLoad()
+  calculateAvgRating() {
+    // Check if the ratings array exists and has items
+    if (this.Reviews && this.Reviews.length > 0) {
+      const totalRating = this.Reviews.reduce((sum, review) => sum + review.Rating, 0);
+      this.AvgRating = totalRating / this.Reviews.length;
+    } else {
+      this.AvgRating = 0; // Or any default value
+    }
+  }
+
 }

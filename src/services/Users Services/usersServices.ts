@@ -1,18 +1,23 @@
 import { Request, Response } from 'express';
+import bcrypt from 'bcrypt';
 import { Users } from '../../entities/users/Users';
-import { getRepository } from 'typeorm';
-import { uploadFiles } from '../../config/Multer config/multerConfig';
 import { Resources } from '../../entities/Resources';
+// import { uploadFiles } from '../../config/Multer config/multerConfig';
+// import { saveMultipleResources } from '../Resources Services/resourceService';
 
 //----------------------- update user by id-----------------------
 export const s_updateUser = async (req: Request, res: Response) => {
     try {
-        const userId: any = Number(req.params.id);
+        const userId = (req as any).user.payload.userId;
+        const user = await Users.findOne({ where: { UserID: userId } });
 
-        const userRepository = getRepository(Users);
-        const user = await userRepository.findOne({ where: { UserID: userId } });
         if (!user) {
-            return res.status(404).send({ message: "User not found" });
+            return res.status(404).json({ message: "User not found" });
+        }
+        
+        // Validate if req.body is present
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({ message: "Request body is missing" });
         }
 
         // Destructure fields from the request body
@@ -20,120 +25,138 @@ export const s_updateUser = async (req: Request, res: Response) => {
 
         // Check for email or phone number duplication
         if (Email && Email !== user.Email) {
-            const existingEmailUser = await userRepository.findOne({ where: { Email } });
+            const existingEmailUser = await Users.findOne({ where: { Email } });
             if (existingEmailUser) {
-                return res.status(409).send({ message: "Email already in use" });
+                return res.status(409).json({ message: "Email already in use" });
+            }
+        }
+        if (PhoneNumber && PhoneNumber !== user.PhoneNumber) {
+            const existingPhoneUser = await Users.findOne({ where: { PhoneNumber } });
+            if (existingPhoneUser) {
+                return res.status(409).json({ message: "Phone number already in use" });
             }
         }
 
-        if (PhoneNumber && PhoneNumber !== user.PhoneNumber) {
-            const existingPhoneUser = await userRepository.findOne({ where: { PhoneNumber } });
-            if (existingPhoneUser) {
-                return res.status(409).send({ message: "Phone number already in use" });
-            }
-        }
+        // Hash the password only if it's provided
+        const hashedPassword = Password ? await bcrypt.hash(Password, 10) : user.Password;
 
         // Update user fields
         user.Username = Username || user.Username;
         user.Email = Email || user.Email;
-        user.Password = Password || user.Password;
+        user.Password = hashedPassword;
         user.PhoneNumber = PhoneNumber || user.PhoneNumber;
         user.Gender = Gender || user.Gender;
 
-        // Handle profile picture update
-        if (req.files) {
-            const resourcesRepository = getRepository(Resources);
+        if (req.file) {
+             const profilePicture = Resources.create({
+                entityName: req.file.filename,
+                fileType: req.file.mimetype,
+                filePath: req.file.path,
+                User:user
+            });
 
-            // Remove the existing profile picture if it exists
-            const existingProfilePicture = await resourcesRepository.findOne({ where: { User: user } });
-            if (existingProfilePicture) {
-                await resourcesRepository.remove(existingProfilePicture);
-            }
+            await profilePicture.save();
+            user.UserProfilePicture = profilePicture;
 
-            // Upload new profile picture
-            const files = await uploadFiles(req);
-            if (files.length > 0) {
-                const profilePicture = new Resources();
-                profilePicture.entityType = 'user';
-                profilePicture.fileType = 'image';
-                profilePicture.filePath = `/resources/user_profile/${user.UserID}/${files[0].filename}`;
-                profilePicture.User = user;
+          }
 
-                await resourcesRepository.save(profilePicture);
-
-                user.UserProfilePicture = profilePicture.filePath;
-            }
-        }
 
         // Save updated user
-        await userRepository.save(user);
+        await user.save();
 
-        return res.status(200).send({ message: "User updated successfully", user });
+        return res.status(200).json({ message: "User updated successfully", user });
 
     } catch (err: any) {
         console.log(err);
-        return res.status(500).send({ message: err.message });
+        return res.status(500).json({ message: err.message });
     }
 };
 
+//----------------------- update user password by token -----------------------
+export const s_updateUserPassword = async (req: Request, res: Response) => {
+    try {
+        const { password } = req.body;
+        const resetToken = req.params.resetToken;
+
+        const user = await Users.findOne({ where: { resetPasswordToken: resetToken } });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (!password) {
+            return res.status(400).json({ message: "Please provide a new password" });
+        }
+
+        if (user.resetPasswordExpires && user.resetPasswordExpires < new Date()) {
+            return res.status(400).json({ message: "Password reset token has expired" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.Password = hashedPassword;
+        user.resetPasswordToken = '';
+        
+        await Users.save(user);
+        return res.status(200).json({ message: "Password updated successfully" });
+
+    } catch (err: any) {
+        console.log(err);
+        return res.status(500).json({ message: err.message });
+    }
+};
 
 //----------------------- get user by id (and using this to create profile)-----------------------
 export const s_getUser = async (req: Request, res: Response) => {
     try {
         const userId: any = req.params.id;
-        const user = await Users.findOne({ where: { UserID: userId } })
+        const user = await Users.findOne({ where: { UserID: userId } });
         if (!user) {
-            return "The User Not Found !";
+            return res.status(404).json({ message: "User not found" });
         }
-        return user;
+        return res.status(200).json(user);
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        return res.status(500).json({ message: err.message });
     }
-}
-
+};
 
 //----------------------- search user by username -----------------------
 export const s_searchUser = async (req: Request, res: Response) => {
     try {
         const userName: any = req.params.username;
-        const user = await Users.find({ where: { Username: userName } })
-        if (!user) {
-            return "The User Not Found !";
+        const users = await Users.find({ where: { Username: userName } });
+        if (users.length === 0) {
+            return res.status(404).json({ message: "No users found" });
         }
-        return user;
+        return res.status(200).json(users);
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        return res.status(500).json({ message: err.message });
     }
-}
+};
 
-//----------------------- get all user  -----------------------
+//----------------------- get all users  -----------------------
 export const s_getAllUser = async (req: Request, res: Response) => {
     try {
-        const AllUsers = await Users.find();
-        return AllUsers;
+        const allUsers = await Users.find();
+        return res.status(200).json(allUsers);
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        return res.status(500).json({ message: err.message });
     }
-}
-
-
+};
 
 //----------------------- get user username and profile picture-----------------------
 export const s_getUserNameWithProfilePic = async (req: Request, res: Response) => {
     try {
-
         const userId: any = req.params.id;
-        const user = await Users.findOne({ where: { UserID: userId } })
+        const user = await Users.findOne({ where: { UserID: userId } , relations: ['UserProfilePicture'] });
         if (!user) {
-            return "The User Not Found !";
+            return res.status(404).json({ message: "User not found" });
         }
-        const { Username, UserProfilePicture } = user
+        const { Username, UserProfilePicture } = user;
         return res.status(200).json({ Username, UserProfilePicture });
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        return res.status(500).json({ message: err.message });
     }
-}
+};

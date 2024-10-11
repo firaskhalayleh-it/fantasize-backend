@@ -6,14 +6,23 @@ import {
     c_getOfferByID, c_createOfferProduct,
     c_createOfferPackage, c_getAllOffers,
     c_getAllOffersForProduct, c_getAllOffersForPackage,
-    c_updateOffer, c_getAllOffersForHomePage
+    c_updateOffer, c_getAllOffersForHomePage,
+    c_homeOffers,
+    c_createNewOffer
 } from '../../controllers/Offers Controller/offersController';
-import { s_homeOffers } from '../../services/Offers Services/offersServices';
 
 const offerRoute = express.Router();
 
 /**
- *  @description   Create a new offer
+ *  @description   Create a new an offer
+ *  @route         /offers
+ *  @method        POST
+ *  @access        private
+ */
+offerRoute.post('/addOffer', isAuthorized, c_createNewOffer);
+
+/**
+ *  @description   Create a new offer for a prodcut
  *  @route         /offers
  *  @method        POST
  *  @access        private
@@ -54,16 +63,16 @@ offerRoute.put('/offers/:offerId', isAuthorized, c_updateOffer);
  *  @method        GET
  *  @access        public
  */
-offerRoute.get('/offers/homeOffers', isAuthorized, s_homeOffers);
+offerRoute.get('/offers_homeOffers', isAuthorized, c_homeOffers);
 
 
-/**
- *  @description   Create a new offer for a product
- *  @route         /offers/product
- *  @method        POST
- *  @access        private
- */
-offerRoute.post('/offers/product', isAuthorized, c_createOfferProduct);
+// /**
+//  *  @description   Create a new offer for a product
+//  *  @route         /offers/product
+//  *  @method        POST
+//  *  @access        private
+//  */
+// offerRoute.post('/offers/product', isAuthorized, c_createOfferProduct);
 
 
 /**

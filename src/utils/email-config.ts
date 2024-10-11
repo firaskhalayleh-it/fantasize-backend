@@ -4,44 +4,44 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    service: process.env.EMAIL_SERVICE,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
+  host: 'smtp.gmail.com',
+  port: 587,
+  service: process.env.EMAIL_SERVICE,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
 export interface EmailOptions {
-    to: string;
-    subject: string;
-    html: string;
+  to: string;
+  subject: string;
+  html: string;
 
 }
 
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
-    const mailOptions = {
-        from: `"Fantasize" <${process.env.EMAIL_USER}>`,
-        to: options.to,
-        subject: options.subject,
-        html: options.html,
-    };
+  const mailOptions = {
+    from: `"Fantasize" <${process.env.EMAIL_USER}>`,
+    to: options.to,
+    subject: options.subject,
+    html: options.html,
+  };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Email sent to ${options.to}`);
-        return true;
-    } catch (error) {
-        console.error(`Error sending email to ${options.to}:`, error);
-        throw error;
-        return false;
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Email sent to ${options.to}`);
+    return true;
+  } catch (error) {
+    console.error(`Error sending email to ${options.to}:`, error);
+    throw error;
+    return false;
+  }
 }
 
 
 export function orderConfirmationTemplate(orderId: string, userName: string): string {
-    return `
+  return `
      <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -144,10 +144,33 @@ export function orderConfirmationTemplate(orderId: string, userName: string): st
 }
 
 
-export function passwordResetTemplate(resetLink: string): string {
-    return `
-      <h1>Password Reset</h1>
-      <p>You can reset your password by clicking the link below:</p>
-      <a href="${resetLink}">Reset Password</a>
+export function passwordResetTemplate(resetURL: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Password Reset</title>
+      <style>
+        /* Add your email styling here */
+      </style>
+    </head>
+    <body>
+      <h1>Password Reset Request</h1>
+      <p>You requested a password reset. Click the link below to set a new password:</p>
+      <p><a href="${resetURL}">Reset Password</a></p>
+      <p>If you did not request this, please ignore this email.</p>
+      <p>This link will expire in one hour.</p>
+    </body>
+    </html>
+  `;
+}
+
+
+
+
+export function welcomeTemplate(userName: string): string {
+  return `
+      <h1>Welcome to Fantasize, ${userName}!</h1>
+      <p>Thank you for joining our community of dreamers and adventurers.</p>
     `;
 }

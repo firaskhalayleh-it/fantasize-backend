@@ -20,6 +20,6 @@ export class Reviews extends BaseEntity {
     @ManyToMany(() => Products, (product) => product.Review)
     Products: Products[]; 
 
-    @ManyToMany(()=> Packages, (pkg) => pkg.Review)
+    @ManyToMany(()=> Packages, (pkg) => pkg.Reviews)
     Packages: Packages[];
 }
