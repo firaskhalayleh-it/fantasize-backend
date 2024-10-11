@@ -48,16 +48,18 @@ export const s_updateUser = async (req: Request, res: Response) => {
         user.Gender = Gender || user.Gender;
 
         if (req.file) {
-             const profilePicture = Resources.create({
-                entityName: req.file.filename,
-                fileType: req.file.mimetype,
-                filePath: req.file.path,
-                User:user
-            });
-
-            await profilePicture.save();
-            user.UserProfilePicture = profilePicture;
-
+            const resource = await Resources.findOne({ where: { User: {UserID:user.UserID} } });
+            if (resource) {
+                resource.filePath = req.file.path;
+                await Resources.save(resource);
+            } else {
+                const newResource = new Resources();
+                newResource.filePath = req.file.path;
+                newResource.fileType = req.file.mimetype;
+                newResource.entityName = req.file.fieldname;
+                newResource.User = user;
+                await Resources.save(newResource);
+            }
           }
 
 
