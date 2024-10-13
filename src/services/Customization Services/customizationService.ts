@@ -6,25 +6,36 @@ import { Products } from '../../entities/products/Products';
 //----------------------- Create Customization -----------------------
 export const s_createCustomization = async (req: Request, res: Response) => {
     try {
-        const { options } = req.body;
+        const { options } = req.body; // Extract options from the request
         const file = req.file;
 
-        // Process options and handle image files if provided
-        const processedOptions = options.map((option: any) => {
-            if (option.type === 'image' && file) {
-                option.optionValues = option.optionValues.map((optVal: any) => {
-                    if (optVal.isSelected) {
-                        optVal.filePath = file.path; // Store the file path in the JSONB object
-                    }
-                    return optVal;
-                });
+        // Check if options is a string; if so, try to parse it
+        let parsedOptions;
+        if (typeof options === 'string') {
+            try {
+                parsedOptions = JSON.parse(options); // Parse the string into an object
+            } catch (error) {
+                return res.status(400).send({ message: "Invalid options format. Must be a JSON object." });
             }
-            return option;
-        });
+        } else if (typeof options === 'object' && options !== null) {
+            parsedOptions = options; // If it's already an object
+        } else {
+            return res.status(400).send({ message: "Invalid options format. Must be a JSON object." });
+        }
 
-        // Create customization entity instance
+        // Check if the options require file processing
+        if (parsedOptions.type === 'image' && file) {
+            parsedOptions.optionValues = parsedOptions.optionValues.map((optVal: any) => {
+                if (optVal.isSelected) {
+                    optVal.filePath = file.path; // Store the file path in the JSONB object
+                }
+                return optVal;
+            });
+        }
+
+        // Create the customization object
         const customization = Customization.create({
-            option: processedOptions,
+            option: parsedOptions, // Use parsedOptions directly
         });
 
         await customization.save();
@@ -34,6 +45,8 @@ export const s_createCustomization = async (req: Request, res: Response) => {
         return res.status(500).send({ message: err.message });
     }
 };
+
+
 
 //----------------------- Get All Customizations -----------------------
 export const s_getAllCustomizations = async (req: Request, res: Response) => {
@@ -49,36 +62,49 @@ export const s_getAllCustomizations = async (req: Request, res: Response) => {
 };
 
 //----------------------- Update Customization -----------------------
+
 export const s_updateCustomization = async (req: Request, res: Response) => {
     try {
-        const { customizationId, options } = req.body;
+        const { customizationId, options } = req.body; // Extract customizationId and options from the request
         const file = req.file;
 
+        // Find the customization by ID
         const customization = await Customization.findOne({ where: { CustomizationID: customizationId } });
         if (!customization) {
             return res.status(404).send({ message: 'Customization not found' });
         }
 
-        // Process options and handle image files if provided
-        const processedOptions = options.map((option: any) => {
-            if (option.type === 'image' && file) {
-                option.optionValues = option.optionValues.map((optVal: any) => {
-                    if (optVal.isSelected) {
-                        optVal.filePath = file.path; // Store the file path in the JSONB object
-                    }
-                    return optVal;
-                });
+        // Validate and parse options
+        let parsedOptions;
+        if (typeof options === 'string') {
+            try {
+                parsedOptions = JSON.parse(options); // Parse the string into an object
+            } catch (error) {
+                return res.status(400).send({ message: "Invalid options format. Must be a JSON object." });
             }
-            return option;
-        });
+        } else if (typeof options === 'object' && options !== null) {
+            parsedOptions = options; // If it's already an object
+        } else {
+            return res.status(400).send({ message: "Invalid options format. Must be a JSON object." });
+        }
 
-        customization.option = processedOptions;
+        // Process options and handle image files if provided
+        if (parsedOptions.type === 'image' && file) {
+            parsedOptions.optionValues = parsedOptions.optionValues.map((optVal: any) => {
+                if (optVal.isSelected) {
+                    optVal.filePath = file.path; // Store the file path in the JSONB object
+                }
+                return optVal;
+            });
+        }
 
-        await customization.save();
-        return res.status(200).send(customization);
+        customization.option = parsedOptions; // Update the customization options
+
+        await customization.save(); // Save the updated customization
+        return res.status(200).send(customization); // Send the updated customization back to the client
     } catch (err: any) {
         console.log(err);
-        return res.status(500).send({ message: err.message });
+        return res.status(500).send({ message: err.message }); // Handle any server errors
     }
 };
 

@@ -49,7 +49,7 @@ export const s_getProductByCategoryAndSubCategory = async (req: Request, res: Re
             return res.status(400).send({ message: "Please fill all the fields" });
         }
         const products = await Products.find({ where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID } }, relations: ['SubCategory'] });
-        if (!products) {
+        if (products.length==0 ) {
             return "The Product Not Found !";
         }
         return products;
@@ -85,7 +85,10 @@ export const s_createProduct = async (req: Request, res: Response) => {
         if (!Name || !Price || !Description || !SubCategoryID || !Quantity || !BrandName || !Material) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
-
+        const isExist = await Products.findOne({where:{Name:Name}});
+        if(isExist){
+            return `the product '${Name}' is already exist.`
+        }
         const brand = await Brands.findOne({ where: { Name: BrandName } });
         if (!brand) {
             return res.status(400).send({ message: "Brand not found" });

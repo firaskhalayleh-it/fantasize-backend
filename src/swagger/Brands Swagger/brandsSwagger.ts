@@ -42,7 +42,6 @@
  *       500:
  *         description: Internal server error
  */
-
 /**
  * @swagger
  * /api/brands/{brandId}:
@@ -60,17 +59,17 @@
  *         schema:
  *           type: integer
  *           example: 1
- *       - in: body
- *         name: body
- *         required: true
- *         description: The brand information to update
- *         schema:
- *           type: object
- *           properties:
- *             Name:
- *               type: string
- *               description: The new name of the brand
- *               example: "Adidas"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               Name:
+ *                 type: string
+ *                 description: The new name of the brand
+ *                 example: "Adidas"
  *     responses:
  *       200:
  *         description: The updated brand
