@@ -89,7 +89,7 @@ export class Packages extends BaseEntity {
   @OneToMany(() => FavoritePackages, (favoritePackages) => favoritePackages.Package)
   FavoritePackages: FavoritePackages[];
 
-  @ManyToMany(() => Reviews, (review) => review.Products)
+  @ManyToMany(() => Reviews, (review) => review.Packages)
   @JoinTable({
     name: 'PackagesReviews',
     joinColumn: {
@@ -102,6 +102,7 @@ export class Packages extends BaseEntity {
     }
   })
   Reviews: Reviews[];
+  
 
   CreatedAt: Date;
 

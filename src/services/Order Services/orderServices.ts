@@ -109,14 +109,22 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
 export const s_getAllOrdersUser = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user.payload.userId;
-        const user = await Users.findOne({ where: { UserID: userId, } });
+        const user = await Users.findOne({ where: { UserID: userId } });
         if (!user) {
             return res.status(404).send({ message: "User not found" });
         }
+        console.log(`user is : ${user}`);
         const orders = await Orders.find({
-            where: { User: user, Status: true },
-            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
+            where: {Status: true ,User:{UserID:userId} },
+            relations: [
+                "OrdersProducts", 
+                "OrdersProducts.Product", 
+                "OrdersPackages", 
+                "OrdersPackages.Package"
+            ]
         });
+        
+        console.log(orders);
         return res.status(200).send(orders);
     } catch (err: any) {
         console.log(err);
