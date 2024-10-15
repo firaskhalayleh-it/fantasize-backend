@@ -38,7 +38,7 @@
  *                   type: string
  *                   format: date
  *                   description: User's date of birth in YYYY-MM-DD format
- *                 profilePicture:
+ *                 file:
  *                   type: string
  *                   format: binary
  *                   description: Profile picture to upload

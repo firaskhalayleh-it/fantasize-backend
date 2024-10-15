@@ -1,19 +1,23 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from 'jsonwebtoken';
 
+
 export const IsAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
+    // Check if token is present in cookies or Authorization header
     const authTokenInCookies = req.cookies.authToken;
+    const authHeader = req.headers.Authorization as string;
 
-    // Log the token to check if it's correctly received
-    // console.log("Auth Token from Cookies:", authTokenInCookies);
+    // If token is in the Authorization header, it will be in the format "Bearer <token>"
+    let token = authTokenInCookies;
 
-    // Check if the token exists in the cookies
-    if (!authTokenInCookies) {
-        return res.status(401).json({ message: "No token provided inside the cookies" });
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(' ')[1]; // Extract the token from the header
     }
 
-    // Since the token is directly stored, no need to split
-    const token = authTokenInCookies;
+    // Check if the token exists either in the cookies or Authorization header
+    if (!token) {
+        return res.status(401).json({ message: "No token provided" });
+    }
 
     try {
         // Verify the token using the same secret used during signing

@@ -12,7 +12,7 @@ const addressRoute = express.Router();
  *  @access       private
  * 
  */
-addressRoute.post("/user/create_address_user",isAuthorized,c_addNewAdress);
+addressRoute.post("/user/create_address_user",IsAuthenticated,c_addNewAdress);
 
 /**
  *  @description  update user address by userId

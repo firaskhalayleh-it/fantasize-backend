@@ -11,30 +11,44 @@ import {
 
 //controller for customizations
 export const c_createCustomization = async (req: Request, res: Response) => {
-    s_createCustomization(req, res);
+   const result= await s_createCustomization(req, res);
+   res.status(200).json(result);
+
 };
 
 export const c_updateCustomization = async (req: Request, res: Response) => {
-    s_updateCustomization(req, res);
+    const result= await s_updateCustomization(req, res);
+    res.status(200).json(result);
+
 };
 
 export const c_getAllCustomizations = async (req: Request, res: Response) => {
-    s_getAllCustomizations(req, res);
+    const result= await s_getAllCustomizations(req, res);
+    res.status(200).json(result);
+
 };
 
 export const c_assignCustomizationToProduct = async (req: Request, res: Response) => {
-    s_assignCustomizationToProduct(req, res);
+    const result= await s_assignCustomizationToProduct(req, res);
+    res.status(200).json(result);
+
 };
 
 export const c_assignCustomizationToPackage = async (req: Request, res: Response) => {
-    s_assignCustomizationToPackage(req, res);
+    const result= await s_assignCustomizationToPackage(req, res);
+    res.status(200).json(result);
+
 };
 
 export const c_removeCustomizationFromProduct = async (req: Request, res: Response) => {
-    s_removeCustomizationFromProduct(req, res);
+    const result= await s_removeCustomizationFromProduct(req, res);
+    res.status(200).json(result);
+
 };
 
 export const c_removeCustomizationFromPackage = async (req: Request, res: Response) => {
-    s_removeCustomizationFromPackage(req, res);
+    const result= await s_removeCustomizationFromPackage(req, res);
+    res.status(200).json(result);
+
 };
 

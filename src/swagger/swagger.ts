@@ -1,7 +1,7 @@
 import swaggerJsDoc from 'swagger-jsdoc'
 import swagggerUi from 'swagger-ui-express'
 import { Express } from 'express'
-
+const PORT = process.env.APP_PORT || 3000;
 const swaggerOption ={
     definition :{
         openapi:'3.0.0',
@@ -12,7 +12,7 @@ const swaggerOption ={
         },
         servers:[
             {
-            url :'http://localhost:5000'
+            url :`http://localhost:${PORT}`,
             }
     ],
     },

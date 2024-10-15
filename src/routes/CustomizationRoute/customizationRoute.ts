@@ -5,29 +5,61 @@ import { IsAuthenticated,isAuthorized } from '../../middlewares/isAuthentecated'
 import { uploadSingle } from '../../middlewares/multerMiddleware';
 
 const customizationRoute = express.Router();
+/**
+ *  @description    Create customization
+ *  @route           /customization
+ *  @method         post
+ *  @access         private
+ */
+customizationRoute.post('/customization', IsAuthenticated, isAuthorized, uploadSingle, c_createCustomization);
 
-//create customization
-customizationRoute.post('/customization',IsAuthenticated,isAuthorized,uploadSingle, c_createCustomization);
+/**
+ *  @description    Get all customizations
+ *  @route          /customization
+ *  @method         get
+ *  @access         private
+ */
+customizationRoute.get('/customization', IsAuthenticated, isAuthorized, c_getAllCustomizations);
 
-//get all customizations
-customizationRoute.get('/customization',IsAuthenticated,isAuthorized, c_getAllCustomizations);
+/**
+ *  @description    Update customization
+ *  @route          /customization
+ *  @method         put
+ *  @access         private
+ */
+customizationRoute.put('/customization', IsAuthenticated, isAuthorized, uploadSingle, c_updateCustomization);
 
-//update customization
-customizationRoute.put('/customization',IsAuthenticated,isAuthorized,uploadSingle, c_updateCustomization);
+/**
+ *  @description    Assign customization to product
+ *  @route          /customization/product
+ *  @method         post
+ *  @access         private
+ */
+customizationRoute.post('/customization/product', IsAuthenticated, isAuthorized, c_assignCustomizationToProduct);
 
+/**
+ *  @description    Assign customization to package
+ *  @route          /customization/package
+ *  @method         post
+ *  @access         private
+ */
+customizationRoute.post('/customization/package', IsAuthenticated, isAuthorized, c_assignCustomizationToPackage);
 
-//assign customization to product
-customizationRoute.post('/customization/product',IsAuthenticated,isAuthorized, c_assignCustomizationToProduct);
+/**
+ *  @description    Remove customization from product
+ *  @route          /customization/product
+ *  @method         delete
+ *  @access         private
+ */
+customizationRoute.delete('/customization/product', IsAuthenticated, isAuthorized, c_removeCustomizationFromProduct);
 
-//assign customization to package
-customizationRoute.post('/customization/package',IsAuthenticated,isAuthorized, c_assignCustomizationToPackage);
-
-
-//remove customization from product
-customizationRoute.delete('/customization/product',IsAuthenticated,isAuthorized, c_removeCustomizationFromProduct);
-
-//remove customization from package
-customizationRoute.delete('/customization/package',IsAuthenticated,isAuthorized, c_removeCustomizationFromPackage);
+/**
+ *  @description    Remove customization from package
+ *  @route          /customization/package
+ *  @method         delete
+ *  @access         private
+ */
+customizationRoute.delete('/customization/package', IsAuthenticated, isAuthorized, c_removeCustomizationFromPackage);
 
 
 export default customizationRoute;
