@@ -2,6 +2,7 @@ import express from "express";
 import { initializeDB } from "./config/database";
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import cors from "cors";
 import authRoute from "./routes/Auth Routes/authRoutes";
 import { errorHandler, notFound } from "./middlewares/httpErrors";
@@ -37,6 +38,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 setupSwagger(app);
+app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
 app.use("/api", authRoute);
 app.use("/api", userRoute);
 app.use("/api", addressRoute);

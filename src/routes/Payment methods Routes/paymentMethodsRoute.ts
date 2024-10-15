@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { c_createPaymentMethod, c_deletePaymentMethod, c_getPaymentMethod, c_updatePaymentMethod } from '../../controllers/Payment methods Controller/paymentMethodsController';
-import { isAuthorized } from '../../middlewares/isAuthentecated';
+import { IsAuthenticated, isAuthorized } from '../../middlewares/isAuthentecated';
 
 const  paymentMethodRoute = Router();
 
@@ -12,7 +12,7 @@ const  paymentMethodRoute = Router();
  *  @access       private 
  * 
  */
-paymentMethodRoute.post("/user/create_payment_method_user",isAuthorized,c_createPaymentMethod);
+paymentMethodRoute.post("/user/create_payment_method_user",IsAuthenticated,c_createPaymentMethod);
 
 /**
  *  @description  update user payment Method by userId
