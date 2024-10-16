@@ -61,21 +61,18 @@ export const s_loginUser = async (req: Request, res: Response) => {
         if (email == '' || password == '') {
             return ({ error: 'Please provide an email and password' });
         }
-        const isExist = await Users.findOne({ where: { Email: email }, relations: ["Role"] })
-        if (!isExist) {
+        const user = await Users.findOne({ where: { Email: email }, relations: ["Role", 'UserProfilePicture'] })
+        if (!user) {
             return ({ error: 'Wrong Email Or Password !' });
         }
-        const passwordMatch = await bcrypt.compare(password, isExist!.Password);
+        const passwordMatch = await bcrypt.compare(password, user!.Password);
         if (passwordMatch) {
             // console.log(isExist);
-            const payload = {
-                userId: isExist!.UserID,
-                userName: isExist!.Username,
-                email: isExist!.Email,
-                role: isExist!.Role.RoleName
-            }
-            const token = jwt.sign({ payload }, "testScrit", { expiresIn: "12h" })
-            res.cookie("authToken", token, { httpOnly: false })
+
+            const token = await generateToken(user.UserID);
+            console.log(token);
+            res.cookie("authToken", token, { httpOnly: true })
+
             return (token);
 
         } else {
@@ -85,23 +82,7 @@ export const s_loginUser = async (req: Request, res: Response) => {
 
 
 
-        // Generate JWT token
-        // const token = generateToken(isExist!.UserID);
-
-        // Create the cookies
-        // const authorizationCookie = createCookie(token, 'authorization');
-        // const userIDCookie = createCookie(isExist!.UserID, 'UserID');
-
-        // Set multiple cookies in the response
-        // res.setHeader('Set-Cookie', [authorizationCookie, userIDCookie]);
-
-        // Optionally log the token for debugging
-        // console.log(token);
-
-        // Exclude password from user data
-        // const { Password, ...userData } = isExist!;
-        // Send response
-        // res.status(200).json({ message: 'Login successful', token, user: userData });
+        
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message })

@@ -23,7 +23,7 @@ export const s_getAllVideos = async (req: Request, res: Response) => {
         // Extract paths of the videos
         const videoPaths = videos.map((video) => ({
             videoId: video.ResourceID,
-            videoPath: video.filePath,
+            videoPath: video.entityName,
             productId: video.Product?.ProductID || null,
             packageId: video.Package?.PackageID || null,
         }));

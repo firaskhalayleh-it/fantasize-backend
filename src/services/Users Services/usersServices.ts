@@ -8,7 +8,11 @@ import { Resources } from '../../entities/Resources';
 //----------------------- update user by id-----------------------
 export const s_updateUser = async (req: Request, res: Response) => {
     try {
+
         const userId = (req as any).user.payload.userId;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" , userId});
+        }
         const user = await Users.findOne({ where: { UserID: userId } });
 
         if (!user) {
@@ -51,19 +55,24 @@ export const s_updateUser = async (req: Request, res: Response) => {
             const resource = await Resources.findOne({ where: { User: { UserID: user.UserID } } });
             if (resource) {
                 resource.filePath = req.file.path;
+                resource.fileType = req.file.mimetype;
+                resource.entityName = req.file.filename;
                 await Resources.save(resource);
+                user.UserProfilePicture = resource;
             } else {
                 const newResource = new Resources();
                 newResource.filePath = req.file.path;
                 newResource.fileType = req.file.mimetype;
-                newResource.entityName = req.file.fieldname;
+                newResource.entityName = req.file.filename;
                 newResource.User = user;
                 await Resources.save(newResource);
+                user.UserProfilePicture = newResource;
             }
         }
 
 
         // Save updated user
+        
         await user.save();
 
         return res.status(200).json({ message: "User updated successfully", user });

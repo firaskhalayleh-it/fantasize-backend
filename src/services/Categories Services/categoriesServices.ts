@@ -99,40 +99,56 @@ export const s_updateCategory = async (req: Request, res: Response) => {
     try {
         const categoryId = Number(req.params.id);
         const { Name, IsActive } = req.body;
-        const category = await Categories.findOne({ where: { CategoryID: categoryId } });
 
-        if (category) {
-            category.Name = Name || category.Name;
-            category.IsActive = IsActive || category.IsActive;
-            if (req.file){
-                const imageResources = await Resources.create({
+        // Find the category by ID
+        const category = await Categories.findOne({ where: { CategoryID: categoryId }, relations: ['Image'] });
+
+        if (!category) {
+            return res.status(404).send({ message: 'Category not found' });
+        }
+
+        // Update category details if provided
+        category.Name = Name || category.Name;
+        category.IsActive = IsActive !== undefined ? IsActive : category.IsActive;
+
+        // If an image file is provided
+        if (req.file) {
+            // If the category already has an image, update it, otherwise create a new one
+            let imageResource;
+            if (category.Image) {
+                // Update existing image resource
+                category.Image.entityName = req.file.filename;
+                category.Image.fileType = req.file.mimetype;
+                category.Image.filePath = req.file.path;
+                imageResource = await category.Image.save();
+            } else {
+                // Create a new image resource and associate it with the category
+                imageResource = await Resources.create({
                     entityName: req.file.filename,
                     fileType: req.file.mimetype,
                     filePath: req.file.path,
-                    Category: category
+                    Category: category  // Associate resource with the category
                 }).save();
-    
-                category.Image = imageResources || category.Image;
+
+                category.Image = imageResource;
             }
+        }
 
-            const updatedCategory = await category.save();
+        // Save the updated category
+        const updatedCategory = await category.save();
 
-
-            const savedCategory = await Categories.findOne({ where: { CategoryID: categoryId }, });
-            if (updatedCategory) {
-                return res.status(200).json(savedCategory);
-            } else {
-                return res.status(400).send({ message: 'Category could not be updated' });
-            }
+        if (updatedCategory) {
+            return res.status(200).json(updatedCategory);
         } else {
-            return res.status(404).send({ message: 'Category not found' });
+            return res.status(400).send({ message: 'Category could not be updated' });
         }
 
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        return res.status(500).send({ message: err.message });
     }
-}
+};
+
 
 
 //----------------------- Delete a category by ID-----------------------
