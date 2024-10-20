@@ -1,7 +1,6 @@
 import express from "express"
 import { c_createCategory, c_createSubcategory, c_deleteCategory, c_DeleteSubcategory, c_disActiveCategory, c_getAllCategories, c_getAllSubcategories, c_getCategory, c_updateCategory, c_updateSubcategory } from "../../controllers/Categories Controller/CategoriesController";
-import { authMiddleware } from "../../middlewares/auth_middleware";
-import { adminMiddleware } from "../../middlewares/admin_middleware";
+
 import { isAuthorized } from "../../middlewares/isAuthentecated";
 import { uploadSingle } from "../../middlewares/multerMiddleware";
 const categoryRoute = express.Router();

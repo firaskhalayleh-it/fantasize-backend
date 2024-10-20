@@ -1,6 +1,5 @@
 import express from "express"
-import { authMiddleware } from "../../middlewares/auth_middleware";
-import { adminMiddleware } from "../../middlewares/admin_middleware";
+
 import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
 import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory, c_updateProduct } from "../../controllers/Products Controller/productController";
 import FavoriteProductRoute from "./favoriteProductsRoutes";

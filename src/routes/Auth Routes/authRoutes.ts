@@ -19,7 +19,6 @@ authRoute.post("/register",c_registerUser);
  *  @access       public
  * 
  */
- 
 authRoute.post("/login",c_loginUser);
 
 /**

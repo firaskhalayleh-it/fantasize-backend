@@ -25,9 +25,10 @@ import adminDashboardRoutes from "./routes/Admin Dashboard Rotue/adminDashbourdR
 import customizationRoute from "./routes/CustomizationRoute/customizationRoute";
 import exploreRoute from "./routes/Explore Route/exploreRoute";
 import { setupSwagger } from "./swagger/swagger";
-
+import ip from 'ip';
 
 const app = express();
+const IP = ip.address();
 app.use(cookieParser());
 app.use(cors());
 
@@ -64,5 +65,5 @@ app.use(errorHandler);
 
 app.listen(PORT, async () => {
   await initializeDB();
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on http://${IP}:${PORT}`);
 });

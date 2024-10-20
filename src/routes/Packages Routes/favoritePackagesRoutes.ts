@@ -1,5 +1,4 @@
 import  express  from 'express';
-import { authMiddleware } from '../../middlewares/auth_middleware';
 import { IsAuthenticated } from '../../middlewares/isAuthentecated';
 import { c_addPackageFavorites, c_getAllFavoritePackagesUser, c_removePackageFavorites } from '../../controllers/Packages Controller/favoritePackagesController';
 

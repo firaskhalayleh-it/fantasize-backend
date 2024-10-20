@@ -1,5 +1,4 @@
 import express from "express"
-import { authMiddleware } from "../../middlewares/auth_middleware";
 import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
 import { c_addProductFavorites, c_getAllFavoriteProductsUser, c_removeProductFavorites } from "../../controllers/Products Controller/favoriteProductsController";
 const FavoriteProductRoute = express.Router({ mergeParams: true });

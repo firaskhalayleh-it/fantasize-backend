@@ -1,7 +1,6 @@
 import { Notifications } from "../../entities/users/Notifications";
 import { Users } from "../../entities/users/Users";
 import { sendEmail } from "../../utils/email-config";
-import { sendPushNotification } from "../../utils/push-sender";
 
 export class NotificationService {
     // Create a new notification and send it based on type
@@ -27,8 +26,8 @@ export class NotificationService {
             notification.sent = emailSent;
         } else if (type === 'push') {
             notification.deliveryMethod = 'push';
-            const pushSent = await this.sendPushNotification(user, templateData);
-            notification.sent = pushSent;
+            // const pushSent = await this.sendPushNotification(user, templateData);
+            // notification.sent = pushSent;
         }
 
         // Save the notification to the database
@@ -53,21 +52,21 @@ export class NotificationService {
     }
 
     // Send push notification
-    private async sendPushNotification(user: Users, templateData: any): Promise<boolean> {
-        const { title, body, actionUrl } = templateData;
-        const pushContent = {
-            title: this.applyTemplate(title, user),
-            body: this.applyTemplate(body, user),
-            actionUrl: this.applyTemplate(actionUrl, user)
-        };
+    // private async sendPushNotification(user: Users, templateData: any): Promise<boolean> {
+    //     const { title, body, actionUrl } = templateData;
+    //     const pushContent = {
+    //         title: this.applyTemplate(title, user),
+    //         body: this.applyTemplate(body, user),
+    //         actionUrl: this.applyTemplate(actionUrl, user)
+    //     };
 
-        if (!user.FirebaseToken) {
-            console.error('User does not have a push notification token');
-            return false;
-        }
+    //     if (!user.FirebaseToken) {
+    //         console.error('User does not have a push notification token');
+    //         return false;
+    //     }
 
-        return await sendPushNotification(user.FirebaseToken, pushContent.title, pushContent.body, pushContent.actionUrl);
-    }
+    //     return await sendPushNotification(user.FirebaseToken, pushContent.title, pushContent.body, pushContent.actionUrl);
+    // }
 
     // Apply the template placeholders (e.g., {{username}})
     private applyTemplate(template: string, user: Users): string {
