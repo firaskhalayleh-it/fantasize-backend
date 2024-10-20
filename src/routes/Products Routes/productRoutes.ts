@@ -1,7 +1,7 @@
 import express from "express"
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
-import { isAuthorized } from "../../middlewares/isAuthentecated";
+import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
 import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory, c_updateProduct } from "../../controllers/Products Controller/productController";
 import FavoriteProductRoute from "./favoriteProductsRoutes";
 import { uploadFields } from "../../middlewares/multerMiddleware";
@@ -19,7 +19,7 @@ const productRoute = express.Router();
  *  @access        Public
  */
 
-productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', isAuthorized, c_getProductByCategoryAndSubCategory);
+productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', IsAuthenticated, c_getProductByCategoryAndSubCategory);
 
 /**
  *  @description   Get a single product by ID
@@ -27,7 +27,7 @@ productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', isAuthorized, c_g
  *  @method        GET
  *  @access        Public
  */
-productRoute.get('/getProduct/:id', isAuthorized, c_getProduct);
+productRoute.get('/getProduct/:id', IsAuthenticated, c_getProduct);
 
 /**
  *  @description   Create a new product

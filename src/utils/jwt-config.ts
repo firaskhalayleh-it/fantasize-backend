@@ -27,12 +27,12 @@ const generateToken = async (userid: string) => {
                 userName: user.Username,
                 email: user.Email,
                 role: user.Role.RoleName,
-                userProfilePicture: {
+                userProfilePicture: user.UserProfilePicture ? {
                     resourceID: user.UserProfilePicture.ResourceID,
                     entityName: entityName,
                     filePath: user.UserProfilePicture.filePath,
                     fileType: user.UserProfilePicture.fileType
-                }, // Include entityName in the payload
+                } : null, // Include entityName in the payload
             }
         },
         process.env.JWT_SECRET || 'secret', // Use secret from .env or fallback to 'secret'

@@ -61,7 +61,7 @@ export const s_loginUser = async (req: Request, res: Response) => {
         if (email == '' || password == '') {
             return ({ error: 'Please provide an email and password' });
         }
-        const user = await Users.findOne({ where: { Email: email }, relations: ["Role", 'UserProfilePicture'] })
+        const user = await Users.findOne({ where: { Email: email } })
         if (!user) {
             return ({ error: 'Wrong Email Or Password !' });
         }
@@ -82,7 +82,7 @@ export const s_loginUser = async (req: Request, res: Response) => {
 
 
 
-        
+
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message })

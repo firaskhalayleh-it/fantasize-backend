@@ -28,12 +28,6 @@ export const s_createPackage = async (req: Request, res: Response) => {
             return res.status(400).send({ message: "Invalid products format. Must be a JSON array." });
         }
 
-        // Validate input fields
-        // if (!Name || !Description || !Price || !Quantity || !SubCategoryId || !Array.isArray(parsedProducts)) {
-        //     await queryRunner.rollbackTransaction();
-        //     return res.status(400).send({ message: "Please fill all the required fields" });
-        // }
-
         // Check if the subcategory exists
         const subcategory = await queryRunner.manager.findOne(SubCategories, { where: { SubCategoryID: SubCategoryId } });
         if (!subcategory) {

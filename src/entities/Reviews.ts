@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, BaseEntity } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, BaseEntity, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Users } from './users/Users';
 import { Products } from './products/Products';
 import { Packages } from './packages/Packages';
@@ -8,10 +8,10 @@ export class Reviews extends BaseEntity {
     @PrimaryGeneratedColumn('increment')
     ReviewID: number;
 
-    @Column('int')
+    @Column('int',{nullable: true})
     Rating: number;
 
-    @Column('text')
+    @Column('text', {nullable: true})
     Comment: string;
 
     @ManyToOne(() => Users, (user) => user.UserID)
@@ -22,4 +22,11 @@ export class Reviews extends BaseEntity {
 
     @ManyToMany(()=> Packages, (pkg) => pkg.Reviews)
     Packages: Packages[];
+
+
+    @CreateDateColumn()
+    CreatedAt: Date;
+
+    @UpdateDateColumn()
+    UpdatedAt: Date;
 }
