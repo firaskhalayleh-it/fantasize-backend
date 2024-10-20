@@ -5,10 +5,8 @@ import { verifyToken } from "../utils/jwt-config";
 
 
 export const IsAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
-    // Check if token is present in cookies or Authorization header
 
     try {
-        // Verify the token using the secret key
         const token = req.cookies.authToken || req.headers.authorization?.split(' ')[1];
         if (!token) {
             return res.status(401).json({ message: 'No token provided' });

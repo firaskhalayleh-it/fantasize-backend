@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken"
 import { Users } from "../../entities/users/Users";
 import { Roles } from "../../entities/users/Roles";
 import { generateToken } from "../../utils/jwt-config";
-import createCookie from "../../utils/cookie-config";
 import { passwordResetTemplate, sendEmail, welcomeTemplate } from "../../utils/email-config";
 import crypto from "crypto";
 
