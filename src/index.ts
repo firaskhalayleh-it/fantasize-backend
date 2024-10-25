@@ -1,4 +1,6 @@
 import express from "express";
+import session from 'express-session';
+import passport from 'passport';
 import { initializeDB } from "./config/database";
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
@@ -24,6 +26,9 @@ import adminDashboardRoutes from "./routes/Admin Dashboard Rotue/adminDashbourdR
 import customizationRoute from "./routes/CustomizationRoute/customizationRoute";
 import exploreRoute from "./routes/Explore Route/exploreRoute";
 import { setupSwagger } from "./swagger/swagger";
+import authGoogleFacebookRoute from "./routes/Auth Routes/authUsingFacebookGoogleRoutes";
+import './config/passportConfig'; 
+
 
 
 const app = express();
@@ -35,8 +40,16 @@ const PORT = process.env.APP_PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(session({
+  secret:'secret-key',
+  resave: false,
+  saveUninitialized: true,
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 setupSwagger(app);
+app.use('/api', authGoogleFacebookRoute);
 app.use("/api", authRoute);
 app.use("/api", userRoute);
 app.use("/api", addressRoute);
