@@ -11,27 +11,40 @@ export const s_createReviewProduct = async (req: Request, res: Response) => {
     try {
         const { Rating, Comment, ProductID } = req.body;
         const userID = (req as any).user.payload.userId;
+
+       
+        if (isNaN(Rating)) {
+            return res.status(400).send({ message: "Invalid Rating. It must be a number." });
+        }
+
         const user = await Users.findOne({ where: { UserID: userID } });
-        const product = await Products.findOne({ where: { ProductID: ProductID } });
+        const product = await Products.findOne({ where: { ProductID: Number(ProductID) } });
+
         if (!product) {
             return res.status(404).send({ message: "Product not found" });
         }
+
         if (!user) {
             return res.status(404).send({ message: "User not found" });
         }
-        const review = Reviews.create({});
-        review.User = user;
-        review.Products.push(product);
-        review.Rating = Rating;
-        review.Comment = Comment;
 
+        const review = Reviews.create({
+            Rating: Number(Rating),  // Parse the number
+            Comment: Comment,
+            Products: [],
+            User: user
+        });
+        review.Products.push(product);
+       
+        
         await review.save();
-        return review;
+        return res.status(201).send(review);  // Respond with the created review
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        res.status(500).send({ message: err.message });
     }
 }
+
 
 //----------------------- Create a new review for a package-----------------------
 

@@ -1,7 +1,6 @@
 
 import express from 'express';
-import { authMiddleware } from '../../middlewares/auth_middleware';
-import { adminMiddleware } from '../../middlewares/admin_middleware';
+
 import { IsAuthenticated } from '../../middlewares/isAuthentecated';
 import { c_createNewOrderUser, c_deleteorderPackage, c_updateOrderPackage } from '../../controllers/Packages Controller/ordersPackagesController';
 

@@ -12,12 +12,20 @@ import {  Resources } from "../../entities/Resources";
 // ---------------------> Get all products <---------------------
 export const s_getAllProducts = async (req: Request, res: Response) => {
     try {
-        const products = await Products.find({ relations: ['Review'] }); // Assuming 'Review' is a relation
+        const products = await Products.find({ relations: ['Review', 'Offer','Review','Review.User','Review.User.UserProfilePicture'] }); // Assuming 'Review' and 'Offers' are relations
         if (!products || products.length === 0) {
             return res.status(404).send({ message: "No Products Found!" });
         }
 
-        return res.status(200).send(products);
+        // Modify products to ensure Offers is not null
+        const modifiedProducts = products.map(product => {
+            if (!product.Offer) {
+                product.Offer = new Offers; // Set Offers to an empty array if it's null
+            }
+            return product;
+        });
+
+        return res.status(200).send(modifiedProducts);
     } catch (err: any) {
         console.error(err);
         return res.status(500).send({ message: "An error occurred while fetching products.", error: err.message });
@@ -29,10 +37,15 @@ export const s_getAllProducts = async (req: Request, res: Response) => {
 export const s_getProduct = async (req: Request, res: Response) => {
     try {
         const productId: any = req.params.id;
-        const product = await Products.findOne({ where: { ProductID: productId } })
+        const product = await Products.findOne({ where: { ProductID: productId }, relations: ['Review','Review.User','Review.User.UserProfilePicture']  });
+
         if (!product) {
             return "The Product Not Found !";
         }
+
+
+       
+
         return product;
     } catch (err: any) {
         console.log(err);
@@ -85,7 +98,10 @@ export const s_createProduct = async (req: Request, res: Response) => {
         if (!Name || !Price || !Description || !SubCategoryID || !Quantity || !BrandName || !Material) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
-
+        const productExisted  = await Products.findOne({ where: { Name } });
+        if (productExisted) {
+            return res.status(409).send({ message: "Product already exists" });
+        }
         const brand = await Brands.findOne({ where: { Name: BrandName } });
         if (!brand) {
             return res.status(400).send({ message: "Brand not found" });
@@ -162,7 +178,9 @@ export const s_updateProduct = async (req: Request, res: Response) => {
     try {
         const productId = Number(req.params.productId);
         const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Material } = req.body;
-
+        if(!productId){
+            return res.status(400).send({ message: "Please provide a product ID" });
+        }
         const productRepository = (Products);
         const product = await productRepository.findOne({ where: { ProductID: productId }, relations: ["Resource",] });
         

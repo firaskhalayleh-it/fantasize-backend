@@ -1,6 +1,4 @@
 import express from "express"
-import { authMiddleware } from "../../middlewares/auth_middleware";
-import { adminMiddleware } from "../../middlewares/admin_middleware";
 import { isAuthorized } from "../../middlewares/isAuthentecated";
 import { c_createPackage, c_getAllPackages, c_getAllPackagesUnderSpecificSubcategory, c_getPackageByID, c_updatePackage } from "../../controllers/Packages Controller/packagesController";
 import { uploadFields } from "../../middlewares/multerMiddleware";

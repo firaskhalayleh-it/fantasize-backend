@@ -1,7 +1,6 @@
 // create addresss , delete , update  get by userId
 import express from "express"
 import { c_addNewAdress, c_deleteUserAddress, c_getUserAddress, c_updateUserAddress } from "../../controllers/Users Controller/addressController";
-import { authMiddleware } from "../../middlewares/auth_middleware";
 import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
 const addressRoute = express.Router();
 

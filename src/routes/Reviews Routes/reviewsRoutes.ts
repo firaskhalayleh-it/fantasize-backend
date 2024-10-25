@@ -1,5 +1,4 @@
 import express from 'express';
-import { authMiddleware } from '../../middlewares/auth_middleware';
 import { c_createReviewPackage, c_createReviewProduct, c_deleteReview, c_getAllReviewsPackage, c_getAllReviewsProduct, c_updateReview } from '../../controllers/Reviews Controller/reviewsController';
 import { IsAuthenticated } from '../../middlewares/isAuthentecated';
 const reviewsRoute = express.Router();

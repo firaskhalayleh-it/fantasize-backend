@@ -7,6 +7,7 @@ import { Addresses } from '../../entities/users/Addresses';
 export const s_addNewOrUpdateAddress = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user.payload.userId;
+        console.log(userId);
         const user = await Users.findOne({ where: { UserID: userId }, relations: ["Addresses"] });
 
         if (!user) {

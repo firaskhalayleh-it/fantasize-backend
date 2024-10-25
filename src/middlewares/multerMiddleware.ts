@@ -1,10 +1,13 @@
 import multer from 'multer';
 import path from 'path';
 
-// Define storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'resources/'); // Save files to the 'resources' directory
+    try {
+      cb(null, 'resources/');
+    } catch (error) {
+      cb(new Error('Failed to set or find destination'), '');
+    }
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -12,9 +15,8 @@ const storage = multer.diskStorage({
   },
 });
 
-// File filter to accept images and videos
 const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const fileTypes = /jpeg|jpg|png|gif|mp4|mkv|avi|mov/;
+  const fileTypes = /jpeg|jpg|png|mp4/;
   const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = fileTypes.test(file.mimetype);
 
@@ -25,18 +27,15 @@ const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.
   }
 };
 
-// Multer configuration for multiple files
 const upload = multer({
-    
   storage,
-  limits: { fileSize: 1024 * 1024 * 50 }, // 50 MB file size limit
+  limits: { fileSize: 1024 * 1024 * 50 },
   fileFilter,
 });
 
-export const uploadSingle = upload.single('file'); // For single file
-export const uploadMultiple = upload.array('files', 10); // For multiple files, up to 10 files
+export const uploadSingle = upload.single('file');
+export const uploadMultiple = upload.array('files', 10);
 export const uploadFields = upload.fields([
   { name: 'images', maxCount: 5 },
-  { name: 'videos', maxCount: 5 },
+  { name: 'videos', maxCount: 1 },
 ]);
-

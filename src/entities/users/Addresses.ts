@@ -16,7 +16,7 @@ export class Addresses extends BaseEntity {
   @PrimaryGeneratedColumn()
   AddressID: number;
 
-  @ManyToOne(() => Users, (user) => user.UserID)
+  @ManyToOne(() => Users, (user) => user.Addresses)
   User: Users;
 
   @OneToMany(() => Orders, (order) => order.Address)
