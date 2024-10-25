@@ -16,7 +16,6 @@ export const IsAuthenticated = async (req: Request, res: Response, next: NextFun
 
         next();
     } catch (error) {
-        // If the token is invalid, respond with a 401 Unauthorized error
         return res.status(401).json({ message: 'Invalid token' });
     }
 };
@@ -24,9 +23,6 @@ export const IsAuthenticated = async (req: Request, res: Response, next: NextFun
 
 export const isAuthorized = async (req: Request, res: Response, next: NextFunction) => {
     IsAuthenticated(req, res, () => {
-        console.log((req as any).user.payload.userId);
-        console.log("=================================");
-        console.log(req.params.id);
         if ((req as any).user.payload.userId === req.params.id || (req as any).user.payload.role === "admin") {
             next();
         } else {

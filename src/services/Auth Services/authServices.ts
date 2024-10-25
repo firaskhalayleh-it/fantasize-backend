@@ -69,7 +69,6 @@ export const s_loginUser = async (req: Request, res: Response) => {
             // console.log(isExist);
 
             const token = await generateToken(user.UserID);
-            console.log(token);
             res.cookie("authToken", token, { httpOnly: true })
 
             return (token);

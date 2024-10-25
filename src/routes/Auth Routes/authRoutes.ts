@@ -42,12 +42,6 @@ authRoute.post("/logout",IsAuthenticated,c_logOutUser);
 authRoute.post("/reset_password",c_resetPassword);
 
 
-//  @description  get user by firebase UID
-//  @route        /:userID/firebaseUID
-//  @method       Post
-//  @access       public
-//
-// authRoute.post("/user/firebaseUID");
 
 
 
