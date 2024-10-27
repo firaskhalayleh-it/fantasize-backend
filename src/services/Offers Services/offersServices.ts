@@ -7,12 +7,11 @@ import { Packages } from "../../entities/packages/Packages";
 //----------------------- Create a new offer  -----------------------
 export const s_createNewOffer = async (req: Request, res: Response) => {
     try {
-        const { IsActive, Discount, ValidFrom, ValidTo} = req.body;
+        const { Discount, ValidFrom, ValidTo} = req.body;
         const validfrom = new Date(ValidFrom);
         const validto = new Date(ValidTo);
         const addNewOffer = Offers.create({
             Discount: Discount,
-            IsActive: IsActive,
             ValidFrom: validfrom,
             ValidTo: validto,
         });
@@ -27,7 +26,7 @@ export const s_createNewOffer = async (req: Request, res: Response) => {
 //----------------------- Create a new offer for Product -----------------------
 export const s_createOfferProduct = async (req: Request, res: Response) => {
     try {
-        const { IsActive, Discount, ValidFrom, ValidTo, ProductID } = req.body;
+        const {Discount, ValidFrom, ValidTo, ProductID } = req.body;
         const validfrom = new Date(ValidFrom);
         const validto = new Date(ValidTo);
         const product = await Products.findOne({ where: { ProductID: ProductID } });
@@ -36,7 +35,6 @@ export const s_createOfferProduct = async (req: Request, res: Response) => {
         }
         const productOffer = Offers.create({
             Discount: Discount,
-            IsActive: IsActive,
             ValidFrom: validfrom,
             ValidTo: validto,
         });
@@ -58,7 +56,7 @@ export const s_createOfferProduct = async (req: Request, res: Response) => {
 //----------------------- Create a new offer for Package -----------------------
 export const s_createOfferPackage = async (req: Request, res: Response) => {
     try {
-        const { IsActive, Discount, ValidFrom, ValidTo, PackageID } = req.body;
+        const {Discount, ValidFrom, ValidTo, PackageID } = req.body;
         const validfrom = new Date(ValidFrom);
         const validto = new Date(ValidTo);
         const pkg = await Packages.findOne({ where: { PackageID: PackageID } });
@@ -67,7 +65,6 @@ export const s_createOfferPackage = async (req: Request, res: Response) => {
         }
         const packageOffer = Offers.create({
             Discount: Discount,
-            IsActive: IsActive,
             ValidFrom: validfrom,
             ValidTo: validto,
         });
@@ -150,7 +147,7 @@ export const s_getAllOffersForPackage = async (req: Request, res: Response) => {
 export const s_updateOffer = async (req: Request, res: Response) => {
     try {
         const offerId = Number(req.params.offerId);
-        const { IsActive, Discount, ValidFrom, ValidTo } = req.body;
+        const { Discount, ValidFrom, ValidTo } = req.body;
         const validfrom = new Date(ValidFrom);
         const validto = new Date(ValidTo);
         const offer = await Offers.findOne({ where: { OfferID: offerId } });
@@ -158,7 +155,6 @@ export const s_updateOffer = async (req: Request, res: Response) => {
             return res.status(404).send({ message: "Offer not found" });
         }
         offer.Discount = Discount || offer.Discount;
-        offer.IsActive = IsActive
         offer.ValidFrom = validfrom || offer.ValidFrom;
         offer.ValidTo = validto || offer.ValidTo;
         await offer.save();
@@ -189,26 +185,33 @@ export const s_getOfferByID = async (req: Request, res: Response) => {
 //------------------------ home offers -----------------------
 export const s_homeOffers = async (req: Request, res: Response) => {
     try {
-        const offers = await Offers.find({ relations: ["Products", "Packages"],take:3}); 
-        if (offers.length === 0) {
+        const offers = await Offers.find({ where: { IsActive: true },relations:["Products","Packages"],take:3 });
+        if (!offers || offers.length === 0) {
             return res.status(404).send({ message: "No offers found" });
         }
-        offers.map((offer) => {
-            if (offer.Products.length > 0) {
-                offer.Products.map((product) => {
-                    product.Resource[0];
-                })
+        offers.forEach((offer) => {
+            if (Array.isArray(offer.Products) && offer.Products.length > 0) {
+                offer.Products.forEach((product) => {
+                    console.log("Processing product: ", product);
+                    if (Array.isArray(product.Resource) && product.Resource.length > 0) {
+                        product.Resource[0];
+                    }
+                });
             }
-            if (offer.Packages.length > 0) {
-                offer.Packages.map((pkg) => {
-                    pkg.Resource[0];
-                })
+            if (Array.isArray(offer.Packages) && offer.Packages.length > 0) {
+                offer.Packages.forEach((pkg) => {
+                    if (Array.isArray(pkg.Resource) && pkg.Resource.length > 0) {
+                        pkg.Resource[0];
+                    }
+                });
             }
-        })
-        return offers;
+        });
+
+        return res.status(200).send(offers);
 
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        res.status(500).send({ message: err.message });
     }
 }
+

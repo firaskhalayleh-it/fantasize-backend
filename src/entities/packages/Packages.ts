@@ -38,6 +38,8 @@ export class Packages extends BaseEntity {
   @Column('decimal')
   Price: number;
 
+  @Column('decimal',{ precision: 9, scale: 2, default: 0 })
+  DiscountPrice:number
 
   @Column('int')
   Quantity: number;
@@ -121,7 +123,12 @@ export class Packages extends BaseEntity {
     }
   }
 
-
+  @BeforeInsert()
+  @BeforeUpdate()
+  updateDiscountPrice =()=>{
+    this.DisPrice();
+  }
+  
   @AfterLoad()
   calculateAvgRating() {
     // Check if the ratings array exists and has items
@@ -133,4 +140,26 @@ export class Packages extends BaseEntity {
     }
   }
 
+  @AfterLoad()
+  checkDiscountPrice= () =>{
+    this.DisPrice();
+  }
+
+DisPrice = () => {
+  if (this.Offer && this.Offer.IsActive) {
+      this.DiscountPrice = this.Price - (this.Price * this.Offer.Discount / 100);
+  } else {
+      this.DiscountPrice = 0;
+  }
+}
+
+
+toJSON(){
+  if(this.DiscountPrice === 0){
+    const {DiscountPrice , ...returnWithoutDisPrice}=this;
+    return returnWithoutDisPrice;
+  }else{
+    return this;
+  }
+}
 }

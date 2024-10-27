@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { isAuthorized } from '../../middlewares/isAuthentecated';
+import { IsAuthenticated, isAuthorized } from '../../middlewares/isAuthentecated';
 
 import {
     c_getOfferByID, c_createOfferProduct,
@@ -63,7 +63,7 @@ offerRoute.put('/offers/:offerId', isAuthorized, c_updateOffer);
  *  @method        GET
  *  @access        public
  */
-offerRoute.get('/offers_homeOffers', isAuthorized, c_homeOffers);
+offerRoute.get('/offers_homeOffers', IsAuthenticated, c_homeOffers);
 
 
 // /**

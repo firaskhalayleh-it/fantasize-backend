@@ -10,7 +10,7 @@ export class Offers extends BaseEntity {
   @Column('decimal')
   Discount: number;
 
-  @Column('bool', { default: true })
+  @Column('bool')
   IsActive: boolean;
 
   @OneToMany(() => Products, (product) => product.Offer )
@@ -24,6 +24,7 @@ export class Offers extends BaseEntity {
 
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   ValidTo: Date;
+  
   @BeforeInsert()
   @BeforeUpdate()
   checkOfferStatus() {
@@ -31,7 +32,7 @@ export class Offers extends BaseEntity {
   }
 
   @AfterLoad()
-  async handleAfterLoad() {
+  handleAfterLoad() {
     this.updateIsActiveStatus();
   }
 
