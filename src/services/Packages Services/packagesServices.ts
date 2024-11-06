@@ -7,7 +7,7 @@ import { database } from '../../config/database';
 import { PackageProduct } from '../../entities/packages/packageProduct';
 
 import { getRepository } from 'typeorm';
-import { Resources } from '../../entities/Resources'; 
+import { Resources } from '../../entities/Resources';
 
 
 //----------------------- Create a new package-----------------------
@@ -129,8 +129,10 @@ export const s_createPackage = async (req: Request, res: Response) => {
 //----------------------- Get all packages-----------------------
 export const s_getAllPackages = async (req: Request, res: Response) => {
     try {
-        const getAllPackages = await Packages.find({ relations: ['PackageProduct', 'Reviews','SubCategory', 'Resource', 'PackageCustomization'
-        ] });
+        const getAllPackages = await Packages.find({
+            relations: ['PackageProduct', 'Reviews', 'SubCategory', 'Resource', 'PackageCustomization'
+            ]
+        });
         if (!getAllPackages || getAllPackages.length === 0) {
             return `Not Found Packages`;
         }
@@ -149,7 +151,10 @@ export const s_getAllPackagesUnderSpecificSubcategory = async (req: Request, res
         if (!CategoryID || !subCategoryID) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
-        const pkg = await Packages.find({ where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID } }, relations: ['SubCategory', 'PackageProduct'] });
+        const pkg = await Packages.find({
+            where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID } },
+            relations: ['SubCategory', 'PackageProduct', 'Reviews']
+        });
         if (!pkg) {
             return `the packagies not found`;
         }
@@ -164,7 +169,9 @@ export const s_getAllPackagesUnderSpecificSubcategory = async (req: Request, res
 export const s_getPackageByID = async (req: Request, res: Response) => {
     try {
         const pkgId: any = req.params.packageId;
-        const getPackage = await Packages.findOne({ where: { PackageID: pkgId } })
+        const getPackage = await Packages.findOne({ where: { PackageID: pkgId }, relations: ['PackageProduct', 'Reviews', 'Reviews.User', 'SubCategory', 'Resource', 'Customization',
+            'PackageProduct.Product', 'PackageProduct.Product.SubCategory', 'PackageProduct.Product.Resource'
+        ] });
         if (!getPackage) {
             return `not found a package`
         }
@@ -258,7 +265,7 @@ export const s_updatePackage = async (req: Request, res: Response) => {
                     ProductName: productInDB.Name,
                 });
 
-                
+
                 await newPackageProduct.save();
             }
         }

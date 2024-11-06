@@ -2,16 +2,17 @@
 import express from 'express';
 import { c_assignCustomizationToPackage, c_assignCustomizationToProduct, c_createCustomization, c_getAllCustomizations, c_removeCustomizationFromPackage, c_removeCustomizationFromProduct, c_updateCustomization } from '../../controllers/Customizations Controller/customizationController';
 import { IsAuthenticated,isAuthorized } from '../../middlewares/isAuthentecated';
-import { uploadSingle } from '../../middlewares/multerMiddleware';
+import { uploadDynamic, uploadFields, uploadMultiple, uploadSingle } from '../../middlewares/multerMiddleware';
 
 const customizationRoute = express.Router();
 /**
  *  @description    Create customization
- *  @route           /customization
+ *  @route          /customization
  *  @method         post
  *  @access         private
  */
-customizationRoute.post('/customization', IsAuthenticated, isAuthorized, uploadSingle, c_createCustomization);
+customizationRoute.post('/customization', IsAuthenticated, isAuthorized, uploadDynamic, c_createCustomization);
+
 
 /**
  *  @description    Get all customizations

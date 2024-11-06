@@ -89,18 +89,7 @@ export class Packages extends BaseEntity {
   @OneToMany(() => FavoritePackages, (favoritePackages) => favoritePackages.Package)
   FavoritePackages: FavoritePackages[];
 
-  @ManyToMany(() => Reviews, (review) => review.Products)
-  @JoinTable({
-    name: 'PackagesReviews',
-    joinColumn: {
-      name: 'PackageID',
-      referencedColumnName: 'PackageID'
-    },
-    inverseJoinColumn: {
-      name: 'ReviewID',
-      referencedColumnName: 'ReviewID'
-    }
-  })
+  @ManyToMany(() => Reviews, (review) => review.Packages)
   Reviews: Reviews[];
 
   CreatedAt: Date;

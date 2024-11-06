@@ -7,9 +7,12 @@ import { Packages } from "../../entities/packages/Packages";
 //----------------------- Create a new offer  -----------------------
 export const s_createNewOffer = async (req: Request, res: Response) => {
     try {
-        const { IsActive, Discount, ValidFrom, ValidTo} = req.body;
-        const validfrom = new Date(ValidFrom);
-        const validto = new Date(ValidTo);
+        const { IsActive, Discount, ValidFrom, ValidTo } = req.body;
+        console.log(req.body);
+        let [day, month, year] = ValidFrom.split('/');
+        const validfrom = new Date(`${year}-${month}-${day}`);
+        [day, month, year] = ValidTo.split('/');
+        const validto = new Date(`${year}-${month}-${day}`);
         const addNewOffer = Offers.create({
             Discount: Discount,
             IsActive: IsActive,
@@ -74,7 +77,7 @@ export const s_createOfferPackage = async (req: Request, res: Response) => {
 
         packageOffer.Packages = [PackageID];
         await packageOffer.save();
-        pkg.Offer =packageOffer;
+        pkg.Offer = packageOffer;
         await pkg.save();
 
         return `Add a package offer successfully`
@@ -189,7 +192,7 @@ export const s_getOfferByID = async (req: Request, res: Response) => {
 //------------------------ home offers -----------------------
 export const s_homeOffers = async (req: Request, res: Response) => {
     try {
-        const offers = await Offers.find({ relations: ["Products", "Packages"],take:3}); 
+        const offers = await Offers.find({ relations: ["Products", "Packages"], take: 3 });
         if (offers.length === 0) {
             return res.status(404).send({ message: "No offers found" });
         }
