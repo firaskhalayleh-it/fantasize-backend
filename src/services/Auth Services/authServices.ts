@@ -7,6 +7,7 @@ import { generateToken } from "../../utils/jwt-config";
 import createCookie from "../../utils/cookie-config";
 import { passwordResetTemplate, sendEmail, welcomeTemplate } from "../../utils/email-config";
 import crypto from "crypto";
+import { sendWelcomeNotification } from "../../utils/Registration notifications";
 
 //----------------------- Register User-----------------------
 export const s_signUpUser = async (req: Request, res: Response) => {
@@ -36,13 +37,8 @@ export const s_signUpUser = async (req: Request, res: Response) => {
                 DeviceToken: DeviceToken
             });
             await CreateUser.save();
-            // return res.status(201).send(CreateUser);
-            const emailOptions = {
-                to: email,
-                subject: 'Welcome to our platform',
-                html: welcomeTemplate(userName)
-            };
-            await sendEmail(emailOptions);
+            await sendWelcomeNotification(CreateUser.UserID); 
+
             return `user created successfully`;
             // // console.log(CreateUser);
             // res.status(201).json("user created successfully" + token);

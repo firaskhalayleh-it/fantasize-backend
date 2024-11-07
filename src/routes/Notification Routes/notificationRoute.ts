@@ -1,32 +1,32 @@
 import express from 'express';
-import { NotificationController } from '../../controllers/Notification Controller/notificationController';
 import { isAuthorized } from '../../middlewares/isAuthentecated';
-
+import { c_addNotification, c_deleteNotification, c_getNotifications} from '../../controllers/Notification Controller/notificationController';
 
 const notificationRoute = express.Router();
 
 /**
- *  @description   Send notification to a user
- *  @route         POST /notifications/send
+ *  @description   Add a new notification
+ *  @route         /notifications
  *  @method        POST
- *  @access        Private (Admin)
+ *  @access        private (admin)
  */
-notificationRoute.post('/notifications/send', isAuthorized, NotificationController.sendNotification);
+notificationRoute.post('/addNotification', isAuthorized, c_addNotification);
 
 /**
  *  @description   Get notifications for a user
- *  @route         GET /notifications/:userId
+ *  @route         /notifications/:userId
  *  @method        GET
- *  @access        Private (Authenticated User)
+ *  @access        private (user)
  */
-notificationRoute.get('/notifications/:userId', isAuthorized, NotificationController.getUserNotifications);
+notificationRoute.get('/:userId', isAuthorized, c_getNotifications);
+
 
 /**
- *  @description   Mark a notification as read
- *  @route         PATCH /notifications/:notificationId/read
- *  @method        PATCH
- *  @access        Private (Authenticated User)
+ *  @description   Delete a notification
+ *  @route         /notifications/:notificationId
+ *  @method        DELETE
+ *  @access        private (admin)
  */
-notificationRoute.patch('/notifications/:notificationId/read', isAuthorized, NotificationController.markNotificationAsRead);
+notificationRoute.delete('/:notificationId', isAuthorized, c_deleteNotification);
 
 export default notificationRoute;
