@@ -1,5 +1,4 @@
 import express from 'express';
-
 import { IsAuthenticated, isAuthorized } from '../../middlewares/isAuthentecated';
 
 import {
@@ -27,7 +26,7 @@ offerRoute.post('/addOffer', isAuthorized, c_createNewOffer);
  *  @method        POST
  *  @access        private
  */
-offerRoute.post('/offers', isAuthorized, c_createOfferProduct);
+offerRoute.post('/offers/o', isAuthorized, c_createOfferProduct);
 
 /**
  *  @description   Get all offers

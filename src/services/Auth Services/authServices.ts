@@ -14,7 +14,7 @@ export const s_signUpUser = async (req: Request, res: Response) => {
         if (!email || !password) {
             return 'Please provide an email and password';
         }
-        const isExist = await Users.findOne({ where: { Email: email } })
+        const isExist = await Users.findOne({ where: { Email: email.toUpperCase() } })
         if (isExist) {
             return 'User already exists';
         } else {
@@ -29,7 +29,7 @@ export const s_signUpUser = async (req: Request, res: Response) => {
             }
             const CreateUser = Users.create({
                 Username: userName,
-                Email: email,
+                Email: email.toUpperCase(),
                 Password: hashedPassword,
                 Role: role,
                 DeviceToken: DeviceToken
@@ -60,7 +60,7 @@ export const s_loginUser = async (req: Request, res: Response) => {
         if (email == '' || password == '') {
             return ({ error: 'Please provide an email and password' });
         }
-        const user = await Users.findOne({ where: { Email: email } })
+        const user = await Users.findOne({ where: { Email: email.toUpperCase() } })
         if (!user) {
             return ({ error: 'Wrong Email Or Password !' });
         }
@@ -112,7 +112,7 @@ export const s_resetPassword = async (req: Request, res: Response) => {
         }
 
         // Find the user by email
-        const user = await Users.findOne({ where: { Email: email } });
+        const user = await Users.findOne({ where: { Email: email.toUpperCase() } });
 
         // For security reasons, always respond with the same message
         if (!user) {
@@ -151,3 +151,59 @@ export const s_resetPassword = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'An error occurred while processing your request.' });
     }
 };
+
+
+export const s_signInWithGoogle = async (req: Request, res: Response) => {
+    const { email, googleId, DeviceToken } = req.body;
+    try {
+        // Check if the user exists
+        let user = await Users.findOne({ where: { Email: email.toUpperCase() } });
+        if (!user) {
+            // Create a new user
+            user = Users.create({
+                Username: email.split('@')[0],
+                Email: email,
+                googleId: googleId,
+                DeviceToken: DeviceToken
+            });
+            await user.save();
+        }
+
+        // Generate a JWT token
+        const token = jwt.sign({ userId: user!.UserID }, process.env.JWT_SECRET_KEY!);
+        res.status(200).json({ token });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'An error occurred while processing your request.' });
+    }
+}
+
+
+export const s_signInWithFacebook = async (req: Request, res: Response) => {
+    const { email, facebookId, DeviceToken } = req.body;
+    try {
+        // Check if the user exists
+        let user = await Users.findOne({ where: { Email: email } });
+        if (!user) {
+            // Create a new user
+            user = Users.create({
+                Username: email.split('@')[0],
+                Email: email,
+                facebookId: facebookId,
+                DeviceToken: DeviceToken
+            });
+            await user.save();
+        }
+
+        // Generate a JWT token
+        const token = jwt.sign({ userId: user!.UserID }, process.env.JWT_SECRET_KEY!);
+        res.status(200).json({ token });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'An error occurred while processing your request.' });
+    }
+}
+
+

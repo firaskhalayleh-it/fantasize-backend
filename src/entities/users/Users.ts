@@ -36,7 +36,7 @@ export class Users extends BaseEntity {
   @Column('varchar', { unique: true })
   Email: string;
 
-  @Column('varchar',{nullable:true})
+  @Column('varchar', { nullable: true })
   Password: string;
 
   @Column('varchar', { nullable: true })
@@ -45,30 +45,29 @@ export class Users extends BaseEntity {
   @Column('varchar', { nullable: true })
   DeviceToken: string;
 
-  
+
   @Column('varchar', { nullable: true })
   @Index()
-  resetPasswordToken: string; 
+  resetPasswordToken: string;
 
   @Column('timestamp', { nullable: true })
-  resetPasswordExpires: Date;  
+  resetPasswordExpires: Date;
 
-  @Column('varchar', { nullable: true })
-  FirebaseToken: string;
-  
+
+
   @Column('varchar', { nullable: true, unique: true })
   PhoneNumber: string;
 
   @Column('timestamp', { nullable: true })
   lastlogin: Date;
-  
+
   @Column('varchar', { nullable: true })
   Gender: string;
 
-  @OneToOne(() => Resources, (resource) => resource.User,{nullable:true})
+  @OneToOne(() => Resources, (resource) => resource.User, { nullable: true })
   @JoinColumn()
   UserProfilePicture: Resources;
-  
+
   @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.User)
   FavoriteProducts: FavoriteProducts[];
 
@@ -96,9 +95,6 @@ export class Users extends BaseEntity {
 
   @Column('varchar', { nullable: true, unique: true })
   facebookId: string;
-
-  @Column('varchar', { nullable: true })
-  firebaseUID: string;
 
   @CreateDateColumn()
   CreatedAt: Date;

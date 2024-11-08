@@ -1,5 +1,5 @@
-import express from "express"
-import { c_createCategory, c_createSubcategory, c_deleteCategory, c_DeleteSubcategory, c_disActiveCategory, c_getAllCategories, c_getAllSubcategories, c_getCategory, c_updateCategory, c_updateSubcategory } from "../../controllers/Categories Controller/CategoriesController";
+import express from 'express';
+import { c_createCategory, c_createSubcategory, c_deleteCategory, c_DeleteSubcategory, c_disActiveCategory, c_getAllCategories, c_getAllSubcategories, c_getCategory, c_getNewCollection, c_updateCategory, c_updateSubcategory } from "../../controllers/Categories Controller/CategoriesController";
 
 import { isAuthorized } from "../../middlewares/isAuthentecated";
 import { uploadSingle } from "../../middlewares/multerMiddleware";
@@ -20,7 +20,7 @@ categoryRoute.get('/categories', c_getAllCategories);
  *  @method        POST
  *  @access        Admin
  */
-categoryRoute.post('/categories', isAuthorized,uploadSingle, c_createCategory);
+categoryRoute.post('/categories', isAuthorized, uploadSingle, c_createCategory);
 
 /**
  *  @description   Update a category by ID
@@ -28,7 +28,7 @@ categoryRoute.post('/categories', isAuthorized,uploadSingle, c_createCategory);
  *  @method        PUT
  *  @access        admin
  */
-categoryRoute.put('/category/:id', isAuthorized,uploadSingle, c_updateCategory);
+categoryRoute.put('/category/:id', isAuthorized, uploadSingle, c_updateCategory);
 
 
 
@@ -68,6 +68,15 @@ categoryRoute.get('/categories/subcategories', c_getAllCategories);
  *  @access        admin
  */
 categoryRoute.put('/categories/:CategoryId', isAuthorized, c_disActiveCategory);
+
+
+/**
+ *  @description   get a new collection of subcategories for first 3 categories
+ *  @route         /categories/newCollection
+ *  @method        get
+ *  @access        Public
+ */
+categoryRoute.get('/categories/newCollection', c_getNewCollection);
 
 
 export default categoryRoute;

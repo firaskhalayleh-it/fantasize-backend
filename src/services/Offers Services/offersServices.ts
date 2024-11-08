@@ -7,7 +7,7 @@ import { Packages } from "../../entities/packages/Packages";
 //----------------------- Create a new offer  -----------------------
 export const s_createNewOffer = async (req: Request, res: Response) => {
     try {
-        const { Discount, ValidFrom, ValidTo} = req.body;
+        const { Discount, ValidFrom, ValidTo } = req.body;
         const validfrom = new Date(ValidFrom);
         const validto = new Date(ValidTo);
         const addNewOffer = Offers.create({
@@ -26,7 +26,7 @@ export const s_createNewOffer = async (req: Request, res: Response) => {
 //----------------------- Create a new offer for Product -----------------------
 export const s_createOfferProduct = async (req: Request, res: Response) => {
     try {
-        const {Discount, ValidFrom, ValidTo, ProductID } = req.body;
+        const { Discount, ValidFrom, ValidTo, ProductID } = req.body;
         const validfrom = new Date(ValidFrom);
         const validto = new Date(ValidTo);
         const product = await Products.findOne({ where: { ProductID: ProductID } });
@@ -56,7 +56,7 @@ export const s_createOfferProduct = async (req: Request, res: Response) => {
 //----------------------- Create a new offer for Package -----------------------
 export const s_createOfferPackage = async (req: Request, res: Response) => {
     try {
-        const {Discount, ValidFrom, ValidTo, PackageID } = req.body;
+        const { Discount, ValidFrom, ValidTo, PackageID } = req.body;
         const validfrom = new Date(ValidFrom);
         const validto = new Date(ValidTo);
         const pkg = await Packages.findOne({ where: { PackageID: PackageID } });
@@ -87,17 +87,34 @@ export const s_createOfferPackage = async (req: Request, res: Response) => {
 
 export const s_getAllOffers = async (req: Request, res: Response) => {
     try {
-        const offers = await Offers.find({ relations: ["Products", "Packages"] });
-        if (offers.length === 0) {
-            return res.status(404).send({ message: "No offers found" });
-        }
-        return offers;
+        const offers = await Offers.find({
+            where: { IsActive: true },
+            relations: ["Products", "Packages"]
+        });
 
+        const validOffers = offers.filter((offer) => {
+            const hasProducts = Array.isArray(offer.Products) && offer.Products.length > 0;
+            const hasPackages = Array.isArray(offer.Packages) && offer.Packages.length > 0;
+
+            const now = new Date();
+            const validFrom = offer.ValidFrom ? new Date(offer.ValidFrom) : null;
+            const validTo = offer.ValidTo ? new Date(offer.ValidTo) : null;
+            const isWithinValidDates = (!validFrom || validFrom <= now) && (!validTo || validTo >= now);
+
+            return (hasProducts || hasPackages) && isWithinValidDates;
+        });
+
+        if (validOffers.length === 0) {
+            return res.status(404).send({ message: "No valid offers found" });
+        }
+
+        res.status(200).send(validOffers);
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        res.status(500).send({ message: err.message });
     }
 }
+
 
 //----------------------- Get all offers for a product-----------------------
 
@@ -185,7 +202,14 @@ export const s_getOfferByID = async (req: Request, res: Response) => {
 //------------------------ home offers -----------------------
 export const s_homeOffers = async (req: Request, res: Response) => {
     try {
-        const offers = await Offers.find({ relations: ["Products", "Packages"], take: 3 });
+        const offers = await Offers.createQueryBuilder("offer")
+            .leftJoinAndSelect("offer.Products", "product")
+            .leftJoinAndSelect("product.Resource", "productResource")
+            .leftJoinAndSelect("offer.Packages", "package")
+            .leftJoinAndSelect("package.Resource", "packageResource")
+            .where("product.ProductID IS NOT NULL OR package.PackageID IS NOT NULL")
+            .take(3)
+            .getMany();
         if (offers.length === 0) {
             return res.status(404).send({ message: "No offers found" });
         }
@@ -214,4 +238,5 @@ export const s_homeOffers = async (req: Request, res: Response) => {
         res.status(500).send({ message: err.message });
     }
 }
+
 

@@ -116,8 +116,6 @@ export const s_getAllOrdersUser = async (req: Request, res: Response) => {
         console.log(`user is : ${user}`);
         const orders = await Orders.find({
             where: { User: { UserID: userId }, Status: true },
-            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
-            where: {Status: true ,User:{UserID:userId} },
             relations: [
                 "OrdersProducts", 
                 "OrdersProducts.Product", 

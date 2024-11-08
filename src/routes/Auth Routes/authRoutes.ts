@@ -1,5 +1,5 @@
 // register(create user and role) , log in , log out
-import express from "express"
+import express from "express";
 import { c_loginUser, c_logOutUser, c_registerUser,c_resetPassword } from "../../controllers/Auth Controller/authController";
 import { IsAuthenticated } from "../../middlewares/isAuthentecated";
 const authRoute = express.Router();

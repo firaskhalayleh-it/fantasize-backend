@@ -69,7 +69,7 @@ export const s_createCategory = async (req: Request, res: Response) => {
                 entityName: req.file.filename,
                 fileType: req.file.mimetype,
                 filePath: req.file.path,
-                Category: category 
+                Category: category
             });
 
             // Save the image resource
@@ -176,7 +176,7 @@ export const s_deleteCategory = async (req: Request, res: Response) => {
 export const s_getAllSubcategories = async (req: Request, res: Response) => {
     try {
         const categoryId = Number(req.params.categoryId);
-        const category = await Categories.findOne({ where: { CategoryID: categoryId }, relations: ['SubCategory','Image'] });
+        const category = await Categories.findOne({ where: { CategoryID: categoryId }, relations: ['SubCategory', 'Image'] });
 
         if (category) {
             return res.status(200).json(category.SubCategory);
@@ -199,8 +199,8 @@ export const s_createSubcategory = async (req: Request, res: Response) => {
         if (!Name || Name === '') {
             return res.status(400).send({ message: 'Please provide a subcategory name ' });
         }
-     
-    
+
+
         const categoryId = Number(req.params.categoryId);
         const category = await Categories.findOne({ where: { CategoryID: categoryId } });
 
@@ -250,7 +250,7 @@ export const s_DeleteSubcategory = async (req: Request, res: Response) => {
 //----------------------- Disactivate a category-----------------------
 export const s_disactivateCategory = async (req: Request, res: Response) => {
     try {
-        const categoryId:any = req.params.categoryId;
+        const categoryId: any = req.params.categoryId;
 
         const category = await Categories.findOne({ where: { CategoryID: categoryId } });
 
@@ -300,6 +300,41 @@ export const s_updateSubcategory = async (req: Request, res: Response) => {
             }
         } else {
             return res.status(404).send({ message: 'Subcategory not found' });
+        }
+
+    } catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message })
+    }
+}
+
+//----------------------- get the subcategory for home with picture as new collection under condition that item added to this sub category in less than 3 days -----------------------
+export const s_getNewCollection = async (req: Request, res: Response) => {
+    try {
+        const subcategories = await SubCategories.find({ relations: ['Products'] });
+        let newCollection: any[] = [];
+
+        subcategories.forEach(subcategory => {
+            subcategory.Products.forEach(product => {
+                const today = new Date();
+                const productDate = new Date(product.CreatedAt);
+                const diffTime = Math.abs(today.getTime() - productDate.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays <= 3) {
+                    newCollection.push(product);
+                }
+            });
+        });
+
+        // Sort the new collection by creation date and get the first 3 items
+        newCollection.sort((a, b) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime());
+        newCollection = newCollection.slice(0, 3);
+
+        if (newCollection.length > 0) {
+            return res.status(200).json(newCollection);
+        } else {
+            return res.status(404).send({ message: 'No new collection found' });
         }
 
     } catch (err: any) {

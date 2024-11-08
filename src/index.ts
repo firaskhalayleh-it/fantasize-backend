@@ -28,10 +28,10 @@ import customizationRoute from "./routes/CustomizationRoute/customizationRoute";
 import exploreRoute from "./routes/Explore Route/exploreRoute";
 import { setupSwagger } from "./swagger/swagger";
 import authGoogleFacebookRoute from "./routes/Auth Routes/authUsingFacebookGoogleRoutes";
-import './config/passportConfig'; 
+import homeRoute from "./routes/Home Routes/home_route";
+import './config/passportConfig';
 
 import ip from 'ip';
-
 const app = express();
 const IP = ip.address();
 app.use(cookieParser());
@@ -43,12 +43,14 @@ const PORT = process.env.APP_PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
-  secret:'secret-key',
+  secret: 'secret-key',
   resave: false,
   saveUninitialized: true,
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+
 
 setupSwagger(app);
 app.use('/api', authGoogleFacebookRoute);
@@ -72,6 +74,7 @@ app.use("/api", adminDashboardRoutes);
 app.use("/api", notificationRoute);
 app.use("/api", customizationRoute);
 app.use("/api", exploreRoute);
+app.use("/api", homeRoute);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -4,7 +4,7 @@ import { sendEmail } from "../../utils/email-config";
 
 export class NotificationService {
     // Create a new notification and send it based on type
-    async createAndSendNotification(userId: string, type: 'email' | 'push', templateData: any) {
+    async   createAndSendNotification(userId: string, type: 'email' | 'push', templateData: any) {
         // Fetch the user
         if (!userId) {
             throw new Error('User ID is required');
