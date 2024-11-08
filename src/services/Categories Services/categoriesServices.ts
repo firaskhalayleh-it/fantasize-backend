@@ -250,7 +250,7 @@ export const s_DeleteSubcategory = async (req: Request, res: Response) => {
 //----------------------- Disactivate a category-----------------------
 export const s_disactivateCategory = async (req: Request, res: Response) => {
     try {
-        const categoryId = Number(req.params.categoryId);
+        const categoryId:any = req.params.categoryId;
 
         const category = await Categories.findOne({ where: { CategoryID: categoryId } });
 

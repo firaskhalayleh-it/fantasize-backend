@@ -20,15 +20,15 @@ addressRoute.post("/user/create_address_user",IsAuthenticated,c_addNewAdress);
  *  @access       private
  * 
  */
-addressRoute.put("/user/update_address_user",IsAuthenticated,c_updateUserAddress);
+// addressRoute.put("/user/update_address_user",IsAuthenticated,c_updateUserAddress);
 
-/**
- *  @description  delete user address by userId
- *  @route        /delete_address_user
- *  @method       Delete
- *  @access       private
- * 
- */
+// /**
+//  *  @description  delete user address by userId
+//  *  @route        /delete_address_user
+//  *  @method       Delete
+//  *  @access       private
+//  * 
+//  */
 addressRoute.delete("/user/delete_address_user/:addressId",IsAuthenticated,c_deleteUserAddress);
 
 

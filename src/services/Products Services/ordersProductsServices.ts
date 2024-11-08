@@ -52,6 +52,9 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
                 OrdersProducts: [],
             });
             await order.save();
+            order.OrdersProducts = [];
+        }else{
+            order.OrdersProducts = order.OrdersProducts || [];
         }
 
         // Check if the product is already in the order

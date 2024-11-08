@@ -2,7 +2,7 @@
  * @swagger
  * /api/order:
  *   post:
- *     summary: Create  an order for the authenticated user
+ *     summary: Create an order for the authenticated user
  *     tags: [Order Products]
  *     description: Creates a new order
  *     security:
@@ -16,11 +16,9 @@
  *             properties:
  *               productId:
  *                 type: integer
- *                 description: The ID of the product to order
  *                 example: 1
  *               quantity:
  *                 type: integer
- *                 description: The quantity of the product to order
  *                 example: 2
  *               OrderedOptions:
  *                 type: array
@@ -33,7 +31,6 @@
  *                       example: "material"
  *                     type:
  *                       type: string
- *                       description: The type of option (e.g., "dropdown", "checkbox")
  *                       example: "dropdown"
  *                     optionValues:
  *                       type: array
@@ -42,19 +39,15 @@
  *                         properties:
  *                           name:
  *                             type: string
- *                             description: The name of the option value
  *                             example: "Plastic"
  *                           value:
  *                             type: string
- *                             description: The actual value of the option
  *                             example: "Plastic"
  *                           isSelected:
  *                             type: boolean
- *                             description: Indicates if this value is selected
  *                             example: true
  *                           filePath:
  *                             type: string
- *                             description: Optional file path related to the option
  *                             example: "/images/size-Plastic.png"
  *     responses:
  *       200:
@@ -66,6 +59,7 @@
  *       500:
  *         description: Internal server error
  */
+
 
 /**
  * @swagger

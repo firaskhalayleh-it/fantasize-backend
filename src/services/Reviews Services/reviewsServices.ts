@@ -90,7 +90,7 @@ export const s_createReviewPackage = async (req: Request, res: Response) => {
 
 export const s_getAllReviewsProduct = async (req: Request, res: Response) => {
     try {
-        const productId = Number(req.params.productId);
+        const productId:any = req.params.productId;
         const product = await Products.findOne({ where: { ProductID: productId } });
         if (!product) {
             return res.status(404).send({ message: "Product not found" });
@@ -111,7 +111,7 @@ export const s_getAllReviewsProduct = async (req: Request, res: Response) => {
 
 export const s_getAllReviewsPackage = async (req: Request, res: Response) => {
     try {
-        const packageId = Number(req.params.packageId);
+        const packageId:any = req.params.packageId;
         const pkg = await Packages.findOne({ where: { PackageID: packageId } });
         if (!pkg) {
             return res.status(404).send({ message: "Package not found" });
@@ -132,7 +132,7 @@ export const s_getAllReviewsPackage = async (req: Request, res: Response) => {
 
 export const s_updateReview = async (req: Request, res: Response) => {
     try {
-        const reviewId = Number(req.params.reviewId);
+        const reviewId :any = req.params.reviewId;
         const { Rating, Comment } = req.body;
         const reviewToUpdate = await Reviews.findOne({ where: { ReviewID: reviewId } });
         if (!reviewToUpdate) {

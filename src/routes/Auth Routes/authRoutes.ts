@@ -10,6 +10,7 @@ const authRoute = express.Router();
  *  @method       Post
  *  @access       public
  */
+
 authRoute.post("/register",c_registerUser);
 
 /**
@@ -19,6 +20,8 @@ authRoute.post("/register",c_registerUser);
  *  @access       public
  * 
  */
+
+
 authRoute.post("/login",c_loginUser);
 
 /**
@@ -28,7 +31,7 @@ authRoute.post("/login",c_loginUser);
  *  @access       private
  * 
  */
-    
+
 authRoute.post("/logout",IsAuthenticated,c_logOutUser);
 
 
@@ -39,6 +42,8 @@ authRoute.post("/logout",IsAuthenticated,c_logOutUser);
  *  @access       public
  * 
  */
+
+
 authRoute.post("/reset_password",c_resetPassword);
 
 

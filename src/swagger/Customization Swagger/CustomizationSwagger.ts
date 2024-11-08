@@ -15,27 +15,25 @@
  *             type: object
  *             properties:
  *               options:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     type:
- *                       type: string
- *                       description: Type of the option (e.g., image, text, etc.)
- *                       example: image
- *                     optionValues:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           value:
- *                             type: string
- *                             description: The value of the option.
- *                             example: "red"
- *                           isSelected:
- *                             type: boolean
- *                             description: Whether the option value is selected.
- *                             example: true
+ *                 type: object
+ *                 properties:
+ *                   type:
+ *                     type: string
+ *                     description: Type of the option (e.g., image, text, etc.)
+ *                     example: image
+ *                   optionValues:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         value:
+ *                           type: string
+ *                           description: The value of the option.
+ *                           example: "red"
+ *                         isSelected:
+ *                           type: boolean
+ *                           description: Whether the option value is selected.
+ *                           example: true
  *               file:
  *                 type: string
  *                 format: binary
@@ -69,9 +67,9 @@
  * @swagger
  * /api/customization:
  *   put:
- *     summary: Update a customization
+ *     summary: Update an existing customization
  *     tags: [Customization]
- *     description: Updates an existing customization based on the provided customizationId and options
+ *     description: Updates an existing customization with provided customizationId and options, and optional image file uploads. Requires authentication and authorization.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -83,32 +81,36 @@
  *             properties:
  *               customizationId:
  *                 type: integer
+ *                 description: The ID of the customization to update.
  *                 example: 123
  *               options:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     type:
- *                       type: string
- *                       example: image
- *                     optionValues:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           value:
- *                             type: string
- *                             example: "red"
- *                           isSelected:
- *                             type: boolean
- *                             example: true
- *                           filePath:
- *                             type: string
- *                             example: "/uploads/red-image.png"
+ *                 type: object
+ *                 properties:
+ *                   type:
+ *                     type: string
+ *                     description: Type of the option (e.g., image, text, etc.)
+ *                     example: image
+ *                   optionValues:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         value:
+ *                           type: string
+ *                           description: The value of the option.
+ *                           example: "red"
+ *                         isSelected:
+ *                           type: boolean
+ *                           description: Whether the option value is selected.
+ *                           example: true
+ *                         filePath:
+ *                           type: string
+ *                           description: The path of the uploaded file, if applicable.
+ *                           example: "/uploads/red-image.png"
  *               file:
  *                 type: string
  *                 format: binary
+ *                 description: The file to upload, if the option type is 'image'.
  *     responses:
  *       200:
  *         description: Customization updated successfully

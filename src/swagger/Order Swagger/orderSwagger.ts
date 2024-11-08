@@ -1,6 +1,6 @@
 /**
  * @swagger
- * /api/order/checkout:
+ * /api/checkout:
  *   post:
  *     summary: Create a new order for a user
  *     tags: [Order]
@@ -39,7 +39,7 @@
 
 /**
  * @swagger
- * /api/order/orders:
+ * /api/orders:
  *   get:
  *     summary: Retrieve all orders for the authenticated user
  *     tags: [Order]
@@ -56,7 +56,7 @@
 
 /**
  * @swagger
- * /api/order/orders/admin:
+ * /api/orders/admin:
  *   get:
  *     summary: Retrieve all orders for admin
  *     tags: [Order]
@@ -71,7 +71,7 @@
 
 /**
  * @swagger
- * /api/order/orders/{orderId}:
+ * /api/orders/{orderId}:
  *   get:
  *     summary: Retrieve a single order by ID
  *     tags: [Order]
@@ -95,7 +95,7 @@
 
 /**
  * @swagger
- * /api/order/cart:
+ * /api/cart:
  *   get:
  *     summary: Retrieve the cart for the authenticated user
  *     tags: [Order]

@@ -39,6 +39,8 @@ export class Products extends BaseEntity {
   })
   Material: string;
 
+  @Column('decimal',{ precision: 9, scale: 2, default: 0 })
+  DiscountPrice:number
 
   @Column('int', { default: 0 })
   AvgRating: number;
@@ -116,7 +118,12 @@ export class Products extends BaseEntity {
     }
   }
 
-  
+  @BeforeInsert()
+  @BeforeUpdate()
+  updateDiscountPrice =()=>{
+    this.DisPrice();
+  }
+
 @AfterLoad()
 calculateAvgRating = () => {
     if (!Array.isArray(this.Review) || this.Review.length === 0) {
@@ -127,4 +134,27 @@ calculateAvgRating = () => {
     }
 }
 
+@AfterLoad()
+checkDiscountPrice= () =>{
+  this.DisPrice();
+}
+
+
+DisPrice = () => {
+  if (this.Offer && this.Offer.IsActive) {
+      this.DiscountPrice = this.Price - (this.Price * this.Offer.Discount / 100);
+  } else {
+      this.DiscountPrice = 0;
+  }
+}
+
+
+toJSON(){
+  if(this.DiscountPrice === 0){
+    const {DiscountPrice , ...returnWithoutDisPrice}=this;
+    return returnWithoutDisPrice;
+  }else{
+    return this;
+  }
+}
 }

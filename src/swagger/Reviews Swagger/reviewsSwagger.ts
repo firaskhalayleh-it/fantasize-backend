@@ -83,7 +83,7 @@
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: productId
  *         required: true
  *         description: The ID of the product for which to retrieve reviews.
@@ -110,7 +110,7 @@
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: packageId
  *         required: true
  *         description: The ID of the package for which to retrieve reviews.
