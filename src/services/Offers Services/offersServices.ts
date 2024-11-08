@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Offers } from "../../entities/Offers";
 import { Products } from "../../entities/products/Products";
 import { Packages } from "../../entities/packages/Packages";
+import { createNewOffer } from "../../utils/Offer Notification";
 
 
 //----------------------- Create a new offer  -----------------------
@@ -45,6 +46,7 @@ export const s_createOfferProduct = async (req: Request, res: Response) => {
 
         await product.save();
 
+        await createNewOffer();
 
         return `Add a product offer successfully`;
     } catch (err: any) {
@@ -74,6 +76,7 @@ export const s_createOfferPackage = async (req: Request, res: Response) => {
         pkg.Offer = packageOffer;
         await pkg.save();
 
+        await createNewOffer();
         return `Add a package offer successfully`
 
     } catch (err: any) {
