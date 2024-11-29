@@ -2,6 +2,9 @@ import { Request, Response, Router } from 'express';
 import { Categories } from '../../entities/categories/Categories';
 import { SubCategories } from '../../entities/categories/SubCategories';
 import { Resources } from '../../entities/Resources';
+import { Packages } from '../../entities/packages/Packages';
+import { Products } from '../../entities/products/Products';
+import { MoreThan, LessThan } from 'typeorm';
 
 //-----------------------Get all categories -----------------------
 export const s_getAllCategories = async (req: Request, res: Response) => {
@@ -311,34 +314,46 @@ export const s_updateSubcategory = async (req: Request, res: Response) => {
 //----------------------- get the subcategory for home with picture as new collection under condition that item added to this sub category in less than 3 days -----------------------
 export const s_getNewCollection = async (req: Request, res: Response) => {
     try {
-        const subcategories = await SubCategories.find({ relations: ['Products'] });
-        let newCollection: any[] = [];
+        const today = new Date();
 
-        subcategories.forEach(subcategory => {
-            subcategory.Products.forEach(product => {
-                const today = new Date();
-                const productDate = new Date(product.CreatedAt);
-                const diffTime = Math.abs(today.getTime() - productDate.getTime());
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                if (diffDays <= 3) {
-                    newCollection.push(product);
-                }
-            });
+        // Fetch products created within the last 3 days with active offers
+        const products = await Products.find({
+            where: [
+                { CreatedAt: MoreThan(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)) },
+                { Offer: { ValidFrom: LessThan(today), ValidTo: MoreThan(today), IsActive: true } }
+            ],
+            relations: ["Offer", "Resource", "SubCategory"]
         });
 
-        // Sort the new collection by creation date and get the first 3 items
-        newCollection.sort((a, b) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime());
-        newCollection = newCollection.slice(0, 3);
+        // Fetch packages created within the last 3 days with active offers
+        const packages = await Packages.find({
+            where: [
+                { CreatedAt: MoreThan(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)) },
+                { Offer: { ValidFrom: LessThan(today), ValidTo: MoreThan(today), IsActive: true } }
+            ],
+            relations: ["Offer", "Resource", "SubCategory"]
+        });
 
-        if (newCollection.length > 0) {
-            return res.status(200).json(newCollection);
-        } else {
-            return res.status(404).send({ message: 'No new collection found' });
-        }
+        // make the resources of the products and packages to be the first image
+        products.forEach(product => {
+            product.Resource = product.Resource.filter(resource => resource.fileType.includes('image'));
+
+        });
+
+        packages.forEach(pkg => {
+            pkg.Resource = pkg.Resource.filter(resource => resource.fileType.includes('image'));
+        });
+        // Combine products and packages, limiting to 3 items in total
+        const newCollection = [...products, ...packages]
+            .sort((a, b) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime())
+            .slice(0, 3);
+
+        return newCollection.length > 0
+            ? res.status(200).json(newCollection)
+            : res.status(404).send({ message: 'No new collection found' });
 
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        res.status(500).send({ message: err.message });
     }
 }

@@ -5,7 +5,7 @@ import { generateToken } from "../../utils/jwt-config";
 import { Roles } from "../../entities/users/Roles";
 import { sendEmail } from "../../utils/email-config";
 import { welcomeTemplate } from "../../utils/email-config";
-import { sendWelcomeNotification } from "../../utils/Registration notifications";
+import { sendWelcomeNotification } from "../../utils/RegistrationNotifications";
 
 export const s_loginUserUsingGoogle = async (req: Request , res : Response) => {
     const userInfo = (req as any).user;

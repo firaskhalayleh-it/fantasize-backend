@@ -18,7 +18,7 @@ const productRoute = express.Router();
  *  @access        Public
  */
 
-productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', IsAuthenticated, c_getProductByCategoryAndSubCategory);
+productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', c_getProductByCategoryAndSubCategory);
 
 /**
  *  @description   Get a single product by ID
@@ -26,7 +26,7 @@ productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', IsAuthenticated, 
  *  @method        GET
  *  @access        Public
  */
-productRoute.get('/getProduct/:id', IsAuthenticated, c_getProduct);
+productRoute.get('/getProduct/:id', c_getProduct);
 
 /**
  *  @description   Create a new product

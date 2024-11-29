@@ -6,7 +6,7 @@ import { OrdersPackages } from "../../entities/packages/OrdersPackages";
 import { PaymentMethods } from "../../entities/users/PaymentMethods";
 import { Addresses } from "../../entities/users/Addresses";
 import { EmailOptions, orderConfirmationTemplate, sendEmail } from "../../utils/email-config";
-import sendOrderNotification from "../../utils/Order Notification";
+import sendOrderNotification from "../../utils/OrderNotification";
 
 
 //----------------------- checkout order for a user-----------------------

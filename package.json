@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "concurrently \"tsc -w\" \"pm2 start ecosystem.config.js --watch\"",
+    "dev": "nodemon src/index.ts",
     "typeorm": "typeorm-ts-node-commonjs"
   },
   "keywords": [],
@@ -17,7 +17,7 @@
   "author": "firas",
   "license": "ISC",
   "dependencies": {
-    "@types/dotenv": "^6.1.1",
+    "@types/validator": "^13.12.2",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "connect-redis": "^7.1.1",
@@ -27,7 +27,7 @@
     "express": "^5.0.0",
     "express-session": "^1.18.1",
     "firebase": "^10.13.1",
-    "firebase-admin": "^12.7.0",
+    "firebase-admin": "^12.6.0",
     "ip": "^2.0.1",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
@@ -41,7 +41,8 @@
     "redis": "^4.7.0",
     "reflect-metadata": "^0.2.2",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "validator": "^13.12.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

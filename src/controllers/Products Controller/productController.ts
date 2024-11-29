@@ -8,8 +8,7 @@ import { s_createProduct, s_getAllProducts, s_getProduct, s_getProductByCategory
 // ---------------------> Get all products <---------------------
 export const c_getAllProducts = async (req: Request, res: Response) => {
     const result = await s_getAllProducts(req, res);
-    return res.status(200).send(result);
-
+    return res.send(result);
 }
 
 // ---------------------> Get product by id <---------------------

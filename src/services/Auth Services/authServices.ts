@@ -6,7 +6,9 @@ import { Roles } from "../../entities/users/Roles";
 import { generateToken } from "../../utils/jwt-config";
 import { passwordResetTemplate, sendEmail, welcomeTemplate } from "../../utils/email-config";
 import crypto from "crypto";
-import { sendWelcomeNotification } from "../../utils/Registration Notifications";
+import { sendWelcomeNotification } from "../../utils/RegistrationNotifications";
+import { Resources } from "../../entities/Resources";
+import path from "path";
 
 //----------------------- Register User-----------------------
 export const s_signUpUser = async (req: Request, res: Response) => {
@@ -52,7 +54,7 @@ export const s_signUpUser = async (req: Request, res: Response) => {
 //-----------------------Log In User-----------------------
 export const s_loginUser = async (req: Request, res: Response) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, DeviceToken } = req.body;
         if (email == '' || password == '') {
             return ({ error: 'Please provide an email and password' });
         }
@@ -60,9 +62,16 @@ export const s_loginUser = async (req: Request, res: Response) => {
         if (!user) {
             return ({ error: 'Wrong Email Or Password !' });
         }
+
+        user.DeviceToken = DeviceToken ?? user.DeviceToken;
+        await user.save();
+
+
         const passwordMatch = await bcrypt.compare(password, user!.Password);
         if (passwordMatch) {
             // console.log(isExist);
+
+
 
             const token = await generateToken(user.UserID);
             res.cookie("authToken", token, { httpOnly: true })
@@ -97,6 +106,7 @@ export const s_logOutUser = async (req: Request, res: Response) => {
         res.status(500).send({ message: err.message })
     }
 }
+
 
 export const s_resetPassword = async (req: Request, res: Response) => {
     try {
@@ -149,56 +159,142 @@ export const s_resetPassword = async (req: Request, res: Response) => {
 };
 
 
+
 export const s_signInWithGoogle = async (req: Request, res: Response) => {
-    const { email, googleId, DeviceToken } = req.body;
+    const { email, googleId, DeviceToken, name, } = req.body;
+
     try {
-        // Check if the user exists
-        let user = await Users.findOne({ where: { Email: email.toUpperCase() } });
-        if (!user) {
-            // Create a new user
-            user = Users.create({
-                Username: email.split('@')[0],
-                Email: email,
-                googleId: googleId,
-                DeviceToken: DeviceToken
+        // Normalize email to ensure case consistency
+        const normalizedEmail = email.trim().toUpperCase();
+
+        let user = await Users.findOne({
+            where: [{ Email: normalizedEmail }, { googleId }],
+        });
+
+        let profilePicture: Resources | null = null;
+        if (req.file) {
+            profilePicture = Resources.create({
+                entityName: req.file.filename,
+                filePath: path.join('resources', req.file.filename),
+                fileType: req.file.mimetype,
             });
-            await user.save();
+            profilePicture = await profilePicture.save();
         }
 
-        // Generate a JWT token
-        const token = jwt.sign({ userId: user!.UserID }, process.env.JWT_SECRET_KEY!);
-        res.status(200).json({ token });
-    }
-    catch (err) {
+        if (!user) {
+            const potentialUsername = name || email.split('@')[0];
+            const existingUsername = await Users.findOne({ where: { Username: potentialUsername } });
+
+            const finalUsername = existingUsername
+                ? `${potentialUsername}_${Date.now()}`
+                : potentialUsername;
+
+            // Check or create the 'user' role
+            let role = await Roles.findOne({ where: { RoleName: 'user' } });
+            if (!role) {
+                role = Roles.create({ RoleName: 'user' });
+                role = await role.save();
+            }
+
+            user = Users.create({
+                Username: finalUsername,
+                Email: normalizedEmail,
+                googleId,
+                Role: role,
+                DeviceToken,
+                UserProfilePicture: profilePicture || undefined,
+                lastlogin: new Date(),
+            });
+            await user.save();
+        } else {
+            user.googleId = googleId;
+            user.DeviceToken = DeviceToken;
+            user.lastlogin = new Date();
+            if (req.file) {
+                if (!user.UserProfilePicture) {
+                    user.UserProfilePicture = profilePicture!;
+                } else {
+                    user.UserProfilePicture.filePath = path.join('resources', req.file.filename);
+                    user.UserProfilePicture.fileType = req.file.mimetype;
+                    await user.UserProfilePicture.save();
+                }
+            }
+            await user.save();
+        }
+        const token = await generateToken(user.UserID);
+
+        res.status(200).json(token);
+    } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'An error occurred while processing your request.' });
     }
-}
+};
+
 
 
 export const s_signInWithFacebook = async (req: Request, res: Response) => {
-    const { email, facebookId, DeviceToken } = req.body;
+    const { email, facebookId, DeviceToken, name } = req.body;
     try {
-        // Check if the user exists
-        let user = await Users.findOne({ where: { Email: email } });
+        // Normalize email to ensure case consistency
+        const normalizedEmail = email.trim().toUpperCase();
+
+        let user = await Users.findOne({
+            where: [{ Email: normalizedEmail }, { facebookId }],
+        });
+
+        let profilePicture: Resources | null = null;
+        if (req.file) {
+            profilePicture = Resources.create({
+                entityName: req.file.filename,
+                filePath: path.join('resources', req.file.filename),
+                fileType: req.file.mimetype,
+            });
+            profilePicture = await profilePicture.save();
+        }
+
         if (!user) {
-            // Create a new user
+            const potentialUsername = name || email.split('@')[0];
+            const existingUsername = await Users.findOne({ where: { Username: potentialUsername } });
+
+            const finalUsername = existingUsername
+                ? `${potentialUsername}_${Date.now()}`
+                : potentialUsername;
+
+            // Check or create the 'user' role
+            let role = await Roles.findOne({ where: { RoleName: 'user' } });
+            if (!role) {
+                role = Roles.create({ RoleName: 'user' });
+                role = await role.save();
+            }
+
+            
+
             user = Users.create({
-                Username: email.split('@')[0],
-                Email: email,
-                facebookId: facebookId,
-                DeviceToken: DeviceToken
+                Username: finalUsername,
+                Email: normalizedEmail,
+                facebookId,
+                Role: role,
+                DeviceToken,
+                UserProfilePicture: profilePicture || undefined,
             });
             await user.save();
         }
+        else {
+            user.facebookId = facebookId;
+            user.DeviceToken = DeviceToken;
+            if (req.file && !user.UserProfilePicture) {
+                user.UserProfilePicture = profilePicture!;
+            }
+            await user.save();
+        }
+        const token = await generateToken(user.UserID);
 
-        // Generate a JWT token
-        const token = jwt.sign({ userId: user!.UserID }, process.env.JWT_SECRET_KEY!);
-        res.status(200).json({ token });
-    }
-    catch (err) {
-        console.error(err);
+        res.status(200).json(token);
+
+    } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'An error occurred while processing your request.' });
+
     }
 }
 

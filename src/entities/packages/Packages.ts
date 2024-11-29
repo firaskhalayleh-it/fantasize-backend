@@ -94,7 +94,7 @@ export class Packages extends BaseEntity {
   @ManyToMany(() => Reviews, (review) => review.Packages)
   Reviews: Reviews[];
 
-
+  @CreateDateColumn()
   CreatedAt: Date;
 
   @CreateDateColumn()
