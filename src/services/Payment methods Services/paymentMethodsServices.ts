@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PaymentMethods } from '../../entities/users/PaymentMethods';
 import { Users } from '../../entities/users/Users';
+import { Orders } from '../../entities/Orders';
 
 //----------------------- create new user payment Method by userId-----------------------
 export const s_createPaymentMethod = async (req: Request, res: Response) => {
@@ -109,11 +110,16 @@ export const s_deletePaymentMethod = async (req: Request, res: Response) => {
         }
         const paymentMethodId = Number(req.body.PaymentMethodID)
 
-        const deletePaymentMethod = (await PaymentMethods.delete({ PaymentMethodID: paymentMethodId }));
-        if (deletePaymentMethod.affected == 0) {
-            return res.status(404).send({ message: "paymentMethod not found" })
+        const existingOrders = await Orders.find({ where: { PaymentMethod: { PaymentMethodID: paymentMethodId } } });
+        if (existingOrders.length > 0) {
+            return res.status(400).send({ message: "Cannot delete payment method with existing orders" });
         }
-        return ('paymentMethod deleted successfully');
+
+        const deletePaymentMethod = await PaymentMethods.delete({ PaymentMethodID: paymentMethodId });
+        if (deletePaymentMethod.affected === 0) {
+            return res.status(404).send({ message: "paymentMethod not found" });
+        }
+        return res.status(200).send({ message: 'paymentMethod deleted successfully' });
 
     } catch (err: any) {
         console.log(err);

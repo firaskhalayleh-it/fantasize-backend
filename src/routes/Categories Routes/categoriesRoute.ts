@@ -48,7 +48,7 @@ categoryRoute.post('/categories/:categoryId/subcategories', isAuthorized, c_crea
  *  @method        put
  *  @access        admin
  */
-categoryRoute.put('/categories/:categoryId/subcategories/:subcategoryId', isAuthorized, c_updateSubcategory);
+categoryRoute.put('/categories/:categoryId/subcategories/:subcategoryId', c_updateSubcategory);
 
 /**
  *  @description   Get  all categories with subcategories

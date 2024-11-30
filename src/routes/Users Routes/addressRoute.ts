@@ -20,7 +20,7 @@ addressRoute.post("/user/create_address_user",IsAuthenticated,c_addNewAdress);
  *  @access       private
  * 
  */
-// addressRoute.put("/user/update_address_user",IsAuthenticated,c_updateUserAddress);
+addressRoute.put("/user/update_address_user",IsAuthenticated,c_updateUserAddress);
 
 // /**
 //  *  @description  delete user address by userId
