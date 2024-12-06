@@ -2,13 +2,21 @@ import express from "express"
 import { authMiddleware } from "../../middlewares/auth_middleware";
 import { adminMiddleware } from "../../middlewares/admin_middleware";
 import { isAuthorized } from "../../middlewares/isAuthentecated";
-import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory, c_updateProduct } from "../../controllers/Products Controller/productController";
+import { c_createProduct, c_getAllProducts, c_getProduct, c_getProductByCategoryAndSubCategory, c_singleProduct, c_updateProduct } from "../../controllers/Products Controller/productController";
 import FavoriteProductRoute from "./favoriteProductsRoutes";
 import { uploadFields } from "../../middlewares/multerMiddleware";
 
 const productRoute = express.Router();
 
 
+/**
+ *  @description   Get all products 
+ *  @route         /products
+ *  @method        GET
+ *  @access        Public
+ */
+
+productRoute.get('/GetAllProducts', isAuthorized, c_getAllProducts);
 
 
 
@@ -43,7 +51,7 @@ productRoute.post('/createProduct', isAuthorized,uploadFields, c_createProduct);
  *  @method        PUT
  *  @access        admin
  */
-productRoute.put('/product/:productId', isAuthorized, c_updateProduct);
+productRoute.put('/product/:productId', isAuthorized,uploadFields, c_updateProduct);
 
 
 /**
@@ -59,7 +67,14 @@ productRoute.use('/product/:productId', FavoriteProductRoute);
 
 
 
+/**
+ *  @description   Get all products 
+ *  @route         /products
+ *  @method        GET
+ *  @access        Public
+ */
 
+productRoute.delete('/deleteSingleProduct', isAuthorized, c_singleProduct);
 
 
 

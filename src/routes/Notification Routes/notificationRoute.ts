@@ -1,6 +1,6 @@
 import express from 'express';
 import { isAuthorized } from '../../middlewares/isAuthentecated';
-import { c_addNotification, c_deleteNotification, c_getNotifications} from '../../controllers/Notification Controller/notificationController';
+import { c_addNotification, c_deleteNotification, c_getAllNotification, c_getNotifications} from '../../controllers/Notification Controller/notificationController';
 
 const notificationRoute = express.Router();
 
@@ -19,6 +19,14 @@ notificationRoute.post('/addNotification', isAuthorized, c_addNotification);
  *  @access        private (user)
  */
 notificationRoute.get('/:userId', isAuthorized, c_getNotifications);
+
+/**
+ *  @description   Get All notifications
+ *  @route         /notifications/:userId
+ *  @method        GET
+ *  @access        private (Admin)
+ */
+notificationRoute.get('/getAllNotifications', isAuthorized, c_getAllNotification);
 
 
 /**

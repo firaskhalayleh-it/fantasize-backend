@@ -29,7 +29,7 @@ export const s_getAllProducts = async (req: Request, res: Response) => {
 export const s_getProduct = async (req: Request, res: Response) => {
     try {
         const productId: any = req.params.id;
-        const product = await Products.findOne({ where: { ProductID: productId } })
+        const product = await Products.findOne({ where: { ProductID: productId }, relations:['Brand' ,'SubCategory'] })
         if (!product) {
             return "The Product Not Found !";
         }
@@ -76,19 +76,20 @@ export const s_getProductByCategoryID = async (req: Request, res: Response) => {
 
 
 // ---------------------> Create a new product <---------------------
-
-
 export const s_createProduct = async (req: Request, res: Response) => {
-    try {
+    try { 
+        console.log("i'm here ======================================");
         const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Material } = req.body;
 
         if (!Name || !Price || !Description || !SubCategoryID || !Quantity || !BrandName || !Material) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
-        const isExist = await Products.findOne({where:{Name:Name}});
-        if(isExist){
-            return `the product '${Name}' is already exist.`
+
+        const isExist = await Products.findOne({ where: { Name: Name } });
+        if (isExist) {
+            return res.status(400).send({ message: `The product '${Name}' already exists.` });
         }
+
         const brand = await Brands.findOne({ where: { Name: BrandName } });
         if (!brand) {
             return res.status(400).send({ message: "Brand not found" });
@@ -99,19 +100,15 @@ export const s_createProduct = async (req: Request, res: Response) => {
             return res.status(400).send({ message: "SubCategory not found" });
         }
 
-        // Safely access req.files and handle cases where it might be undefined
         const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
 
-        // Initialize images and videos as empty arrays if they do not exist
         const images = files?.['images'] ?? [];
         const videos = files?.['videos'] ?? [];
 
-        // Check if both arrays are empty
         if (images.length === 0 && videos.length === 0) {
             return res.status(400).send({ message: "Please provide at least one image or video" });
         }
 
-        // Create the product entity
         const product = Products.create({
             Name: String(Name),
             Price: Number(Price),
@@ -122,16 +119,16 @@ export const s_createProduct = async (req: Request, res: Response) => {
             SubCategory: subCategory,
         });
 
-        // Save the product before associating resources
         await product.save();
 
         const resources = Resources;
+
         const imageResources = await Promise.all(images.map(async (image) => {
             const resource = resources.create({
                 entityName: image.filename,
                 filePath: image.path,
                 fileType: image.mimetype,
-                Product: product // Associate product with resource
+                Product: product 
             });
             return await resources.save(resource);
         }));
@@ -141,42 +138,43 @@ export const s_createProduct = async (req: Request, res: Response) => {
                 entityName: video.filename,
                 filePath: video.path,
                 fileType: video.mimetype,
-                Product: product // Associate product with resource
+                Product: product 
             });
             return await resources.save(resource);
         }));
 
-        await product.save();
-
-
-        return res.status(201).send({ message: "Product created successfully" });
+        return res.status(200).send({ message: "Product created successfully" });
 
     } catch (err: any) {
         console.error(err);
-        res.status(500).send({ message: err.message });
+        return res.status(500).send({ message: err.message });
     }
 };
+
 
 
 // ---------------------> Update a product <---------------------
 
 
+
 export const s_updateProduct = async (req: Request, res: Response) => {
     try {
-        const productId = Number(req.params.productId);
+        const  productId :any = req.params;
         const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Material } = req.body;
 
-        const productRepository = (Products);
-        const product = await productRepository.findOne({ where: { ProductID: productId }, relations: ["Resource",] });
-        
+        const productRepository = Products;
+        const product = await productRepository.findOne({
+            where: { ProductID: productId },
+            relations: ["Resource"]
+        });
+
         if (!product) {
             return res.status(404).send({ message: "Product not found" });
         }
 
-        // Update product fields if provided
-        if (Name && Name !== product.Name) {
+        if (Name) {
             const existingProduct = await productRepository.findOne({ where: { Name } });
-            if (existingProduct) {
+            if (existingProduct && existingProduct.ProductID !== product.ProductID) {
                 return res.status(409).send({ message: "Product name already exists" });
             }
             product.Name = Name;
@@ -186,13 +184,42 @@ export const s_updateProduct = async (req: Request, res: Response) => {
         if (Material) product.Material = Material;
         if (Quantity) product.Quantity = Number(Quantity);
 
-        // Update brand if 
         if (BrandName) {
             const brand = await Brands.findOne({ where: { Name: BrandName } });
             if (!brand) {
                 return res.status(404).send({ message: "Brand not found" });
             }
             product.Brand = brand;
+        }
+
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+
+        // إضافة الصور
+        const images = files?.images || [];
+        if (images.length > 0) {
+            for (const image of images) {
+                const resource = Resources.create({
+                    entityName: image.filename,
+                    filePath: `resources/${image.filename}`,
+                    fileType: image.mimetype,
+                    Product: product,
+                });
+                await resource.save();
+            }
+        }
+
+        // إضافة الفيديوهات
+        const videos = files?.videos || [];
+        if (videos.length > 0) {
+            for (const video of videos) {
+                const resource = Resources.create({
+                    entityName: video.filename,
+                    filePath: `resources/${video.filename}`,
+                    fileType: video.mimetype,
+                    Product: product,
+                });
+                await resource.save();
+            }
         }
 
         if (SubCategoryID) {
@@ -202,20 +229,43 @@ export const s_updateProduct = async (req: Request, res: Response) => {
             }
             product.SubCategory = subCategory;
         }
-        
 
         await productRepository.save(product);
 
-        return   "Product updated successfully" ;
-    } catch (err: any) {
-        if (err.code === '23505') {
-            console.error("Unique constraint violation:", err.detail);
-            return res.status(409).send({
-                message: "A product with the same unique attribute already exists.",
-                detail: err.detail
-            });
-        }
-        console.log(err);
-        return res.status(500).send({ message: "An error occurred", error: err.message });
+        return res.status(200).send({ message: "Product updated successfully", success: true });
+
+    } catch (error: any) {
+        console.error("Error:", error);
+        return res.status(500).send({ message: "An error occurred", error: error.message });
     }
 };
+
+// ---------------------> delete a product <---------------------
+
+export const s_singleProduct = async (req: Request, res: Response) => {
+    try {
+        const { productId } = req.body;
+
+        // Check if the product exists
+        const isExistProduct = await Products.findOne({ where: { ProductID: productId } });
+
+        if (isExistProduct) {
+            // Delete related resources first (assuming 'productId' is the correct field in 'Resources')
+            await Resources.delete({ Product: productId });
+
+            // Now delete the product
+            await Products.delete({ ProductID: productId });
+
+            return res.status(200).send({ message: "Product and related resources deleted successfully." });
+        } else {
+            return res.status(404).send({ message: "Product not found." });
+        }
+    } catch (err: any) {
+        console.error(err);
+        return res.status(500).send({
+            message: "An error occurred",
+            error: err.message,
+        });
+    }
+};
+

@@ -6,7 +6,7 @@ import { OrdersPackages } from "../../entities/packages/OrdersPackages";
 import { PaymentMethods } from "../../entities/users/PaymentMethods";
 import { Addresses } from "../../entities/users/Addresses";
 import { EmailOptions, orderConfirmationTemplate, sendEmail } from "../../utils/email-config";
-import sendOrderNotification from "../../utils/Order Notification";
+import sendOrderNotification from "../../utils/OrderNotification";
 
 
 //----------------------- checkout order for a user-----------------------
@@ -154,14 +154,14 @@ export const s_getCartUser = async (req: Request, res: Response) => {
     }
 }
 
-//----------------------- Get all orders for a user-----------------------
+//----------------------- Get all orders -----------------------
 export const s_getAllOrdersAdmin = async (req: Request, res: Response) => {
     try {
         const orders = await Orders.find({
             where: { Status: true },
-            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
+            relations: ["User", "OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
         });
-        console.log('Fetched Orders:', orders);
+        // console.log('Fetched Orders:', orders);
     
       return res.status(200).send(orders);
     } catch (err: any) {

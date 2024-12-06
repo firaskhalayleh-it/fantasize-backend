@@ -8,7 +8,7 @@ import { Resources } from '../../entities/Resources';
 //----------------------- update user by id-----------------------
 export const s_updateUser = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).user.payload.userId;
+        const userId = req.params.userId || (req as any).user.payload.userId;
         const user = await Users.findOne({ where: { UserID: userId } });
 
         if (!user) {
@@ -21,7 +21,7 @@ export const s_updateUser = async (req: Request, res: Response) => {
         }
 
         // Destructure fields from the request body
-        const { Username, Email, Password, PhoneNumber, Gender } = req.body;
+        const { Username, Email, Password, PhoneNumber, Gender ,DateOfBirth} = req.body;
 
         // Check for email or phone number duplication
         if (Email && Email !== user.Email) {
@@ -46,6 +46,7 @@ export const s_updateUser = async (req: Request, res: Response) => {
         user.Password = hashedPassword;
         user.PhoneNumber = PhoneNumber || user.PhoneNumber;
         user.Gender = Gender || user.Gender;
+        user.dateofbirth = DateOfBirth || user.dateofbirth  ;
 
         if (req.file) {
             const resource = await Resources.findOne({ where: { User: {UserID:user.UserID} } });
@@ -110,7 +111,7 @@ export const s_updateUserPassword = async (req: Request, res: Response) => {
 export const s_getUser = async (req: Request, res: Response) => {
     try {
         const userId: any = req.params.id;
-        const user = await Users.findOne({ where: { UserID: userId } });
+        const user = await Users.findOne({ where: { UserID: userId } ,relations:['Orders' ,'Addresses' , 'UserProfilePicture']});
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }

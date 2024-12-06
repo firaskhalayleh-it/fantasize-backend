@@ -7,18 +7,18 @@ import { generateToken } from "../../utils/jwt-config";
 import createCookie from "../../utils/cookie-config";
 import { passwordResetTemplate, sendEmail, welcomeTemplate } from "../../utils/email-config";
 import crypto from "crypto";
-import { sendWelcomeNotification } from "../../utils/Registration notifications";
+import { sendWelcomeNotification } from "../../utils/RegistrationNotifications";
 
 //----------------------- Register User-----------------------
 export const s_signUpUser = async (req: Request, res: Response) => {
     try {
         const { email, password, DeviceToken } = req.body;
         if (!email || !password) {
-            return 'Please provide an email and password';
+            return res.status(400).json({ error: "Please provide an email and password" });
         }
         const isExist = await Users.findOne({ where: { Email: email } })
         if (isExist) {
-            return 'User already exists';
+            return res.status(409).json({ error: "Wrong Email or Password!" });// User already exists
         } else {
             const userName = email.split('@')[0]; // here to convert string to array for take the user name
             const hashedPassword = await bcrypt.hash(password, 10)
@@ -39,14 +39,14 @@ export const s_signUpUser = async (req: Request, res: Response) => {
             await CreateUser.save();
             await sendWelcomeNotification(CreateUser.UserID); 
 
-            return `user created successfully`;
+            return res.status(201).json({ message: "User created successfully" });
             // // console.log(CreateUser);
             // res.status(201).json("user created successfully" + token);
         }
 
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        return res.status(500).json({ error: "Internal server error", details: err.message });
     }
 }
 
@@ -54,12 +54,18 @@ export const s_signUpUser = async (req: Request, res: Response) => {
 export const s_loginUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
+        console.log("Received data:", { email, password });  // تحقق من البيانات المستلمة
+
         if (email == '' || password == '') {
-            return ({ error: 'Please provide an email and password' });
+            if (!res.headersSent) {
+                return res.status(400).json({ error: 'Please provide an email and password' });
+            }
         }
         const isExist = await Users.findOne({ where: { Email: email }, relations: ["Role"] })
         if (!isExist) {
-            return ({ error: 'Wrong Email Or Password !' });
+            if (!res.headersSent) {
+                return res.status(401).json({ error: 'Wrong Email or Password!' });
+            }
         }
         const passwordMatch = await bcrypt.compare(password, isExist!.Password);
         if (passwordMatch) {
@@ -71,38 +77,23 @@ export const s_loginUser = async (req: Request, res: Response) => {
                 role: isExist!.Role.RoleName
             }
             const token = jwt.sign({ payload }, "testScrit", { expiresIn: "12h" })
-            res.cookie("authToken", token, { httpOnly: false })
-            return (token);
-
+            res.cookie("authToken", token, { httpOnly: true })
+            
+                return res.status(200).json({ message: 'Login successful', token });
+            
         } else {
-            return ({ error: 'Wrond Email Or Password !' });
+            if (!res.headersSent) {
+                return res.status(401).json({ error: 'Wrong Email or Password!' });
+            }
         }
-
-
-
-
-        // Generate JWT token
-        // const token = generateToken(isExist!.UserID);
-
-        // Create the cookies
-        // const authorizationCookie = createCookie(token, 'authorization');
-        // const userIDCookie = createCookie(isExist!.UserID, 'UserID');
-
-        // Set multiple cookies in the response
-        // res.setHeader('Set-Cookie', [authorizationCookie, userIDCookie]);
-
-        // Optionally log the token for debugging
-        // console.log(token);
-
-        // Exclude password from user data
-        // const { Password, ...userData } = isExist!;
-        // Send response
-        // res.status(200).json({ message: 'Login successful', token, user: userData });
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        if (!res.headersSent) {
+            res.status(500).send({ message: err.message });
+        }
     }
 }
+
 //-----------------------Log Out User-----------------------
 export const s_logOutUser = async (req: Request, res: Response) => {
     try {

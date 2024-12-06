@@ -135,10 +135,9 @@ export const s_createPackage = async (req: Request, res: Response) => {
 //----------------------- Get all packages-----------------------
 export const s_getAllPackages = async (req: Request, res: Response) => {
     try {
-        const getAllPackages = await Packages.find({ relations: ['PackageProduct', 'Reviews','SubCategory', 'Resource', 'Customization'
-        ] });
+        const getAllPackages = await Packages.find({ relations: ['PackageProduct', 'Reviews','SubCategory', 'Resource', 'Customization' ,'Offer'] });
         if (!getAllPackages || getAllPackages.length === 0) {
-            return `Not Found Packages`;
+            return  res.status(404).json({msg :`Not Found Packages`});
         }
         return getAllPackages
     } catch (err: any) {
