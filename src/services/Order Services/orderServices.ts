@@ -150,7 +150,7 @@ export const s_getCartUser = async (req: Request, res: Response) => {
         }
         const order = await Orders.findOne({
             where: { User: { UserID: userId }, Status: false },
-            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
+            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package", "PaymentMethod", "Address", "OrdersProducts.OrderedCustomization", "OrdersProducts.OrderedCustomization"]
         });
         if (!order) {
             return res.status(404).send({ message: "Cart not found" });

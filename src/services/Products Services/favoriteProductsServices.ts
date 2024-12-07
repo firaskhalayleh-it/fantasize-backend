@@ -76,6 +76,7 @@ export const s_removeProductFavorites = async (req:Request , res:Response) =>{
             return res.status(400).send({ message: "Product not in favorites" });
         }
         await favoriteProduct.remove();
+        await favoriteProduct.save();
 
         return "product removed from favorites";
     

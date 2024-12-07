@@ -8,6 +8,7 @@ import {
     c_updateOrderProduct
 } from "../../controllers/Products Controller/ordersProductsController";
 import { isAuthorized, IsAuthenticated } from "../../middlewares/isAuthentecated";
+import { uploadSingle } from "../../middlewares/multerMiddleware";
 
 const orderProductRoute = express.Router();
 
@@ -25,7 +26,7 @@ orderProductRoute.post('/order', IsAuthenticated, c_createNewOrderUser);
  *  @method        PUT
  *  @access        private
  */
-orderProductRoute.put('/order/:orderId', isAuthorized, c_updateOrderProduct);
+orderProductRoute.put('/order/:orderId/:productId', isAuthorized, c_updateOrderProduct);
 
 
 /**

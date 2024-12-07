@@ -60,6 +60,7 @@ try{
             return ({ message: "Package not in favorites" });
         };
         await favoritePackage.remove();
+        await favoritePackage.save();
 
         return "package removed from favorites";
 }catch (err: any) {
