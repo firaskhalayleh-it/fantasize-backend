@@ -15,6 +15,8 @@ const userRoute = express.Router();
  * 
  */
 userRoute.put("/update_user", isAuthorized, uploadSingle, c_updateUser);
+// when admin edit some user 
+userRoute.put("/update_user/:userId", isAuthorized, uploadSingle, c_updateUser);
 
 
 

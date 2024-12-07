@@ -13,14 +13,35 @@ export class AdminDashboardController {
       const totalRevenue = await dashboardService.getTotalRevenue();
       const topProducts = await dashboardService.getTopProducts();
       const recentOrders = await dashboardService.getRecentOrders();
-
+      const avgCosts = await dashboardService.getAvgExpenseCosts();
+      const totalProducts = await dashboardService.getTotalProducts();
+      const totalPackages = await dashboardService.getTotalPackages();
+      const totalCategories = await dashboardService.getTotalCategories();
+      const totalSubCategories = await dashboardService.getTotalSubCategories();
+      const totalActiveOffers = await dashboardService.getTotalActiveOffers();
+      const getAvgPriceForOrders = await dashboardService.getAvgPriceForOrders();
+      const AverageSale = await dashboardService.AverageSale();
+      const TotalSale = await dashboardService.TotalSale();
+      const calculateGlobalAverageRating = await dashboardService.calculateGlobalAverageRating();
+      const monthlyEarnings  = await dashboardService.getMonthlyEarnings();
       res.status(200).json({
         totalUsers,
         activeUsers,
         totalOrders,
         totalRevenue,
         topProducts,
-        recentOrders
+        recentOrders,
+        avgCosts,
+        monthlyEarnings,
+        totalProducts,
+        totalPackages,
+        totalCategories,
+        totalSubCategories,
+        totalActiveOffers,
+        getAvgPriceForOrders,
+        TotalSale,
+        AverageSale,
+        calculateGlobalAverageRating
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);

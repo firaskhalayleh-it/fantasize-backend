@@ -13,6 +13,14 @@ const categoryRoute = express.Router();
  */
 categoryRoute.get('/categories', c_getAllCategories);
 
+/**
+ *  @description   Get  category by id
+ *  @route         /categories
+ *  @method        GET
+ *  @access        Public
+ */
+categoryRoute.get('/getCategory/:categoryId', c_getCategory);
+
 
 /**
  *  @description   Create a new category
