@@ -1,71 +1,124 @@
 # Fantasize Backend Project
 
 ## Project Overview
-The **Fantasize Backend** is the server-side component of the Fantasize platform, designed to manage and serve data for a dynamic, feature-rich application. Built using modern development practices and robust technologies, the backend ensures a scalable, secure, and efficient foundation for the platform.
+
+The **Fantasize Backend** is the server-side backbone of the Fantasize platform, a dynamic application built to handle modern business needs such as e-commerce, product customization, and user interactions. This backend is developed using scalable and secure technologies, ensuring optimal performance and ease of maintenance. 
+
+The project is structured with a modular architecture, designed to integrate seamlessly with the frontend and third-party services.
 
 ---
 
 ## Key Features
 
 ### 1. **User Management**
-- Secure user registration and login system.
-- Support for third-party authentication (e.g., Google, Facebook).
-- Role-based access control for administrators and users.
+- **Secure Authentication**:
+  - Implements JWT (JSON Web Tokens) for stateless authentication.
+  - Password encryption using `bcrypt` to ensure data security.
+- **Third-Party Integrations**:
+  - Supports OAuth 2.0 for Google and Facebook login.
+- **User Roles and Permissions**:
+  - Role-based access control (RBAC) for administrators, managers, and customers.
 
-### 2. **Customization Management**
-- Dynamic customization system to handle various product options.
-- Customization options stored in a JSONB format for flexibility and performance.
-- Supports multiple types such as:
-  - **Buttons** with selectable options.
-  - **Images** with file uploads.
-  - **Text** and **Messages**.
+### 2. **Product & Package Management**
+- CRUD operations for managing:
+  - Products with attributes like name, price, description, and stock.
+  - Packages containing multiple products.
+- Association of products and packages with customizations for tailored offerings.
+- Advanced filtering and sorting capabilities for easier product management.
 
-### 3. **Product & Package Management**
-- Comprehensive CRUD operations for managing products and packages.
-- Association of customizations with products and packages for tailored user experiences.
+### 3. **Dynamic Customization Management**
+- **Customizable Options**:
+  - Supports multiple customization types:
+    - **Button** options with predefined values.
+    - **Image** options with file uploads.
+    - **Text** fields for personalized messages.
+  - Customization data stored in a `JSONB` column for flexible querying and storage.
+- **API for Customization**:
+  - Add, update, and delete customizations dynamically.
+  - Retrieve customization options associated with specific products or packages.
 
 ### 4. **Order Management**
-- Create, read, update, and delete orders.
-- Relationships between orders, products, and packages for seamless operations.
+- End-to-end order lifecycle management:
+  - Place new orders with product and package details.
+  - Update order status (e.g., Pending, Processed, Delivered).
+  - Retrieve all user orders with product/package relationships.
+- Integration with a payment system (to be implemented).
 
 ### 5. **Notification System**
-- Support for push notifications and email notifications.
-- Notification templates stored as JSONB objects for reusability.
+- **Push Notifications**:
+  - Sends real-time notifications to mobile devices via Firebase.
+- **Email Notifications**:
+  - Configurable email templates stored as `JSONB` objects.
+  - Email notifications triggered on events like order confirmation, shipping updates, etc.
+
+### 6. **Admin Dashboard Support**
+- APIs to power an admin dashboard for:
+  - Managing users, products, packages, and customizations.
+  - Viewing system reports and logs for analysis.
+- Support for exporting data (e.g., CSV, Excel) for analytics.
+
+### 7. **Performance Optimizations**
+- Optimized query handling with TypeORM for high performance.
+- Caching frequently accessed data to reduce database load.
+- Efficient handling of file uploads using `Multer`.
 
 ---
 
 ## Technical Stack
 
-### **Primary Technologies**
-- **Node.js** with **TypeScript**: Ensures strong typing and maintainable codebase.
-- **Express.js**: Fast and minimalist web framework for building RESTful APIs.
-- **PostgreSQL**: Reliable relational database with JSONB support for dynamic data storage.
-- **TypeORM**: Object-Relational Mapping (ORM) for seamless database interactions.
+### **Backend Framework**
+- **Node.js** with **TypeScript**:
+  - Provides a strongly typed, maintainable codebase.
+- **Express.js**:
+  - Lightweight, fast, and minimalist framework for building APIs.
 
-### **Supporting Tools**
-- **Multer**: File handling middleware for image and video uploads.
-- **PM2**: Process manager for efficient deployment and scaling.
-- **GitHub**: Version control and collaboration through [GitHub Repository](https://github.com/firaskhalayleh-it/fantasize-backend).
+### **Database**
+- **PostgreSQL**:
+  - Relational database with `JSONB` support for dynamic and semi-structured data.
+- **TypeORM**:
+  - ORM for seamless interaction with the PostgreSQL database.
+
+### **Third-Party Tools**
+- **Multer**:
+  - Middleware for handling file uploads.
+- **Firebase**:
+  - Push notifications and third-party authentication.
+- **PM2**:
+  - Process manager for application deployment and scaling.
 
 ---
 
 ## API Endpoints
 
-### **User Routes**
+### **User Management**
 - `POST /users/register` - Register a new user.
 - `POST /users/login` - Authenticate a user.
+- `GET /users/profile` - Retrieve user profile details.
 
-### **Customization Routes**
+### **Product Management**
+- `GET /products` - Retrieve a list of all products.
+- `POST /products` - Add a new product.
+- `PUT /products/:id` - Update product details.
+- `DELETE /products/:id` - Delete a product.
+
+### **Customization Management**
 - `POST /customizations` - Create a new customization.
 - `GET /customizations/:id` - Retrieve customization details.
-- `PUT /customizations/:id` - Update an existing customization.
+- `PUT /customizations/:id` - Update customization options.
 - `DELETE /customizations/:id` - Remove a customization.
 
-### **Order Routes**
+### **Order Management**
 - `POST /orders` - Place a new order.
-- `GET /orders` - Retrieve all user orders.
+- `GET /orders` - List all user orders.
+- `PUT /orders/:id` - Update an order’s status.
+
+### **Notification Management**
+- `POST /notifications` - Send a notification to a user.
+- `GET /notifications` - Retrieve all notifications sent to a user.
 
 ---
 
 ## Code Structure
+
+The project follows a modular architecture to ensure scalability and maintainability:
 
