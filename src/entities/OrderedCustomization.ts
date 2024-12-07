@@ -23,7 +23,7 @@ export class OrderedCustomization extends BaseEntity {
             name: string;
             value: string;
             isSelected: boolean;
-            filePath?: string;
+            fileName?: string;
         }[];
     }[];
 

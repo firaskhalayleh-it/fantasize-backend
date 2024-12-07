@@ -43,7 +43,7 @@
 
 /**
  * @swagger
- * /orderpackage/{orderId}/{packageId}:
+ * /api/orderpackage/{orderId}/{packageId}:
  *   put:
  *     summary: Update an order package
  *     tags: [Order Packages]

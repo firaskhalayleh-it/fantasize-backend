@@ -1,15 +1,14 @@
 
 
 import { Request, Response } from 'express';
-import { s_createProduct, s_getAllProducts, s_getProduct, s_getProductByCategoryAndSubCategory, s_getProductByCategoryID, s_updateProduct } from '../../services/Products Services/productServices';
+import { s_createProduct, s_getAllProducts, s_getProduct, s_getProductByCategoryAndSubCategory, s_getProductByCategoryID, s_singleProduct, s_updateProduct } from '../../services/Products Services/productServices';
 
 
 
 // ---------------------> Get all products <---------------------
 export const c_getAllProducts = async (req: Request, res: Response) => {
     const result = await s_getAllProducts(req, res);
-    return res.status(200).send(result);
-
+    return res.send(result);
 }
 
 // ---------------------> Get product by id <---------------------
@@ -39,5 +38,10 @@ export const c_createProduct = async (req: Request, res: Response) => {
 // ---------------------> Update a product <---------------------
 export const c_updateProduct = async (req: Request, res: Response) => {
     const result = await s_updateProduct(req, res);
+    return res.status(200).send(result);
+}
+// ---------------------> delete a product <---------------------
+export const c_singleProduct = async (req: Request, res: Response) => {
+    const result = await s_singleProduct(req, res);
     return res.status(200).send(result);
 }

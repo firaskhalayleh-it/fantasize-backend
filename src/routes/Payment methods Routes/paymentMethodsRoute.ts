@@ -12,7 +12,7 @@ const  paymentMethodRoute = Router();
  *  @access       private 
  * 
  */
-paymentMethodRoute.post("/user/create_payment_method_user",IsAuthenticated,c_createPaymentMethod);
+paymentMethodRoute.post("/user/create_payment_method_user",isAuthorized,c_createPaymentMethod);
 
 /**
  *  @description  update user payment Method by userId

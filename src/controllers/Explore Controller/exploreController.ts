@@ -5,5 +5,6 @@ import { s_getAllVideos } from "../../services/Explore Services/exploreService";
 
 
 export const c_getAllVideos = async (req: Request, res: Response) => {
-    await s_getAllVideos(req, res);
+    const response = await s_getAllVideos(req, res);
+    return res.status(200).send(response);
 };

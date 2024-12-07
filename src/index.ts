@@ -1,11 +1,13 @@
 import express from "express";
+import session from 'express-session';
+import passport from 'passport';
 import { initializeDB } from "./config/database";
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import cors from "cors";
 import authRoute from "./routes/Auth Routes/authRoutes";
-import { errorHandler, notFound } from "./middlewares/httpErrors";
+import { errorHandler, notFound, validateUUIDParam } from "./middlewares/httpErrors";
 import userRoute from "./routes/Users Routes/usersRoute";
 import addressRoute from "./routes/Users Routes/addressRoute";
 import paymentMethodRoute from "./routes/Payment methods Routes/paymentMethodsRoute";
@@ -20,17 +22,21 @@ import orderPackageRoute from "./routes/Packages Routes/ordersPackagesRoutes";
 import reviewsRoute from "./routes/Reviews Routes/reviewsRoutes";
 import offerRoute from "./routes/Offers Routes/offersRoutes";
 import orderRoute from "./routes/Order Routes/orderRoute";
-import notificationRoute from "./routes/Notification Routes/notificationRoute";
 import adminDashboardRoutes from "./routes/Admin Dashboard Rotue/adminDashbourdRoute";
 import customizationRoute from "./routes/CustomizationRoute/customizationRoute";
 import exploreRoute from "./routes/Explore Route/exploreRoute";
 import { setupSwagger } from "./swagger/swagger";
-import ip from 'ip';
+import authGoogleFacebookRoute from "./routes/Auth Routes/authUsingFacebookGoogleRoutes";
+import homeRoute from "./routes/Home Routes/home_route";
+import './config/passportConfig';
+import './config/passportConfig'; 
+import notificationRoute from "./routes/Notification Routes/notificationRoute";
 
+import ip from 'ip';
 const app = express();
 const IP = ip.address();
 app.use(cookieParser());
-app.use(cors());
+// app.use(cors());
 
 
 const PORT = process.env.APP_PORT || 3000;
@@ -38,7 +44,26 @@ const PORT = process.env.APP_PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(session({
+  secret: 'secret-key',
+  resave: false,
+  saveUninitialized: true,
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'cookie'],
+
+
+}));
 setupSwagger(app);
+app.use('/api', authGoogleFacebookRoute);
+app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
 app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
 app.use("/api", authRoute);
 app.use("/api", userRoute);
@@ -56,12 +81,13 @@ app.use("/api", reviewsRoute);
 app.use("/api", offerRoute);
 app.use("/api", orderRoute);
 app.use("/api", adminDashboardRoutes);
-app.use("/api", notificationRoute);
 app.use("/api", customizationRoute);
-app.use("/api", exploreRoute);
+app.use("/explore", exploreRoute);
+app.use("/home", homeRoute);
 
 app.use(notFound);
 app.use(errorHandler);
+app.use(validateUUIDParam);
 
 app.listen(PORT, async () => {
   await initializeDB();

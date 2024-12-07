@@ -43,6 +43,7 @@
  *                 description: Optional image file for the category
  *     responses:
  *       201:
+ *         description: added successfully
  *       400:
  *         description: Invalid input or failed category creation
  *       500:

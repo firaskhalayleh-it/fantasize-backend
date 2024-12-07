@@ -14,9 +14,6 @@
  *           schema:
  *             type: object
  *             properties:
- *               IsActive:
- *                 type: boolean
- *                 example: true
  *               Discount:
  *                 type: number
  *                 format: float
@@ -52,9 +49,6 @@
  *           schema:
  *             type: object
  *             properties:
- *               IsActive:
- *                 type: boolean
- *                 example: true
  *               Discount:
  *                 type: number
  *                 format: float
@@ -175,9 +169,6 @@
  *           schema:
  *             type: object
  *             properties:
- *               IsActive:
- *                 type: boolean
- *                 example: true
  *               Discount:
  *                 type: number
  *                 format: float
@@ -233,9 +224,6 @@
  *           schema:
  *             type: object
  *             properties:
- *               IsActive:
- *                 type: boolean
- *                 example: true
  *               Discount:
  *                 type: number
  *                 format: float
@@ -252,7 +240,6 @@
  *                 type: integer
  *                 example: 201
  *             required:
- *               - IsActive
  *               - Discount
  *               - ValidFrom
  *               - ValidTo

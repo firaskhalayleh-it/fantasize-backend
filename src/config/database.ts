@@ -16,7 +16,6 @@ export const database = new DataSource({
         'src/entities/*.ts',
     ],
     migrations: ['src/migrations/*.ts'],
-    
 });
 
 export const initializeDB = async () => {

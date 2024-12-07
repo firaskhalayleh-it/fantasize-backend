@@ -11,10 +11,9 @@ import {
 
 //controller for customizations
 export const c_createCustomization = async (req: Request, res: Response) => {
-   const result= await s_createCustomization(req, res);
-   res.status(200).json(result);
-
+    await s_createCustomization(req, res);
 };
+
 
 export const c_updateCustomization = async (req: Request, res: Response) => {
     const result= await s_updateCustomization(req, res);

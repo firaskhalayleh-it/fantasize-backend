@@ -137,7 +137,7 @@
  *         required: true
  *         description: The ID of the user to retrieve
  *         schema:
- *           type: integer
+ *           type: string
  *     responses:
  *       '200':
  *         description: Successfully retrieved user information
@@ -149,42 +149,3 @@
  *       - bearerAuth: []
  */
 
-
-/**
- * @swagger
- * /api/reset_password/{resetToken}:
- *   put:
- *     tags:
- *       - Users
- *     summary: Reset user password
- *     description: This endpoint allows a user to reset their password using a valid reset token.
- *     parameters:
- *       - name: resetToken
- *         in: path
- *         required: true
- *         description: The reset token for the password reset request
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               password:
- *                 type: string
- *                 description: The new password for the user
- *                 example: "newPassword123"
- *     responses:
- *       '200':
- *         description: Password updated successfully
- *       '400':
- *         description: Bad Request - Missing password or token expired
- *       '404':
- *         description: User not found
- *       '500':
- *         description: Internal Server Error
- *     security:
- *       - bearerAuth: []
- */

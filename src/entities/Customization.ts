@@ -28,16 +28,16 @@ export class Customization extends BaseEntity {
   Packages: Packages[];
 
   @Column('jsonb', { nullable: true })
-    option: {
+  option: {
+    name: string;
+    type: string;
+    optionValues: {
       name: string;
-      type: string;
-      optionValues: {
-        name: string;
-        value: string;
-        isSelected: boolean;
-        filePath?: string;
-      }[];
-    };  
+      value: string;
+      isSelected: boolean;
+      fileName?: string;
+    }[];
+  };
 
 
   @CreateDateColumn()

@@ -6,34 +6,97 @@ import { Products } from '../../entities/products/Products';
 //----------------------- Create Customization -----------------------
 export const s_createCustomization = async (req: Request, res: Response) => {
     try {
-        const { options } = req.body;
-        const file = req.file;
-
-        // Process options and handle image files if provided
-        const processedOptions = options.map((option: any) => {
-            if (option.type === 'image' && file) {
-                option.optionValues = option.optionValues.map((optVal: any) => {
-                    if (optVal.isSelected) {
-                        optVal.filePath = file.path; // Store the file path in the JSONB object
-                    }
-                    return optVal;
-                });
-            }
-            return option;
-        });
-
-        // Create customization entity instance
-        const customization = Customization.create({
-            option: processedOptions,
-        });
-
-        await customization.save();
-        return res.status(201).send(customization);
+      type OptionType = {
+        name: string;
+        type: string;
+        optionValues: {
+          name: string;
+          value: string;
+          isSelected: boolean;
+          fileName?: string;
+        }[];
+      };
+  
+      // Retrieve the 'option' field from the request body
+      let optionStr = req.body.options || req.body.option;
+  
+      if (!optionStr) {
+        return res.status(400).send({ message: 'Option field is missing.' });
+      }
+  
+      let option: OptionType;
+  
+      // Check if optionStr is a string or an object
+      if (typeof optionStr === 'string') {
+        // Parse the JSON string
+        try {
+          option = JSON.parse(optionStr);
+        } catch (err) {
+          console.error('Invalid JSON in option field:', err);
+          return res.status(400).send({ message: 'Invalid JSON in option field.' });
+        }
+      } else if (typeof optionStr === 'object') {
+        // optionStr is already an object
+        option = optionStr;
+      } else {
+        return res.status(400).send({ message: 'Option field is invalid.' });
+      }
+  
+      console.log('Parsed option:', option);
+  
+      // Check if optionValues is an array
+      if (!Array.isArray(option.optionValues)) {
+        return res.status(400).send({ message: 'optionValues is not an array.' });
+      }
+  
+      // Initialize filesArray to an empty array if req.files is undefined or empty
+      const filesArray = (req.files as Express.Multer.File[]) || [];
+  
+      console.log('filesArray:', filesArray);
+  
+      // Create a mapping from field names to files (if any)
+      const filesMap = filesArray.reduce((map, file) => {
+        map[file.fieldname] = file;
+        return map;
+      }, {} as { [key: string]: Express.Multer.File });
+  
+      console.log('filesMap:', filesMap);
+  
+      // Iterate over the optionValues to set file names for each
+      option.optionValues = option.optionValues.map((optVal) => {
+        const sanitizedFieldName = optVal.name.trim();
+        const file = filesMap[sanitizedFieldName];
+        if (file) {
+          optVal.fileName = file.filename;
+          console.log(`File found for optVal.name: ${optVal.name}, fileName: ${file.filename}`);
+        } else {
+          // No file provided for this optionValue; set fileName to empty string
+          optVal.fileName = '';
+          console.log(`No file found for optVal.name: ${optVal.name}; setting fileName to empty string.`);
+        }
+        return optVal;
+      });
+  
+      // Fetch the existing customization entity from the database
+      const customization = await Customization.findOne({ where: { CustomizationID: req.body.CustomizationID } });
+      if (!customization) {
+        return res.status(404).send({ message: 'Customization not found.' });
+      }
+  
+      // Update the option field with the new data
+      customization.option = option;
+  
+      // Save the updated customization entity
+      await customization.save();
+  
+      // Return the updated customization entity
+      return res.status(200).send(customization);
     } catch (err: any) {
-        console.log(err);
-        return res.status(500).send({ message: err.message });
+      console.error(err);
+      return res.status(500).send({ message: err.message });
     }
-};
+  };
+  
 
 //----------------------- Get All Customizations -----------------------
 export const s_getAllCustomizations = async (req: Request, res: Response) => {
@@ -49,36 +112,49 @@ export const s_getAllCustomizations = async (req: Request, res: Response) => {
 };
 
 //----------------------- Update Customization -----------------------
+
 export const s_updateCustomization = async (req: Request, res: Response) => {
     try {
-        const { customizationId, options } = req.body;
+        const { customizationId, options } = req.body; // Extract customizationId and options from the request
         const file = req.file;
 
+        // Find the customization by ID
         const customization = await Customization.findOne({ where: { CustomizationID: customizationId } });
         if (!customization) {
             return res.status(404).send({ message: 'Customization not found' });
         }
 
-        // Process options and handle image files if provided
-        const processedOptions = options.map((option: any) => {
-            if (option.type === 'image' && file) {
-                option.optionValues = option.optionValues.map((optVal: any) => {
-                    if (optVal.isSelected) {
-                        optVal.filePath = file.path; // Store the file path in the JSONB object
-                    }
-                    return optVal;
-                });
+        // Validate and parse options
+        let parsedOptions;
+        if (typeof options === 'string') {
+            try {
+                parsedOptions = JSON.parse(options); // Parse the string into an object
+            } catch (error) {
+                return res.status(400).send({ message: "Invalid options format. Must be a JSON object." });
             }
-            return option;
-        });
+        } else if (typeof options === 'object' && options !== null) {
+            parsedOptions = options; // If it's already an object
+        } else {
+            return res.status(400).send({ message: "Invalid options format. Must be a JSON object." });
+        }
 
-        customization.option = processedOptions;
+        // Process options and handle image files if provided
+        if (parsedOptions.type === 'image' && file) {
+            parsedOptions.optionValues = parsedOptions.optionValues.map((optVal: any) => {
+                if (optVal.isSelected) {
+                    optVal.filePath = file.path; // Store the file path in the JSONB object
+                }
+                return optVal;
+            });
+        }
 
-        await customization.save();
-        return res.status(200).send(customization);
+        customization.option = parsedOptions; // Update the customization options
+
+        await customization.save(); // Save the updated customization
+        return res.status(200).send(customization); // Send the updated customization back to the client
     } catch (err: any) {
         console.log(err);
-        return res.status(500).send({ message: err.message });
+        return res.status(500).send({ message: err.message }); // Handle any server errors
     }
 };
 

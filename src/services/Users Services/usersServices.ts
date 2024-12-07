@@ -25,7 +25,7 @@ export const s_updateUser = async (req: Request, res: Response) => {
         }
 
         // Destructure fields from the request body
-        const { Username, Email, Password, PhoneNumber, Gender } = req.body;
+        const { Username, Email, Password, PhoneNumber, Gender,dateOfBirth } = req.body;
 
         // Check for email or phone number duplication
         if (Email && Email !== user.Email) {
@@ -50,6 +50,7 @@ export const s_updateUser = async (req: Request, res: Response) => {
         user.Password = hashedPassword;
         user.PhoneNumber = PhoneNumber || user.PhoneNumber;
         user.Gender = Gender || user.Gender;
+        user.dateofbirth = dateOfBirth || user.dateofbirth;
 
         if (req.file) {
             const resource = await Resources.findOne({ where: { User: { UserID: user.UserID } } });

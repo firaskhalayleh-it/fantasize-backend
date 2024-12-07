@@ -16,8 +16,7 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
         const userId = (req as any).user.payload.userId;
 
         // Extract product ID, quantity, and ordered options from the request body
-        const { productId, quantity, OrderedOptions } = req.body;
-        console.log({ productId, quantity });
+        const { productId, quantity, orderedOptions } = req.body;
 
         // Validate quantity
         if (!quantity || quantity <= 0) {
@@ -36,19 +35,26 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
             return res.status(404).send({ message: "User not found" });
         }
 
-        // Check if the user has an existing pending order (cart)
+        // Check if the user has an existing pending order
         let order = await Orders.findOne({
-            where: { User: { UserID: userId }, Status: false },
-            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersProducts.OrderedCustomization"], // Ensure OrdersProducts and Products are loaded
+            where: {
+                User: { UserID: userId },
+                Status: false,
+            },
+            relations: ["User", "OrdersProducts", "OrdersProducts.Product", "OrdersProducts.OrderedCustomization"],
         });
 
         if (!order) {
-            // Create a new order if none exists
+            // If no pending order exists, create a new one
             order = Orders.create({
                 User: user,
                 Status: false,
+                OrdersProducts: [],
             });
             await order.save();
+            order.OrdersProducts = [];
+        }else{
+            order.OrdersProducts = order.OrdersProducts || [];
         }
 
         // Check if the product is already in the order
@@ -57,44 +63,48 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
         );
 
         if (orderProduct) {
-            // Update the quantity and total price if it exists
+            // Update quantity and total price
             orderProduct.Quantity += quantity;
-            orderProduct.TotalPrice = parseFloat(
-                (orderProduct.Quantity * product.Price).toFixed(2)
-            );
+            orderProduct.TotalPrice = parseFloat((orderProduct.Quantity * orderProduct.Product.Price).toFixed(2));
             await orderProduct.save();
         } else {
-            // Create a new order product entry if it doesn't exist
+            // Create a new order product
             orderProduct = OrdersProducts.create({
-                Order: order,
                 Product: product,
                 Quantity: quantity,
                 TotalPrice: parseFloat((quantity * product.Price).toFixed(2)),
+                Order: order,
             });
             await orderProduct.save();
             order.OrdersProducts.push(orderProduct);
+            await order.save();
         }
 
-        // If OrderedOptions are provided, create or update an OrderedCustomization entry
-        if (Array.isArray(OrderedOptions) && OrderedOptions.length > 0) {
-            const formattedOptions = OrderedOptions.map((option: any) => ({
-                name: option.name,
-                type: option.type,
-                optionValues: option.optionValues.map((value: any) => ({
-                    name: value.name,
-                    value: value.value,
-                    isSelected: value.isSelected,
-                    filePath: value.filePath,
-                })),
-            }));
+        // Find or create the ordered customization associated with the order product
+        let orderedCustomization = await OrderedCustomization.findOne({
+            where: { OrdersProducts: { OrderProductID: orderProduct.OrderProductID } }
+        });
 
-            if (orderProduct.OrderedCustomization) {
-                // Update existing customization
-                orderProduct.OrderedCustomization.SelectedOptions = formattedOptions;
-                await orderProduct.OrderedCustomization.save();
+        if (orderedOptions) {
+            const formattedOptions = orderedOptions.map((option: any) => {
+                return {
+                    name: option.name,
+                    type: option.type,
+                    optionValues: option.optionValues.map((value: any) => ({
+                        name: value.name,
+                        value: value.value,
+                        isSelected: value.isSelected,
+                        filePath: value.filePath,
+                    })),
+                };
+            });
+
+            // Update or create a new customization if it doesn't exist
+            if (orderedCustomization) {
+                orderedCustomization.SelectedOptions = formattedOptions;
+                await orderedCustomization.save();
             } else {
-                // Create a new customization if it doesn't exist
-                const orderedCustomization = OrderedCustomization.create({
+                orderedCustomization = OrderedCustomization.create({
                     SelectedOptions: formattedOptions,
                     OrdersProducts: orderProduct,
                 });
@@ -104,25 +114,26 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
             }
         }
 
+
         // Recalculate the total price of the order
+
         order.calculateTotalPrice();
+
         await order.save();
 
-        // Reload the order with updated relations
+        // Reload the order with updated relations to ensure changes are reflected
         const updatedOrder = await Orders.findOne({
             where: { OrderID: order.OrderID },
             relations: [
-                "User",
                 "OrdersProducts",
                 "OrdersProducts.Product",
+                "OrdersProducts.OrderedCustomization",
                 "OrdersProducts.Product.SubCategory",
                 "OrdersProducts.Product.SubCategory.Category",
-                "OrdersProducts.OrderedCustomization",
             ],
         });
 
-        // Return the updated order
-        return res.status(200).json({ message: "Product added to order successfully", order: updatedOrder });
+        return res.status(201).json({ message: "Order created successfully", order: updatedOrder });
 
     } catch (err: any) {
         console.error(err);

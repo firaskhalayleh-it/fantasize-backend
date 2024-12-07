@@ -30,13 +30,13 @@ export class Users extends BaseEntity {
   @ManyToOne(() => Roles, (role) => role.RoleID)
   Role: Relation<Roles>;
 
-  @Column('varchar', { unique: true })
+  @Column('varchar', { unique: false })
   Username: string;
 
   @Column('varchar', { unique: true })
   Email: string;
 
-  @Column('varchar')
+  @Column('varchar', { nullable: true })
   Password: string;
 
   @Column('varchar', { nullable: true })
@@ -45,30 +45,29 @@ export class Users extends BaseEntity {
   @Column('varchar', { nullable: true })
   DeviceToken: string;
 
-  
+
   @Column('varchar', { nullable: true })
   @Index()
-  resetPasswordToken: string; 
+  resetPasswordToken: string;
 
   @Column('timestamp', { nullable: true })
-  resetPasswordExpires: Date;  
+  resetPasswordExpires: Date;
 
-  @Column('varchar', { nullable: true })
-  FirebaseToken: string;
-  
+
+
   @Column('varchar', { nullable: true, unique: true })
   PhoneNumber: string;
 
   @Column('timestamp', { nullable: true })
   lastlogin: Date;
-  
+
   @Column('varchar', { nullable: true })
   Gender: string;
 
-  @OneToOne(() => Resources, (resource) => resource.User,{nullable:true})
+  @OneToOne(() => Resources, (resource) => resource.User, { nullable: true })
   @JoinColumn()
   UserProfilePicture: Resources;
-  
+
   @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.User)
   FavoriteProducts: FavoriteProducts[];
 
@@ -91,10 +90,11 @@ export class Users extends BaseEntity {
   @OneToMany(() => Notifications, (notification) => notification.user)
   notifications: Notifications[];
 
+  @Column('varchar', { nullable: true, unique: true })
+  googleId: string;
 
-
-  @Column('varchar', { nullable: true })
-  firebaseUID: string;
+  @Column('varchar', { nullable: true, unique: true })
+  facebookId: string;
 
   @CreateDateColumn()
   CreatedAt: Date;

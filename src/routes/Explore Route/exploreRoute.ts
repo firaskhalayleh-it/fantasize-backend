@@ -1,7 +1,7 @@
 //route for explore
 import express from 'express';
 import { c_getAllVideos } from '../../controllers/Explore Controller/exploreController';
-import { IsAuthenticated } from '../../middlewares/isAuthentecated';
+import { IsAuthenticated, isAuthorized } from '../../middlewares/isAuthentecated';
 
 const exploreRoute = express.Router();
 
@@ -11,6 +11,6 @@ const exploreRoute = express.Router();
  *  @method        GET
  *  @access        public
  */
-exploreRoute.get('/explore', c_getAllVideos);
+exploreRoute.get('/videos', c_getAllVideos);
 
 export default exploreRoute;

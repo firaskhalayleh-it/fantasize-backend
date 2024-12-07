@@ -151,7 +151,7 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -182,6 +182,18 @@
  *                     quantity:
  *                       type: integer
  *                       example: 5
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                   example: "image.png"
+ *               videos:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                   example: "video.mp4"
  *     responses:
  *       200:
  *         description: Package updated successfully

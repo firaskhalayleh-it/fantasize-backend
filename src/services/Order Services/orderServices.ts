@@ -6,6 +6,7 @@ import { OrdersPackages } from "../../entities/packages/OrdersPackages";
 import { PaymentMethods } from "../../entities/users/PaymentMethods";
 import { Addresses } from "../../entities/users/Addresses";
 import { EmailOptions, orderConfirmationTemplate, sendEmail } from "../../utils/email-config";
+import sendOrderNotification from "../../utils/OrderNotification";
 
 
 //----------------------- checkout order for a user-----------------------
@@ -51,6 +52,8 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
             return res.status(404).send({ message: "Address not found" });
         }
 
+        let orderdetails = "Order Summary:\n\n";
+
         // Ensure the order contains packages or products
         const hasPackages = order.OrdersPackages?.length ?? 0 > 0;
         const hasProducts = order.OrdersProducts?.length ?? 0 > 0;
@@ -66,10 +69,12 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
                 if (packageQuantity == null) {
                     return res.status(400).send({ message: "Package quantity not found" });
                 }
+                
                 orderPackage.Package.Quantity = packageQuantity - orderPackage.quantity;
                 console.log(orderPackage.Package.Quantity);
                 console.log(orderPackage.quantity);
                 await orderPackage.Package.save();
+                orderdetails += `- Package: ${orderPackage.Package?.Name ?? "Unknown"},\n Quantity: ${orderPackage.quantity},\n Total Price: ${orderPackage.Package?.Price * orderPackage.quantity}\n\n`;
             }
         }
 
@@ -84,6 +89,7 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
                 console.log(orderProduct.Product.Quantity);
                 console.log(orderProduct.Quantity);
                 await orderProduct.Product.save();
+                orderdetails += `- Product: ${orderProduct.Product?.Name ?? "Unknown"}, \n Quantity: ${orderProduct.Quantity},\n Total Price: ${orderProduct.Product?.Price * orderProduct.Quantity}\n\n`;
             }
         }
 
@@ -96,8 +102,10 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
         order.GiftMessage = GiftMessage ?? "";
 
         await order.save();
-        await sendEmail(emailOptions);
-        return res.status(200).send({ message: "Order checked out successfully", order, emailHtml });
+        // Send notifications
+             await sendOrderNotification(userId, order.OrderID.toString(), orderdetails); // You can customize the summary here
+
+        return res.status(200).send({ message: "Order checked out successfully", order });
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message });
@@ -109,14 +117,22 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
 export const s_getAllOrdersUser = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user.payload.userId;
-        const user = await Users.findOne({ where: { UserID: userId, } });
+        const user = await Users.findOne({ where: { UserID: userId } });
         if (!user) {
             return res.status(404).send({ message: "User not found" });
         }
+        console.log(`user is : ${user}`);
         const orders = await Orders.find({
             where: { User: { UserID: userId }, Status: true },
-            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
+            relations: [
+                "OrdersProducts", 
+                "OrdersProducts.Product", 
+                "OrdersPackages", 
+                "OrdersPackages.Package"
+            ]
         });
+        
+        console.log(orders);
         return res.status(200).send(orders);
     } catch (err: any) {
         console.log(err);
@@ -147,12 +163,12 @@ export const s_getCartUser = async (req: Request, res: Response) => {
     }
 }
 
-//----------------------- Get all orders for a user-----------------------
+//----------------------- Get all orders -----------------------
 export const s_getAllOrdersAdmin = async (req: Request, res: Response) => {
     try {
         const orders = await Orders.find({
             where: { Status: true },
-            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
+            relations: ["User", "OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
         });
         console.log('Fetched Orders:', orders);
 
