@@ -3,8 +3,9 @@ import { Products } from "../../entities/products/Products";
 import { Brands } from "../../entities/Brands";
 import { SubCategories } from "../../entities/categories/SubCategories";
 import { Offers } from "../../entities/Offers";
-import { getRepository } from "typeorm";
+import { getRepository, Like } from "typeorm";
 import { Resources } from "../../entities/Resources";
+import { Categories } from "../../entities/categories/Categories";
 // import { } from "../Resources Services/resourceService";
 // import { uploadFiles } from "../../config/Multer config/multerConfig";
 
@@ -37,7 +38,7 @@ export const s_getAllProducts = async (req: Request, res: Response) => {
 export const s_getProduct = async (req: Request, res: Response) => {
     try {
         const productId: any = req.params.id;
-        const product = await Products.findOne({ where: { ProductID: productId }, relations: ['Review', 'Review.User', 'Review.User.UserProfilePicture','Offer'] });
+        const product = await Products.findOne({ where: { ProductID: productId }, relations: ['Review', 'Review.User', 'Review.User.UserProfilePicture', 'Offer'] });
 
         if (!product) {
             return "The Product Not Found !";
@@ -252,3 +253,56 @@ export const s_updateProduct = async (req: Request, res: Response) => {
         return res.status(500).send({ message: "An error occurred", error: err.message });
     }
 };
+
+
+// --------------------- get 5 random products under men category ---------------------
+export const s_getRandomMenProducts = async (req: Request, res: Response) => {
+    try {
+        const menCategory = await Categories.findOne({ where: { Name: 'Mens' } });
+        if (!menCategory) {
+            return res.status(404).send({ message: "no category found" });
+        }
+        const products = await Products.find({ where: { SubCategory: { Category: { CategoryID: menCategory.CategoryID } } }, relations: ['SubCategory', 'Offer',] });
+        if (!products) {
+            return res.status(404).send({ message: "The Product Not Found !" });
+        }
+        products.map(product => {
+            if (!product.Offer) {
+                product.Offer = new Offers; // Set Offers to an empty array if it's null
+            }
+            return product;
+        }
+        );
+        return products;
+    }
+    catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message })
+    }
+}
+
+// --------------------- get 5 random products under women category ---------------------
+export const s_getRandomWomenProducts = async (req: Request, res: Response) => {
+    try {
+        const womenCategory = await Categories.findOne({ where: { Name: 'Womens' } });
+        if (!womenCategory) {
+            return res.status(404).send({ message: "no category found" });
+        }
+        const products = await Products.find({ where: { SubCategory: { Category: { CategoryID: womenCategory.CategoryID } } }, relations: ['SubCategory', 'Offer',] });
+        if (!products) {
+            return res.status(404).send({ message: "The Product Not Found !" });
+        }
+        products.map(product => {
+            if (!product.Offer) {
+                product.Offer = new Offers; // Set Offers to an empty array if it's null
+            }
+            return product;
+        }
+        );
+        return products;
+    }
+    catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message })
+    }
+}

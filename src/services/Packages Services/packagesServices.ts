@@ -2,12 +2,13 @@ import { Request, Response } from 'express';
 import { SubCategories } from '../../entities/categories/SubCategories';
 import { Products } from '../../entities/products/Products';
 import { Packages } from '../../entities/packages/Packages';
-import { In, Not } from 'typeorm';
+import { In, Like, Not } from 'typeorm';
 import { database } from '../../config/database';
 import { PackageProduct } from '../../entities/packages/packageProduct';
 
 import { getRepository } from 'typeorm';
 import { Resources } from '../../entities/Resources';
+import { Categories } from '../../entities/categories/Categories';
 
 
 //----------------------- Create a new package-----------------------
@@ -169,9 +170,11 @@ export const s_getAllPackagesUnderSpecificSubcategory = async (req: Request, res
 export const s_getPackageByID = async (req: Request, res: Response) => {
     try {
         const pkgId: any = req.params.packageId;
-        const getPackage = await Packages.findOne({ where: { PackageID: pkgId }, relations: ['PackageProduct', 'Reviews', 'Reviews.User', 'SubCategory', 'Resource', 'Customization',
-            'PackageProduct.Product', 'PackageProduct.Product.SubCategory', 'PackageProduct.Product.Resource'
-        ] });
+        const getPackage = await Packages.findOne({
+            where: { PackageID: pkgId }, relations: ['PackageProduct', 'Reviews', 'Reviews.User', 'SubCategory', 'Resource', 'Customization',
+                'PackageProduct.Product', 'PackageProduct.Product.SubCategory', 'PackageProduct.Product.Resource'
+            ]
+        });
         if (!getPackage) {
             return `not found a package`
         }
@@ -321,5 +324,56 @@ export const s_updatePackage = async (req: Request, res: Response) => {
         return res.status(500).send({ message: error });
     }
 };
+
+
+//----------------------- get 5 random packages  under women category -----------------------
+export const s_getRandomPackagesWomen = async (req: Request, res: Response) => {
+    try {
+        const womenCategory = await Categories.findOne({ where: { Name: 'Womens' } });
+        if (!womenCategory) {
+            return res.status(404).send({ message: "Category not found" });
+        }
+
+        const randomPackages = await Packages.find({
+            where: { SubCategory: { Category: { CategoryID: womenCategory.CategoryID } } },
+            take: 5,
+            order: { PackageID: 'ASC' },
+            relations: ['PackageProduct', 'Reviews', 'SubCategory', 'Resource',
+            ]
+        });
+        if (!randomPackages || randomPackages.length === 0) {
+            return res.status(404).send({ message: "No packages found" });
+        }
+        return randomPackages;
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: error });
+    }
+}
+
+//----------------------- get 5 random packages  under men category -----------------------
+export const s_getRandomPackagesMen = async (req: Request, res: Response) => {
+    try {
+        const menCategory = await Categories.findOne({ where: { Name: 'Mens' } });
+        if (!menCategory) {
+            return res.status(404).send({ message: "Category not found" });
+        }
+
+        const randomPackages = await Packages.find({
+            where: { SubCategory: { Category: { CategoryID: menCategory.CategoryID } } },
+            take: 5,
+            order: { PackageID: 'ASC' },
+            relations: ['PackageProduct', 'Reviews', 'SubCategory', 'Resource',
+            ]
+        });
+        if (!randomPackages || randomPackages.length === 0) {
+            return res.status(404).send({ message: "No packages found" });
+        }
+        return randomPackages;
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: error });
+    }
+}
 
 

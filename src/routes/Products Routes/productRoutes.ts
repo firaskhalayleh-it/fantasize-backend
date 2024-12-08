@@ -1,7 +1,7 @@
 import express from "express"
 
 import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
-import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory, c_updateProduct } from "../../controllers/Products Controller/productController";
+import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory, c_updateProduct, c_getAllProducts, c_getProductByCategoryID, c_getRandomMenProducts, c_getRandomWomenProducts } from "../../controllers/Products Controller/productController";
 import FavoriteProductRoute from "./favoriteProductsRoutes";
 import { uploadFields } from "../../middlewares/multerMiddleware";
 
@@ -34,7 +34,7 @@ productRoute.get('/getProduct/:id', c_getProduct);
  *  @method        POST
  *  @access        admin
  */
-productRoute.post('/createProduct', isAuthorized,uploadFields, c_createProduct);
+productRoute.post('/createProduct', isAuthorized, uploadFields, c_createProduct);
 
 /**
  *  @description   Update a product
@@ -53,6 +53,42 @@ productRoute.put('/product/:productId', isAuthorized, c_updateProduct);
  *  */
 productRoute.use('/product/:productId', FavoriteProductRoute);
 
+
+/**
+ *  @description   Get all products
+ *  @route         /products
+ *  @method        GET
+ *  @access        Public
+ */
+productRoute.get('/products', c_getAllProducts);
+
+/**
+ *  @description   Get all products by category
+ *  @route         /products/:CategoryID
+ *  @method
+ * @access        Public
+ * 
+    * 
+        */
+
+productRoute.get('/products/:CategoryID', c_getProductByCategoryID);
+
+
+/**
+ *  @description   Get random products for men
+ * @route        /products/random/men
+ * @method      GET
+ * @access     public
+*/
+productRoute.get('/products/random/men', c_getRandomMenProducts);
+
+/**
+ *  @description   Get random products for women
+ *  @route       /products/random/women
+ * @method      GET
+ * @access     public
+*/
+productRoute.get('/products/random/women', c_getRandomWomenProducts);
 
 
 

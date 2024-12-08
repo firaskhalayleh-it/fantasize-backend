@@ -62,16 +62,16 @@ offerRoute.put('/offers/:offerId', isAuthorized, c_updateOffer);
  *  @method        GET
  *  @access        public
  */
-offerRoute.get('/offers_homeOffers', IsAuthenticated, c_homeOffers);
+offerRoute.get('/offers_homeOffers', c_homeOffers);
 
 
-// /**
-//  *  @description   Create a new offer for a product
-//  *  @route         /offers/product
-//  *  @method        POST
-//  *  @access        private
-//  */
-// offerRoute.post('/offers/product', isAuthorized, c_createOfferProduct);
+/**
+ *  @description   Create a new offer for a product
+ *  @route         /offers/product
+ *  @method        POST
+ *  @access        private
+ */
+offerRoute.post('/offers/product', isAuthorized, c_createOfferProduct);
 
 
 /**
