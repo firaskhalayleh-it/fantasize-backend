@@ -129,22 +129,20 @@ export const s_resetPassword = async (req: Request, res: Response) => {
         const resetToken = crypto.randomBytes(32).toString('hex');
 
         // Hash the reset token before storing it in the database
-        const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
         // Set the reset token and expiration on the user record
-        user.resetPasswordToken = hashedToken;
+        user.resetPasswordToken = resetToken;
         user.resetPasswordExpires = new Date(Date.now() + 3600000);
 
         await user.save();
 
         // Create the password reset URL
-        const resetURL = `http://localhost:5000/api/reset_password/${hashedToken}`;
 
         // Send the reset email
         const emailOptions = {
             to: user.Email,
             subject: 'Password Reset Request',
-            html: passwordResetTemplate(resetURL),
+            html: passwordResetTemplate(resetToken),
         };
 
         await sendEmail(emailOptions);

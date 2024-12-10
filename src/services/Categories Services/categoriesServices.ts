@@ -322,7 +322,7 @@ export const s_getNewCollection = async (req: Request, res: Response) => {
                 { CreatedAt: MoreThan(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)) },
                 { Offer: { ValidFrom: LessThan(today), ValidTo: MoreThan(today), IsActive: true } }
             ],
-            relations: ["Offer", "Resource", "SubCategory"]
+            relations: ["Offer", "Resource", "SubCategory","SubCategory.Category.SubCategory"]
         });
 
         // Fetch packages created within the last 3 days with active offers
@@ -331,7 +331,7 @@ export const s_getNewCollection = async (req: Request, res: Response) => {
                 { CreatedAt: MoreThan(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)) },
                 { Offer: { ValidFrom: LessThan(today), ValidTo: MoreThan(today), IsActive: true } }
             ],
-            relations: ["Offer", "Resource", "SubCategory"]
+            relations: ["Offer", "Resource", "SubCategory","SubCategory.Category.SubCategory"]
         });
 
         // make the resources of the products and packages to be the first image

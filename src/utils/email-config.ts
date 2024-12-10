@@ -141,22 +141,171 @@ export function orderConfirmationTemplate(orderId: string, userName: string): st
 }
 
 
-export function passwordResetTemplate(resetURL: string): string {
+export function passwordResetTemplate(resetToken: string): string {
   return `
     <!DOCTYPE html>
     <html>
     <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Password Reset</title>
       <style>
-        /* Add your email styling here */
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          line-height: 1.6;
+          color: #333333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #f5f5f5;
+        }
+
+        .container {
+          background-color: #ffffff;
+          border-radius: 8px;
+          padding: 30px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+
+        .logo img {
+          max-width: 150px;
+          height: auto;
+        }
+
+        h1 {
+          color: #ff4444;
+          font-size: 24px;
+          margin-bottom: 20px;
+          text-align: center;
+        }
+
+        .message {
+          margin-bottom: 30px;
+          font-size: 16px;
+        }
+
+        .token-container {
+          background-color: #f8f9fa;
+          border: 1px solid #dee2e6;
+          border-radius: 6px;
+          padding: 15px;
+          margin-bottom: 25px;
+          text-align: center;
+        }
+
+        .token {
+          font-family: monospace;
+          font-size: 16px;
+          color: #495057;
+          word-break: break-all;
+          margin-bottom: 10px;
+        }
+
+        .copy-button {
+          background-color: #ff4444;
+          color: #ffffff;
+          border: none;
+          border-radius: 4px;
+          padding: 10px 20px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+          text-decoration: none;
+          display: inline-block;
+        }
+
+        .copy-button:hover {
+          background-color: #ff6666;
+        }
+
+        .footer {
+          margin-top: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6c757d;
+        }
+
+        .warning {
+          color: #dc3545;
+          font-size: 14px;
+          margin-top: 20px;
+          text-align: center;
+        }
+
+        @media only screen and (max-width: 480px) {
+          body {
+            padding: 10px;
+          }
+
+          .container {
+            padding: 20px;
+          }
+
+          h1 {
+            font-size: 20px;
+          }
+        }
       </style>
     </head>
     <body>
-      <h1>Password Reset Request</h1>
-      <p>You requested a password reset. Click the link below to set a new password:</p>
-      <p><a href="${resetURL}">Reset Password</a></p>
-      <p>If you did not request this, please ignore this email.</p>
-      <p>This link will expire in one hour.</p>
+      <div class="container">
+        <div class="logo">
+          <!-- Replace with your logo -->
+          <img src="https://your-logo-url.com/logo.png" alt="Company Logo">
+        </div>
+        
+        <h1>Password Reset Request</h1>
+        
+        <div class="message">
+          <p>Hello,</p>
+          <p>We received a request to reset your password. To proceed with the password reset, please use the token below:</p>
+        </div>
+
+        <div class="token-container">
+          <div class="token" id="resetToken">${resetToken}</div>
+          <button class="copy-button" onclick="copyToken()">
+            Copy Token
+          </button>
+        </div>
+
+        <div class="message">
+          <p>For your security:</p>
+          <ul>
+            <li>This token will expire in one hour</li>
+            <li>Use this token to reset your password on our website</li>
+            <li>Never share this token with anyone</li>
+          </ul>
+        </div>
+
+        <div class="warning">
+          If you didn't request this password reset, please ignore this email or contact our support team if you have concerns.
+        </div>
+
+        <div class="footer">
+          <p>This is an automated message, please do not reply to this email.</p>
+          <p>&copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+        </div>
+      </div>
+
+      <script>
+        function copyToken() {
+          const tokenText = document.getElementById('resetToken').textContent;
+          navigator.clipboard.writeText(tokenText).then(() => {
+            const button = document.querySelector('.copy-button');
+            button.textContent = 'Copied!';
+            setTimeout(() => {
+              button.textContent = 'Copy Token';
+            }, 2000);
+          }).catch(err => {
+            console.error('Failed to copy:', err);
+          });
+        }
+      </script>
     </body>
     </html>
   `;

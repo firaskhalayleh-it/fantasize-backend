@@ -11,7 +11,7 @@ export const s_updateUser = async (req: Request, res: Response) => {
 
         const userId = (req as any).user.payload.userId;
         if (!userId) {
-            return res.status(401).json({ message: "Unauthorized" , userId});
+            return res.status(401).json({ message: "Unauthorized", userId });
         }
         const user = await Users.findOne({ where: { UserID: userId } });
 
@@ -25,7 +25,7 @@ export const s_updateUser = async (req: Request, res: Response) => {
         }
 
         // Destructure fields from the request body
-        const { Username, Email, Password, PhoneNumber, Gender,dateOfBirth } = req.body;
+        const { Username, Email, Password, PhoneNumber, Gender, dateOfBirth } = req.body;
 
         // Check for email or phone number duplication
         if (Email && Email !== user.Email) {
@@ -73,7 +73,7 @@ export const s_updateUser = async (req: Request, res: Response) => {
 
 
         // Save updated user
-        
+
         await user.save();
 
         return res.status(200).json({ message: "User updated successfully", user });
@@ -89,6 +89,9 @@ export const s_updateUserPassword = async (req: Request, res: Response) => {
     try {
         const { password } = req.body;
         const resetToken = req.params.resetToken;
+        if (!resetToken) {
+            return res.status(400).json({ message: "Invalid token" });
+        }
 
         const user = await Users.findOne({ where: { resetPasswordToken: resetToken } });
         if (!user) {
