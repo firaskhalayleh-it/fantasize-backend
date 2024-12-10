@@ -169,7 +169,7 @@ export const s_getAllPackagesUnderSpecificSubcategory = async (req: Request, res
 export const s_getPackageByID = async (req: Request, res: Response) => {
     try {
         const pkgId: any = req.params.packageId;
-        const getPackage = await Packages.findOne({ where: { PackageID: pkgId } })
+        const getPackage = await Packages.findOne({ where: { PackageID: pkgId } ,relations:['PackageProduct']})
         if (!getPackage) {
             return `not found a package`
         }
@@ -184,9 +184,9 @@ export const s_getPackageByID = async (req: Request, res: Response) => {
 
 export const s_updatePackage = async (req: Request, res: Response) => {
     try {
-        const { Name, Description, Price, Quantity, SubCategoryId, products } = req.body;
         const pkgId: any = req.params.packageId;
-
+        const { Name, Description, Price, Quantity, SubCategoryId, products } = req.body;
+console.log("req.files",req.files);
         // Find the package to update
         const getPackage = await Packages.findOne({ where: { PackageID: pkgId } });
         if (!getPackage) {

@@ -79,7 +79,7 @@ export const s_loginUser = async (req: Request, res: Response) => {
             const token = jwt.sign({ payload }, "testScrit", { expiresIn: "12h" })
             res.cookie("authToken", token, { httpOnly: true })
             
-                return res.status(200).json({ message: 'Login successful', token });
+                return token;
             
         } else {
             if (!res.headersSent) {

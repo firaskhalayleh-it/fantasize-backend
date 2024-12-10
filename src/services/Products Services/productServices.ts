@@ -78,7 +78,6 @@ export const s_getProductByCategoryID = async (req: Request, res: Response) => {
 // ---------------------> Create a new product <---------------------
 export const s_createProduct = async (req: Request, res: Response) => {
     try { 
-        console.log("i'm here ======================================");
         const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Material } = req.body;
 
         if (!Name || !Price || !Description || !SubCategoryID || !Quantity || !BrandName || !Material) {
@@ -159,9 +158,9 @@ export const s_createProduct = async (req: Request, res: Response) => {
 
 export const s_updateProduct = async (req: Request, res: Response) => {
     try {
-        const  productId :any = req.params;
+        const  productId :any = req.params.productId;
         const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Material } = req.body;
-
+console.log( req.files);
         const productRepository = Products;
         const product = await productRepository.findOne({
             where: { ProductID: productId },
@@ -194,7 +193,6 @@ export const s_updateProduct = async (req: Request, res: Response) => {
 
         const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
 
-        // إضافة الصور
         const images = files?.images || [];
         if (images.length > 0) {
             for (const image of images) {
@@ -208,7 +206,6 @@ export const s_updateProduct = async (req: Request, res: Response) => {
             }
         }
 
-        // إضافة الفيديوهات
         const videos = files?.videos || [];
         if (videos.length > 0) {
             for (const video of videos) {
