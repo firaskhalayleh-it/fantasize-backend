@@ -1,8 +1,7 @@
 import express from "express"
-import { authMiddleware } from "../../middlewares/auth_middleware";
-import { adminMiddleware } from "../../middlewares/admin_middleware";
-import { isAuthorized } from "../../middlewares/isAuthentecated";
-import { c_createProduct, c_getAllProducts, c_getProduct, c_getProductByCategoryAndSubCategory, c_singleProduct, c_updateProduct } from "../../controllers/Products Controller/productController";
+
+import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
+import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory, c_updateProduct, c_getAllProducts, c_getProductByCategoryID, c_getRandomMenProducts, c_getRandomWomenProducts } from "../../controllers/Products Controller/productController";
 import FavoriteProductRoute from "./favoriteProductsRoutes";
 import { uploadFields } from "../../middlewares/multerMiddleware";
 
@@ -27,7 +26,7 @@ productRoute.get('/GetAllProducts', isAuthorized, c_getAllProducts);
  *  @access        Public
  */
 
-productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', isAuthorized, c_getProductByCategoryAndSubCategory);
+productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', c_getProductByCategoryAndSubCategory);
 
 /**
  *  @description   Get a single product by ID
@@ -35,7 +34,7 @@ productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', isAuthorized, c_g
  *  @method        GET
  *  @access        Public
  */
-productRoute.get('/getProduct/:id', isAuthorized, c_getProduct);
+productRoute.get('/getProduct/:id', c_getProduct);
 
 /**
  *  @description   Create a new product
@@ -43,7 +42,7 @@ productRoute.get('/getProduct/:id', isAuthorized, c_getProduct);
  *  @method        POST
  *  @access        admin
  */
-productRoute.post('/createProduct', isAuthorized,uploadFields, c_createProduct);
+productRoute.post('/createProduct', isAuthorized, uploadFields, c_createProduct);
 
 /**
  *  @description   Update a product
@@ -63,18 +62,47 @@ productRoute.put('/product/:productId', isAuthorized,uploadFields, c_updateProdu
 productRoute.use('/product/:productId', FavoriteProductRoute);
 
 
-
-
-
-
 /**
- *  @description   Get all products 
+ *  @description   Get all products
  *  @route         /products
  *  @method        GET
  *  @access        Public
  */
+productRoute.get('/products', c_getAllProducts);
 
-productRoute.delete('/deleteSingleProduct', isAuthorized, c_singleProduct);
+/**
+ *  @description   Get all products by category
+ *  @route         /products/:CategoryID
+ *  @method
+ * @access        Public
+ * 
+    * 
+        */
+
+productRoute.get('/products/:CategoryID', c_getProductByCategoryID);
+
+
+/**
+ *  @description   Get random products for men
+ * @route        /products/random/men
+ * @method      GET
+ * @access     public
+*/
+productRoute.get('/products/random/men', c_getRandomMenProducts);
+
+/**
+ *  @description   Get random products for women
+ *  @route       /products/random/women
+ * @method      GET
+ * @access     public
+*/
+productRoute.get('/products/random/women', c_getRandomWomenProducts);
+
+
+
+
+
+
 
 
 

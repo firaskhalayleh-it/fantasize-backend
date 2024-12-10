@@ -11,31 +11,40 @@ export const s_createReviewProduct = async (req: Request, res: Response) => {
     try {
         const { Rating, Comment, ProductID } = req.body;
         const userID = (req as any).user.payload.userId;
+
+       
+        if (isNaN(Rating)) {
+            return res.status(400).send({ message: "Invalid Rating. It must be a number." });
+        }
+
         const user = await Users.findOne({ where: { UserID: userID } });
-        const product = await Products.findOne({ where: { ProductID: ProductID } });
+        const product = await Products.findOne({ where: { ProductID: Number(ProductID) } });
+
         if (!product) {
             return res.status(404).send({ message: "Product not found" });
         }
+
         if (!user) {
             return res.status(404).send({ message: "User not found" });
         }
-        const productsArray = []; 
-        productsArray.push(product);
-        
+
         const review = Reviews.create({
-            User: user,
-            Rating: Rating,
+            Rating: Number(Rating),  // Parse the number
             Comment: Comment,
-            Products: productsArray, 
+            Products: [],
+            User: user
         });
+        review.Products.push(product);
+       
         
         await review.save();
-        return review;
+        return res.status(201).send(review);  // Respond with the created review
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        res.status(500).send({ message: err.message });
     }
 }
+
 
 //----------------------- Create a new review for a package-----------------------
 
@@ -43,27 +52,37 @@ export const s_createReviewPackage = async (req: Request, res: Response) => {
     try {
         const { Rating, Comment, PackageID } = req.body;
         const userID = (req as any).user.payload.userId;
+        
+        // Fetch user and package
         const user = await Users.findOne({ where: { UserID: userID } });
         const pkg = await Packages.findOne({ where: { PackageID: PackageID } });
+        
+        // Check if the package and user exist
         if (!pkg) {
             return res.status(404).send({ message: "Package not found" });
         }
         if (!user) {
             return res.status(404).send({ message: "User not found" });
         }
-        const pkgArray=[];
-        pkgArray.push(pkg)
+        
+        // Create a new review
         const review = Reviews.create({
-            User:user,
-            Rating:Rating,
-            Comment:Comment,
-            Packages:pkgArray
+            User: user,
+            Rating,
+            Comment,
+            Packages: [] // Initialize the Packages field as an array with the pkg object
         });
+        
+        // Add the package to the review
+        review.Packages.push(pkg);
+        // Save the review
         await review.save();
-        return review;
+        
+        // Return success response
+        return res.status(200).send(review);
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        res.status(500).send({ message: err.message });
     }
 }
 

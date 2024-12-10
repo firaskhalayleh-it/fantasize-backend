@@ -2,6 +2,9 @@ import { Request, Response, Router } from 'express';
 import { Categories } from '../../entities/categories/Categories';
 import { SubCategories } from '../../entities/categories/SubCategories';
 import { Resources } from '../../entities/Resources';
+import { Packages } from '../../entities/packages/Packages';
+import { Products } from '../../entities/products/Products';
+import { MoreThan, LessThan } from 'typeorm';
 
 //-----------------------Get all categories -----------------------
 export const s_getAllCategories = async (req: Request, res: Response) => {
@@ -73,7 +76,7 @@ export const s_createCategory = async (req: Request, res: Response) => {
                 entityName: req.file.filename,
                 fileType: req.file.mimetype,
                 filePath: req.file.path,
-                Category: category 
+                Category: category
             });
 
             // Save the image resource
@@ -119,7 +122,7 @@ export const s_updateCategory = async (req: Request, res: Response) => {
                     entityName: req.file.filename,
                     fileType: req.file.mimetype,
                     filePath: req.file.path,
-                    Category: category
+                    Category: category  // Associate resource with the category
                 }).save();
 
                 // حفظ الصورة
@@ -137,14 +140,15 @@ export const s_updateCategory = async (req: Request, res: Response) => {
                 return res.status(400).send({ message: 'Category could not be updated' });
             }
         } else {
-            return res.status(404).send({ message: 'Category not found' });
+            return res.status(400).send({ message: 'Category could not be updated' });
         }
 
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message });
     }
-}
+};
+
 
 
 //----------------------- Delete a category by ID-----------------------
@@ -172,7 +176,7 @@ export const s_deleteCategory = async (req: Request, res: Response) => {
 export const s_getAllSubcategories = async (req: Request, res: Response) => {
     try {
         const categoryId = Number(req.params.categoryId);
-        const category = await Categories.findOne({ where: { CategoryID: categoryId }, relations: ['SubCategory','Image'] });
+        const category = await Categories.findOne({ where: { CategoryID: categoryId }, relations: ['SubCategory', 'Image'] });
 
         if (category) {
             return res.status(200).json(category.SubCategory);
@@ -195,8 +199,8 @@ export const s_createSubcategory = async (req: Request, res: Response) => {
         if (!Name || Name === '') {
             return res.status(400).send({ message: 'Please provide a subcategory name ' });
         }
-     
-    
+
+
         const categoryId = Number(req.params.categoryId);
         const category = await Categories.findOne({ where: { CategoryID: categoryId } });
 
@@ -246,7 +250,7 @@ export const s_DeleteSubcategory = async (req: Request, res: Response) => {
 //----------------------- Disactivate a category-----------------------
 export const s_disactivateCategory = async (req: Request, res: Response) => {
     try {
-        const categoryId:any = req.params.categoryId;
+        const categoryId: any = req.params.categoryId;
 
         const category = await Categories.findOne({ where: { CategoryID: categoryId } });
 
@@ -318,5 +322,53 @@ export const s_updateSubcategory = async (req: Request, res: Response) => {
         res.status(500).send({ message: err.message })
     }
 }
+
+//----------------------- get the subcategory for home with picture as new collection under condition that item added to this sub category in less than 3 days -----------------------
+export const s_getNewCollection = async (req: Request, res: Response) => {
+    try {
+        const today = new Date();
+
+        // Fetch products created within the last 3 days with active offers
+        const products = await Products.find({
+            where: [
+                { CreatedAt: MoreThan(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)) },
+                { Offer: { ValidFrom: LessThan(today), ValidTo: MoreThan(today), IsActive: true } }
+            ],
+            relations: ["Offer", "Resource", "SubCategory"]
+        });
+
+        // Fetch packages created within the last 3 days with active offers
+        const packages = await Packages.find({
+            where: [
+                { CreatedAt: MoreThan(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)) },
+                { Offer: { ValidFrom: LessThan(today), ValidTo: MoreThan(today), IsActive: true } }
+            ],
+            relations: ["Offer", "Resource", "SubCategory"]
+        });
+
+        // make the resources of the products and packages to be the first image
+        products.forEach(product => {
+            product.Resource = product.Resource.filter(resource => resource.fileType.includes('image'));
+
+        });
+
+        packages.forEach(pkg => {
+            pkg.Resource = pkg.Resource.filter(resource => resource.fileType.includes('image'));
+        });
+        // Combine products and packages, limiting to 3 items in total
+        const newCollection = [...products, ...packages]
+            .sort((a, b) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime())
+            .slice(0, 3);
+
+        return newCollection.length > 0
+            ? res.status(200).json(newCollection)
+            : res.status(404).send({ message: 'No new collection found' });
+
+    } catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message });
+    }
+}
+
 
 

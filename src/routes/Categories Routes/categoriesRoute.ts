@@ -1,7 +1,6 @@
-import express from "express"
-import { c_createCategory, c_createSubcategory, c_deleteCategory, c_DeleteSubcategory, c_disActiveCategory, c_getAllCategories, c_getAllSubcategories, c_getCategory, c_updateCategory, c_updateSubcategory } from "../../controllers/Categories Controller/CategoriesController";
-import { authMiddleware } from "../../middlewares/auth_middleware";
-import { adminMiddleware } from "../../middlewares/admin_middleware";
+import express from 'express';
+import { c_createCategory, c_createSubcategory, c_deleteCategory, c_DeleteSubcategory, c_disActiveCategory, c_getAllCategories, c_getAllSubcategories, c_getCategory, c_getNewCollection, c_updateCategory, c_updateSubcategory } from "../../controllers/Categories Controller/CategoriesController";
+
 import { isAuthorized } from "../../middlewares/isAuthentecated";
 import { uploadSingle } from "../../middlewares/multerMiddleware";
 const categoryRoute = express.Router();
@@ -14,14 +13,6 @@ const categoryRoute = express.Router();
  */
 categoryRoute.get('/categories', c_getAllCategories);
 
-/**
- *  @description   Get  category by id
- *  @route         /categories
- *  @method        GET
- *  @access        Public
- */
-categoryRoute.get('/getCategory/:categoryId', c_getCategory);
-
 
 /**
  *  @description   Create a new category
@@ -29,7 +20,7 @@ categoryRoute.get('/getCategory/:categoryId', c_getCategory);
  *  @method        POST
  *  @access        Admin
  */
-categoryRoute.post('/categories', isAuthorized,uploadSingle, c_createCategory);
+categoryRoute.post('/categories', isAuthorized, uploadSingle, c_createCategory);
 
 /**
  *  @description   Update a category by ID
@@ -37,7 +28,7 @@ categoryRoute.post('/categories', isAuthorized,uploadSingle, c_createCategory);
  *  @method        PUT
  *  @access        admin
  */
-categoryRoute.put('/category/:id', isAuthorized,uploadSingle, c_updateCategory);
+categoryRoute.put('/category/:id', isAuthorized, uploadSingle, c_updateCategory);
 
 
 
@@ -57,7 +48,7 @@ categoryRoute.post('/categories/:categoryId/subcategories', isAuthorized, c_crea
  *  @method        put
  *  @access        admin
  */
-categoryRoute.put('/categories/:categoryId/subcategories/:subcategoryId', isAuthorized, c_updateSubcategory);
+categoryRoute.put('/categories/:categoryId/subcategories/:subcategoryId', c_updateSubcategory);
 
 /**
  *  @description   Get  all categories with subcategories
@@ -77,6 +68,15 @@ categoryRoute.get('/categories/subcategories', c_getAllCategories);
  *  @access        admin
  */
 categoryRoute.put('/categories/:CategoryId', isAuthorized, c_disActiveCategory);
+
+
+/**
+ *  @description   get a new collection of subcategories for first 3 categories
+ *  @route         /categories/newCollection
+ *  @method        get
+ *  @access        Public
+ */
+categoryRoute.get('/categories/newCollection', c_getNewCollection);
 
 
 export default categoryRoute;

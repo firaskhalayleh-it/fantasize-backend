@@ -1,7 +1,6 @@
 // create addresss , delete , update  get by userId
 import express from "express"
 import { c_addNewAdress, c_deleteUserAddress, c_getUserAddress, c_updateUserAddress } from "../../controllers/Users Controller/addressController";
-import { authMiddleware } from "../../middlewares/auth_middleware";
 import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
 const addressRoute = express.Router();
 
@@ -12,7 +11,7 @@ const addressRoute = express.Router();
  *  @access       private
  * 
  */
-addressRoute.post("/user/create_address_user",isAuthorized,c_addNewAdress);
+addressRoute.post("/user/create_address_user",IsAuthenticated,c_addNewAdress);
 
 /**
  *  @description  update user address by userId
@@ -21,7 +20,7 @@ addressRoute.post("/user/create_address_user",isAuthorized,c_addNewAdress);
  *  @access       private
  * 
  */
-// addressRoute.put("/user/update_address_user",IsAuthenticated,c_updateUserAddress);
+addressRoute.put("/user/update_address_user",IsAuthenticated,c_updateUserAddress);
 
 // /**
 //  *  @description  delete user address by userId

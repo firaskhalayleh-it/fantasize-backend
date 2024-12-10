@@ -8,20 +8,24 @@ import { Resources } from '../../entities/Resources';
 //----------------------- update user by id-----------------------
 export const s_updateUser = async (req: Request, res: Response) => {
     try {
-        const userId = req.params.userId || (req as any).user.payload.userId;
+
+        const userId = (req as any).user.payload.userId;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" , userId});
+        }
         const user = await Users.findOne({ where: { UserID: userId } });
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        
+
         // Validate if req.body is present
         if (!req.body || Object.keys(req.body).length === 0) {
             return res.status(400).json({ message: "Request body is missing" });
         }
 
         // Destructure fields from the request body
-        const { Username, Email, Password, PhoneNumber, Gender ,DateOfBirth} = req.body;
+        const { Username, Email, Password, PhoneNumber, Gender,dateOfBirth } = req.body;
 
         // Check for email or phone number duplication
         if (Email && Email !== user.Email) {
@@ -46,25 +50,30 @@ export const s_updateUser = async (req: Request, res: Response) => {
         user.Password = hashedPassword;
         user.PhoneNumber = PhoneNumber || user.PhoneNumber;
         user.Gender = Gender || user.Gender;
-        user.dateofbirth = DateOfBirth || user.dateofbirth  ;
+        user.dateofbirth = dateOfBirth || user.dateofbirth;
 
         if (req.file) {
-            const resource = await Resources.findOne({ where: { User: {UserID:user.UserID} } });
+            const resource = await Resources.findOne({ where: { User: { UserID: user.UserID } } });
             if (resource) {
                 resource.filePath = req.file.path;
+                resource.fileType = req.file.mimetype;
+                resource.entityName = req.file.filename;
                 await Resources.save(resource);
+                user.UserProfilePicture = resource;
             } else {
                 const newResource = new Resources();
                 newResource.filePath = req.file.path;
                 newResource.fileType = req.file.mimetype;
-                newResource.entityName = req.file.fieldname;
+                newResource.entityName = req.file.filename;
                 newResource.User = user;
                 await Resources.save(newResource);
+                user.UserProfilePicture = newResource;
             }
-          }
+        }
 
 
         // Save updated user
+        
         await user.save();
 
         return res.status(200).json({ message: "User updated successfully", user });
@@ -97,7 +106,7 @@ export const s_updateUserPassword = async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         user.Password = hashedPassword;
         user.resetPasswordToken = '';
-        
+
         await Users.save(user);
         return res.status(200).json({ message: "Password updated successfully" });
 
@@ -111,7 +120,14 @@ export const s_updateUserPassword = async (req: Request, res: Response) => {
 export const s_getUser = async (req: Request, res: Response) => {
     try {
         const userId: any = req.params.id;
-        const user = await Users.findOne({ where: { UserID: userId } ,relations:['Orders' ,'Addresses' , 'UserProfilePicture']});
+        const user = await Users.findOne({
+            where: { UserID: userId }, relations: [
+                'UserProfilePicture',
+                'PaymentMethods',
+                'Addresses',
+                'notifications',
+            ]
+        });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -152,7 +168,7 @@ export const s_getAllUser = async (req: Request, res: Response) => {
 export const s_getUserNameWithProfilePic = async (req: Request, res: Response) => {
     try {
         const userId: any = req.params.id;
-        const user = await Users.findOne({ where: { UserID: userId } , relations: ['UserProfilePicture'] });
+        const user = await Users.findOne({ where: { UserID: userId }, relations: ['UserProfilePicture'] });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }

@@ -1,11 +1,15 @@
+// src/services/PackageOrders/ordersPackagesServices.ts
+
 import { Request, Response } from 'express';
 import { Packages } from '../../entities/packages/Packages';
 import { Users } from '../../entities/users/Users';
 import { OrdersPackages } from '../../entities/packages/OrdersPackages';
 import { Orders } from '../../entities/Orders';
 import { OrderedCustomization } from '../../entities/OrderedCustomization';
+import { getRepository } from 'typeorm';
 
-export const s_createNewOrderUser = async (req: Request, res: Response) => {
+// ----------------------- Create a New Package Order -----------------------
+export const createNewOrderPackage = async (req: Request, res: Response) => {
   try {
     // Extract user ID from authenticated user
     const userId = (req as any).user.payload.userId;
@@ -63,14 +67,27 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
       );
       await orderPackage.save();
 
-      // Update or create customization if orderedOptions are provided
+      // Handle Ordered Options if provided
       if (orderedOptions && Array.isArray(orderedOptions)) {
+        const formattedOptions = orderedOptions.map((option: any) => ({
+          name: option.name,
+          type: option.type,
+          optionValues: option.optionValues.map((value: any) => ({
+            name: value.name,
+            value: value.value,
+            isSelected: value.isSelected,
+            filePath: value.filePath,
+          })),
+        }));
+
         if (orderPackage.OrderedCustomization) {
-          orderPackage.OrderedCustomization.SelectedOptions = orderedOptions;
+          // Update existing customization
+          orderPackage.OrderedCustomization.SelectedOptions = formattedOptions;
           await orderPackage.OrderedCustomization.save();
         } else {
+          // Create new customization
           const newCustomization = OrderedCustomization.create({
-            SelectedOptions: orderedOptions,
+            SelectedOptions: formattedOptions,
             OrdersPackages: orderPackage,
           });
           await newCustomization.save();
@@ -89,8 +106,19 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
 
       // If orderedOptions are provided, create a new customization
       if (orderedOptions && Array.isArray(orderedOptions)) {
+        const formattedOptions = orderedOptions.map((option: any) => ({
+          name: option.name,
+          type: option.type,
+          optionValues: option.optionValues.map((value: any) => ({
+            name: value.name,
+            value: value.value,
+            isSelected: value.isSelected,
+            filePath: value.filePath,
+          })),
+        }));
+
         const newCustomization = OrderedCustomization.create({
-          SelectedOptions: orderedOptions,
+          SelectedOptions: formattedOptions,
           OrdersPackages: newOrderPackage,
         });
         await newCustomization.save();
@@ -120,6 +148,8 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
       ],
     });
 
+
+
     // Return the updated order
     return res.status(200).json({ message: "Package added to order successfully", order });
   } catch (err: any) {
@@ -128,38 +158,48 @@ export const s_createNewOrderUser = async (req: Request, res: Response) => {
   }
 };
 
-
-//----------------------- Update a specific pakcage order-----------------------
-export const s_updateOrderPackage = async (req: Request, res: Response) => {
+// ----------------------- Update a Specific Package Order -----------------------
+export const updateOrderPackage = async (req: Request, res: Response) => {
   try {
     const orderId = Number(req.params.orderId);
     const packageId = Number(req.params.packageId);
     const { quantity, orderedOptions } = req.body;
 
-    // Find the order by ID
-    const order = await Orders.findOne({
-      where: { OrderID: orderId },
-      relations: ["OrdersPackages", "OrdersPackages.Package", "OrdersPackages.OrderedCustomization"],
-    });
-
-    if (!order) {
-      return res.status(404).send({ message: "Order not found" });
+    // Input Validation
+    if (isNaN(orderId) || isNaN(packageId)) {
+      return res.status(400).send({ message: "Invalid orderId or packageId" });
     }
 
-    // Find the specific package in the order
-    const orderPackage = order.OrdersPackages.find((op) => op.Package.PackageID === packageId);
+    if (quantity !== undefined && (typeof quantity !== 'number' || quantity <= 0)) {
+      return res.status(400).send({ message: "Quantity must be a positive integer" });
+    }
+
+    if (orderedOptions && !Array.isArray(orderedOptions)) {
+      return res.status(400).send({ message: "orderedOptions must be an array" });
+    }
+
+    // Fetch the specific OrdersPackage using QueryBuilder
+    const orderPackage = await OrdersPackages.findOne({
+      where: {
+        Order: { OrderID: orderId },
+        OrderPackageID: packageId,
+      },
+      relations: ["Order", "Package", "OrderedCustomization"],
+    });
+
+
     if (!orderPackage) {
       return res.status(404).send({ message: "Order Package not found" });
     }
 
-    // Update the quantity if provided
-    if (quantity && quantity !== orderPackage.quantity) {
+    // Update Quantity if provided
+    if (quantity !== undefined && quantity !== orderPackage.quantity) {
       orderPackage.quantity = quantity;
       orderPackage.TotalPrice = parseFloat((quantity * orderPackage.Package.Price).toFixed(2));
       await orderPackage.save();
     }
 
-    // Handle ordered options and update or create customization
+    // Handle Ordered Options if provided
     if (orderedOptions && Array.isArray(orderedOptions)) {
       const formattedOptions = orderedOptions.map((option: any) => ({
         name: option.name,
@@ -177,7 +217,7 @@ export const s_updateOrderPackage = async (req: Request, res: Response) => {
         orderPackage.OrderedCustomization.SelectedOptions = formattedOptions;
         await orderPackage.OrderedCustomization.save();
       } else {
-        // Create a new customization if it doesn't exist
+        // Create new customization
         const newCustomization = OrderedCustomization.create({
           SelectedOptions: formattedOptions,
           OrdersPackages: orderPackage,
@@ -189,8 +229,20 @@ export const s_updateOrderPackage = async (req: Request, res: Response) => {
     }
 
     // Recalculate the total price of the order
-    order.calculateTotalPrice();
-    await order.save();
+    const order = await Orders.findOne({
+      where: { OrderID: orderId },
+      relations: ["OrdersPackages", "OrdersPackages.Package"],
+    });
+
+    if (order) {
+      let total = 0;
+      for (const op of order.OrdersProducts) {
+        total += Number(op.TotalPrice);
+      }
+      order.TotalPrice = parseFloat(Number(total).toFixed(2));
+      await order.save();
+    }
+    
 
     // Reload the order with all relations to return updated data
     const updatedOrder = await Orders.findOne({
@@ -205,30 +257,56 @@ export const s_updateOrderPackage = async (req: Request, res: Response) => {
     });
 
     return res.status(200).json({ message: "Order Package updated successfully", order: updatedOrder });
+
   } catch (err: any) {
-    console.error(err);
+    console.error("Error in updateOrderPackage:", err);
     res.status(500).send({ message: err.message });
   }
 };
 
-
-//----------------------- Delete a specific package order-----------------------
-export const s_deleteOrderPackage = async (req: Request, res: Response) => {
+// ----------------------- Delete a Specific Package Order -----------------------
+export const deleteOrderPackage = async (req: Request, res: Response) => {
   try {
     const orderId = Number(req.params.orderId);
     const packageId = Number(req.params.packageId);
-    const order = await Orders.findOne({ where: { OrderID: orderId } });
-    if (!order) {
-      return res.status(404).send({ message: "Order not found" });
-    }
-    const orderPkg = await OrdersPackages.findOne({ where: { Order: { OrderID: orderId }, Package: { PackageID: packageId } } });
+
+    // Fetch the specific OrderPackage
+    const orderPkg = await OrdersPackages.findOne({
+      where: {
+        Order: { OrderID: orderId },
+        Package: { PackageID: packageId },
+      },
+      relations: ["Order", "Package", "OrderedCustomization"]
+    });
+
     if (!orderPkg) {
       return res.status(404).send({ message: "Order Package not found" });
     }
+
+    // Remove the OrderPackage
     await orderPkg.remove();
-    return res.status(200).send({ message: "Order Package deleted successfully" });
+
+    // Recalculate the total price of the order
+    const order = await Orders.findOne({
+      where: { OrderID: orderId },
+      relations: ["OrdersProducts", "OrdersPackages"]
+    });
+
+    if (order) {
+      await order.calculateTotalPrice();
+      await order.save();
+    }
+
+    // Reload the order with updated relations
+    const updatedOrder = await Orders.findOne({
+      where: { OrderID: orderId },
+      relations: ["OrdersProducts", "OrdersPackages", "OrdersProducts.Product", "OrdersPackages.Package"]
+    });
+
+    return res.status(200).json({ message: "Order Package deleted successfully", order: updatedOrder });
+
   } catch (err: any) {
-    console.log(err);
+    console.error("Error in deleteOrderPackage:", err);
     res.status(500).send({ message: err.message });
   }
-}
+};

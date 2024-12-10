@@ -3,11 +3,11 @@ import session from 'express-session';
 import passport from 'passport';
 import { initializeDB } from "./config/database";
 import 'dotenv/config';
-import path from 'path';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import cors from "cors";
 import authRoute from "./routes/Auth Routes/authRoutes";
-import { errorHandler, notFound } from "./middlewares/httpErrors";
+import { errorHandler, notFound, validateUUIDParam } from "./middlewares/httpErrors";
 import userRoute from "./routes/Users Routes/usersRoute";
 import addressRoute from "./routes/Users Routes/addressRoute";
 import paymentMethodRoute from "./routes/Payment methods Routes/paymentMethodsRoute";
@@ -27,12 +27,14 @@ import customizationRoute from "./routes/CustomizationRoute/customizationRoute";
 import exploreRoute from "./routes/Explore Route/exploreRoute";
 import { setupSwagger } from "./swagger/swagger";
 import authGoogleFacebookRoute from "./routes/Auth Routes/authUsingFacebookGoogleRoutes";
-import './config/passportConfig'; 
+import homeRoute from "./routes/Home Routes/home_route";
+import './config/passportConfig';
 import notificationRoute from "./routes/Notification Routes/notificationRoute";
 
 
 
 const app = express();
+const IP = ip.address();
 // const corsOptions = {
 //   origin: "http://127.0.0.1:5500",
 //   credentials: true,  
@@ -49,7 +51,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-  secret:'secret-key',
+  secret: 'secret-key',
   resave: false,
   saveUninitialized: true,
 }));
@@ -67,6 +69,7 @@ app.use(cors({
 }));
 setupSwagger(app);
 app.use('/api', authGoogleFacebookRoute);
+app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
 app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
 app.use("/api", authRoute);
 app.use("/api", userRoute);
@@ -90,8 +93,9 @@ app.use("/api", notificationRoute);
 
 app.use(notFound);
 app.use(errorHandler);
+app.use(validateUUIDParam);
 
 app.listen(PORT, async () => {
   await initializeDB();
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on http://${IP}:${PORT}`);
 });

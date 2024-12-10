@@ -1,15 +1,14 @@
 
 
 import { Request, Response } from 'express';
-import { s_createProduct, s_getAllProducts, s_getProduct, s_getProductByCategoryAndSubCategory, s_getProductByCategoryID, s_singleProduct, s_updateProduct } from '../../services/Products Services/productServices';
+import { s_createProduct, s_getAllProducts, s_getProduct, s_getProductByCategoryAndSubCategory, s_getProductByCategoryID, s_updateProduct,s_getRandomMenProducts,s_getRandomWomenProducts } from '../../services/Products Services/productServices';
 
 
 
 // ---------------------> Get all products <---------------------
 export const c_getAllProducts = async (req: Request, res: Response) => {
     const result = await s_getAllProducts(req, res);
-    return res.status(200).send(result);
-
+    return res.send(result);
 }
 
 // ---------------------> Get product by id <---------------------
@@ -41,8 +40,15 @@ export const c_updateProduct = async (req: Request, res: Response) => {
     const result = await s_updateProduct(req, res);
     return res.status(200).send(result);
 }
-// ---------------------> delete a product <---------------------
-export const c_singleProduct = async (req: Request, res: Response) => {
-    const result = await s_singleProduct(req, res);
+
+// ---------------------> Get random products for men <---------------------
+export const c_getRandomMenProducts = async (req: Request, res: Response) => {
+    const result = await s_getRandomMenProducts(req, res);
+    return res.status(200).send(result);
+}
+
+// ---------------------> Get random products for women <---------------------
+export const c_getRandomWomenProducts = async (req: Request, res: Response) => {
+    const result = await s_getRandomWomenProducts(req, res);
     return res.status(200).send(result);
 }

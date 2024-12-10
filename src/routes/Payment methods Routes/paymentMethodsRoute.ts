@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { c_createPaymentMethod, c_deletePaymentMethod, c_getPaymentMethod, c_updatePaymentMethod } from '../../controllers/Payment methods Controller/paymentMethodsController';
-import { isAuthorized } from '../../middlewares/isAuthentecated';
+import { IsAuthenticated, isAuthorized } from '../../middlewares/isAuthentecated';
 
 const  paymentMethodRoute = Router();
 

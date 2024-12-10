@@ -36,7 +36,7 @@ export class OrdersPackages extends BaseEntity {
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   TotalPrice: number;
 
-  @OneToOne(() => OrderedCustomization, (orderedCustomization) => orderedCustomization.OrdersPackages, { cascade: true, eager: true })
+  @OneToOne(() => OrderedCustomization, (orderedCustomization) => orderedCustomization.OrdersPackages, { eager: true })
   @JoinColumn()
   OrderedCustomization: OrderedCustomization;
 
@@ -57,7 +57,7 @@ export class OrdersPackages extends BaseEntity {
   async calculateTotalPrice() {
     if (this.Package && this.Package.Price && this.quantity) {
       let finalPrice = this.Package.Price;
-      
+
       if (this.Package.Offer && this.Package.Offer.IsActive) {
         const discount = this.Package.Offer.Discount;
         finalPrice = finalPrice - (finalPrice * (discount / 100));

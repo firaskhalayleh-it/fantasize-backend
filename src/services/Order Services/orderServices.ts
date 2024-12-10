@@ -13,7 +13,7 @@ import sendOrderNotification from "../../utils/OrderNotification";
 export const s_checkoutOrderUser = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user.payload.userId;
-        const { PaymentMethodID, AddressID, IsGift, IsAnonymous,GiftMessage } = req.body;
+        const { PaymentMethodID, AddressID, IsGift, IsAnonymous, GiftMessage } = req.body;
 
         // Find the user
         const user = await Users.findOne({ where: { UserID: userId } });
@@ -31,14 +31,23 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
             return res.status(404).send({ message: "Order not found" });
         }
 
+        console.log(order.OrderID.toString());
+        const emailHtml = orderConfirmationTemplate(order.OrderID.toString(), user.Username);
+        const emailOptions: EmailOptions = {
+            to: user.Email,
+            subject: "Order Confirmation",
+            html: emailHtml,
+        };
+
+
 
         // Validate payment method and address
-        const paymentMethod = await PaymentMethods.findOne({ where: { PaymentMethodID: PaymentMethodID, User: {UserID:userId} } });
+        const paymentMethod = await PaymentMethods.findOne({ where: { PaymentMethodID: PaymentMethodID, User: { UserID: userId } } });
         if (!paymentMethod) {
             return res.status(404).send({ message: "Payment method not found" });
         }
 
-        const address = await Addresses.findOne({ where: { AddressID: AddressID, User: {UserID:userId} } });
+        const address = await Addresses.findOne({ where: { AddressID: AddressID, User: { UserID: userId } } });
         if (!address) {
             return res.status(404).send({ message: "Address not found" });
         }
@@ -85,7 +94,7 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
         }
 
         // Update order details
-        order.PaymentMethod = paymentMethod  ;
+        order.PaymentMethod = paymentMethod;
         order.Address = address;
         order.Status = true;
         order.IsGift = IsGift ?? false;
@@ -114,7 +123,7 @@ export const s_getAllOrdersUser = async (req: Request, res: Response) => {
         }
         console.log(`user is : ${user}`);
         const orders = await Orders.find({
-            where: {Status: true ,User:{UserID:userId} },
+            where: { User: { UserID: userId }, Status: true },
             relations: [
                 "OrdersProducts", 
                 "OrdersProducts.Product", 
@@ -140,8 +149,8 @@ export const s_getCartUser = async (req: Request, res: Response) => {
             return res.status(404).send({ message: "User not found" });
         }
         const order = await Orders.findOne({
-            where: { User: {UserID:userId}, Status: false },
-            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
+            where: { User: { UserID: userId }, Status: false },
+            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package", "PaymentMethod", "Address", "OrdersProducts.OrderedCustomization", "OrdersProducts.OrderedCustomization"]
         });
         if (!order) {
             return res.status(404).send({ message: "Cart not found" });
@@ -161,16 +170,16 @@ export const s_getAllOrdersAdmin = async (req: Request, res: Response) => {
             where: { Status: true },
             relations: ["User", "OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
         });
-        // console.log('Fetched Orders:', orders);
-    
-      return res.status(200).send(orders);
+        console.log('Fetched Orders:', orders);
+
+        return res.status(200).send(orders);
     } catch (err: any) {
-      console.error(err);
-      res.status(500).send({ message: err.message });
+        console.error(err);
+        res.status(500).send({ message: err.message });
     }
-  }
-  
-  
+}
+
+
 
 //----------------------- Get order by id-----------------------
 export const s_getOrder = async (req: Request, res: Response) => {

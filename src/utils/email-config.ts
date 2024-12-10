@@ -30,12 +30,9 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`Email sent to ${options.to}`);
     return true;
   } catch (error) {
-    console.error(`Error sending email to ${options.to}:`, error);
     throw error;
-    return false;
   }
 }
 

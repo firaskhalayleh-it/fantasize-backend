@@ -1,4 +1,4 @@
-import admin from "../config/firebase-config";
+import admin from "../config/firebase-config.js";
 
 export async function sendPushNotification(token: string, title: string, body: string, actionUrl: string) {
   const message = {

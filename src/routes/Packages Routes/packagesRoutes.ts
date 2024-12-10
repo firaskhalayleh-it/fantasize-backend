@@ -1,8 +1,6 @@
 import express from "express"
-import { authMiddleware } from "../../middlewares/auth_middleware";
-import { adminMiddleware } from "../../middlewares/admin_middleware";
 import { isAuthorized } from "../../middlewares/isAuthentecated";
-import { c_createPackage, c_getAllPackages, c_getAllPackagesUnderSpecificSubcategory, c_getPackageByID, c_updatePackage } from "../../controllers/Packages Controller/packagesController";
+import { c_createPackage, c_getAllPackages, c_getAllPackagesUnderSpecificSubcategory, c_getPackageByID, c_updatePackage ,c_getRandomPackages,c_getRandomPackagesMen} from "../../controllers/Packages Controller/packagesController";
 import { uploadFields } from "../../middlewares/multerMiddleware";
 
 const packageRoute = express.Router();
@@ -48,6 +46,25 @@ packageRoute.get('/packages/:packageId', c_getPackageByID);
  *  @access        private (admin)
  */
 packageRoute.put('/packages/:packageId', isAuthorized,uploadFields, c_updatePackage);
+
+/**
+ *  @description   Get random packages for women
+ *  @route         /packages/random/women
+ *  @method        GET
+ *  @access        public
+ */
+packageRoute.get('/packages/random/women', c_getRandomPackages);
+
+/**
+ *  @description   Get random packages for men 
+ * @route         /packages/random/men
+ * @method        GET
+ * @access        public
+ * 
+ * 
+    */
+packageRoute.get('/packages/random/men', c_getRandomPackagesMen);
+
 
 
 export default packageRoute;

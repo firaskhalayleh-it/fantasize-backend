@@ -3,8 +3,9 @@ import { Products } from "../../entities/products/Products";
 import { Brands } from "../../entities/Brands";
 import { SubCategories } from "../../entities/categories/SubCategories";
 import { Offers } from "../../entities/Offers";
-import { getRepository } from "typeorm";
-import {  Resources } from "../../entities/Resources";
+import { getRepository, Like } from "typeorm";
+import { Resources } from "../../entities/Resources";
+import { Categories } from "../../entities/categories/Categories";
 // import { } from "../Resources Services/resourceService";
 // import { uploadFiles } from "../../config/Multer config/multerConfig";
 
@@ -12,12 +13,20 @@ import {  Resources } from "../../entities/Resources";
 // ---------------------> Get all products <---------------------
 export const s_getAllProducts = async (req: Request, res: Response) => {
     try {
-        const products = await Products.find({ relations: ['Review'] }); // Assuming 'Review' is a relation
+        const products = await Products.find({ relations: ['Review', 'Offer', 'Review', 'Review.User', 'Review.User.UserProfilePicture'] });
         if (!products || products.length === 0) {
             return res.status(404).send({ message: "No Products Found!" });
         }
 
-        return res.status(200).send(products);
+        // Modify products to ensure Offers is not null
+        const modifiedProducts = products.map(product => {
+            if (!product.Offer) {
+                product.Offer = new Offers; // Set Offers to an empty array if it's null
+            }
+            return product;
+        });
+
+        return res.status(200).send(modifiedProducts);
     } catch (err: any) {
         console.error(err);
         return res.status(500).send({ message: "An error occurred while fetching products.", error: err.message });
@@ -29,10 +38,15 @@ export const s_getAllProducts = async (req: Request, res: Response) => {
 export const s_getProduct = async (req: Request, res: Response) => {
     try {
         const productId: any = req.params.id;
-        const product = await Products.findOne({ where: { ProductID: productId }, relations:['Brand' ,'SubCategory'] })
+        const product = await Products.findOne({ where: { ProductID: productId }, relations: ['Review', 'Review.User', 'Review.User.UserProfilePicture', 'Offer'] });
+
         if (!product) {
             return "The Product Not Found !";
         }
+
+
+
+
         return product;
     } catch (err: any) {
         console.log(err);
@@ -48,10 +62,17 @@ export const s_getProductByCategoryAndSubCategory = async (req: Request, res: Re
         if (!CategoryID || !subCategoryID) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
-        const products = await Products.find({ where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID } }, relations: ['SubCategory'] });
-        if (products.length==0 ) {
-            return "The Product Not Found !";
+        const products = await Products.find({ where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID } }, relations: ['SubCategory', 'Offer'] });
+        if (products.length == 0) {
+            return res.status(404).send({ message: "The Product Not Found !" });
         }
+        products.map(product => {
+            if (!product.Offer) {
+                product.Offer = new Offers; // Set Offers to an empty array if it's null
+            }
+            return product;
+        }
+        );
         return products;
     } catch (err: any) {
         console.log(err);
@@ -63,10 +84,21 @@ export const s_getProductByCategoryAndSubCategory = async (req: Request, res: Re
 export const s_getProductByCategoryID = async (req: Request, res: Response) => {
     try {
         const CategoryID: any = req.params.CategoryID;
-        const products = await Products.find({ where: { SubCategory: { Category: { CategoryID: CategoryID } } }, relations: ['SubCategory'] });
+        const products = await Products.find({
+            where: { SubCategory: { Category: { CategoryID: CategoryID } } }, relations: ['SubCategory',
+                'Offer'
+            ]
+        });
         if (!products) {
-            return "The Product Not Found !";
+            return res.status(404).send({ message: "The Product Not Found !" });
         }
+        products.map(product => {
+            if (!product.Offer) {
+                product.Offer = new Offers; // Set Offers to an empty array if it's null
+            }
+            return product;
+        }
+        );
         return products;
     } catch (err: any) {
         console.log(err);
@@ -83,10 +115,9 @@ export const s_createProduct = async (req: Request, res: Response) => {
         if (!Name || !Price || !Description || !SubCategoryID || !Quantity || !BrandName || !Material) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
-
-        const isExist = await Products.findOne({ where: { Name: Name } });
-        if (isExist) {
-            return res.status(400).send({ message: `The product '${Name}' already exists.` });
+        const productExisted = await Products.findOne({ where: { Name } });
+        if (productExisted) {
+            return res.status(409).send({ message: "Product already exists" });
         }
 
         const brand = await Brands.findOne({ where: { Name: BrandName } });
@@ -160,12 +191,11 @@ export const s_updateProduct = async (req: Request, res: Response) => {
     try {
         const  productId :any = req.params.productId;
         const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Material } = req.body;
-console.log( req.files);
-        const productRepository = Products;
-        const product = await productRepository.findOne({
-            where: { ProductID: productId },
-            relations: ["Resource"]
-        });
+        if (!productId) {
+            return res.status(400).send({ message: "Please provide a product ID" });
+        }
+        const productRepository = (Products);
+        const product = await productRepository.findOne({ where: { ProductID: productId }, relations: ["Resource",] });
 
         if (!product) {
             return res.status(404).send({ message: "Product not found" });
@@ -266,3 +296,55 @@ export const s_singleProduct = async (req: Request, res: Response) => {
     }
 };
 
+
+// --------------------- get 5 random products under men category ---------------------
+export const s_getRandomMenProducts = async (req: Request, res: Response) => {
+    try {
+        const menCategory = await Categories.findOne({ where: { Name: 'Mens' } });
+        if (!menCategory) {
+            return res.status(404).send({ message: "no category found" });
+        }
+        const products = await Products.find({ where: { SubCategory: { Category: { CategoryID: menCategory.CategoryID } } }, relations: ['SubCategory', 'Offer',] });
+        if (!products) {
+            return res.status(404).send({ message: "The Product Not Found !" });
+        }
+        products.map(product => {
+            if (!product.Offer) {
+                product.Offer = new Offers; // Set Offers to an empty array if it's null
+            }
+            return product;
+        }
+        );
+        return products;
+    }
+    catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message })
+    }
+}
+
+// --------------------- get 5 random products under women category ---------------------
+export const s_getRandomWomenProducts = async (req: Request, res: Response) => {
+    try {
+        const womenCategory = await Categories.findOne({ where: { Name: 'Womens' } });
+        if (!womenCategory) {
+            return res.status(404).send({ message: "no category found" });
+        }
+        const products = await Products.find({ where: { SubCategory: { Category: { CategoryID: womenCategory.CategoryID } } }, relations: ['SubCategory', 'Offer',] });
+        if (!products) {
+            return res.status(404).send({ message: "The Product Not Found !" });
+        }
+        products.map(product => {
+            if (!product.Offer) {
+                product.Offer = new Offers; // Set Offers to an empty array if it's null
+            }
+            return product;
+        }
+        );
+        return products;
+    }
+    catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message })
+    }
+}
