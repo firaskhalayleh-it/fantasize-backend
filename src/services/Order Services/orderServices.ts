@@ -163,12 +163,12 @@ export const s_getCartUser = async (req: Request, res: Response) => {
     }
 }
 
-//----------------------- Get all orders for a user-----------------------
+//----------------------- Get all orders -----------------------
 export const s_getAllOrdersAdmin = async (req: Request, res: Response) => {
     try {
         const orders = await Orders.find({
             where: { Status: true },
-            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
+            relations: ["User", "OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
         });
         console.log('Fetched Orders:', orders);
 

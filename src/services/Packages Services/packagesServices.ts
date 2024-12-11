@@ -130,12 +130,9 @@ export const s_createPackage = async (req: Request, res: Response) => {
 //----------------------- Get all packages-----------------------
 export const s_getAllPackages = async (req: Request, res: Response) => {
     try {
-        const getAllPackages = await Packages.find({
-            relations: ['PackageProduct', 'Reviews', 'SubCategory', 'Resource', 'PackageCustomization'
-            ]
-        });
+        const getAllPackages = await Packages.find({ relations: ['PackageProduct', 'Reviews','SubCategory', 'Resource', 'Customization' ,'Offer'] });
         if (!getAllPackages || getAllPackages.length === 0) {
-            return `Not Found Packages`;
+            return  res.status(404).json({msg :`Not Found Packages`});
         }
         return getAllPackages
     } catch (err: any) {
@@ -189,9 +186,9 @@ export const s_getPackageByID = async (req: Request, res: Response) => {
 
 export const s_updatePackage = async (req: Request, res: Response) => {
     try {
-        const { Name, Description, Price, Quantity, SubCategoryId, products } = req.body;
         const pkgId: any = req.params.packageId;
-
+        const { Name, Description, Price, Quantity, SubCategoryId, products } = req.body;
+console.log("req.files",req.files);
         // Find the package to update
         const getPackage = await Packages.findOne({ where: { PackageID: pkgId } });
         if (!getPackage) {

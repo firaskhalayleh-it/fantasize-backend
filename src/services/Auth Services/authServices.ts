@@ -15,11 +15,11 @@ export const s_signUpUser = async (req: Request, res: Response) => {
     try {
         const { email, password, DeviceToken } = req.body;
         if (!email || !password) {
-            return 'Please provide an email and password';
+            return res.status(400).json({ error: "Please provide an email and password" });
         }
         const isExist = await Users.findOne({ where: { Email: email.toUpperCase() } })
         if (isExist) {
-            return 'User already exists';
+            return res.status(409).json({ error: "Wrong Email or Password!" });// User already exists
         } else {
             const userName = email.split('@')[0]; // here to convert string to array for take the user name
             const hashedPassword = await bcrypt.hash(password, 10)
@@ -40,14 +40,14 @@ export const s_signUpUser = async (req: Request, res: Response) => {
             await CreateUser.save();
             await sendWelcomeNotification(CreateUser.UserID);
 
-            return `user created successfully`;
+            return res.status(201).json({ message: "User created successfully" });
             // // console.log(CreateUser);
             // res.status(201).json("user created successfully" + token);
         }
 
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        return res.status(500).json({ error: "Internal server error", details: err.message });
     }
 }
 
@@ -56,7 +56,9 @@ export const s_loginUser = async (req: Request, res: Response) => {
     try {
         const { email, password, DeviceToken } = req.body;
         if (email == '' || password == '') {
-            return ({ error: 'Please provide an email and password' });
+            if (!res.headersSent) {
+                return res.status(400).json({ error: 'Please provide an email and password' });
+            }
         }
         const user = await Users.findOne({ where: { Email: email.toUpperCase() } })
         if (!user) {
@@ -88,9 +90,12 @@ export const s_loginUser = async (req: Request, res: Response) => {
 
     } catch (err: any) {
         console.log(err);
-        res.status(500).send({ message: err.message })
+        if (!res.headersSent) {
+            res.status(500).send({ message: err.message });
+        }
     }
 }
+
 //-----------------------Log Out User-----------------------
 export const s_logOutUser = async (req: Request, res: Response) => {
     try {

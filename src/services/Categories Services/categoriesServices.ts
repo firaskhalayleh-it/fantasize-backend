@@ -18,7 +18,9 @@ export const s_getAllCategories = async (req: Request, res: Response) => {
         }
 
         if (categories && categories.length > 0) {
+            
             return res.status(200).json(categories);
+
         } else {
             return res.status(404).send({ message: 'No categories found' });
         }
@@ -32,15 +34,14 @@ export const s_getAllCategories = async (req: Request, res: Response) => {
 //----------------------- Get category by ID-----------------------
 export const s_getCategory = async (req: Request, res: Response) => {
     try {
-        const categoryId = Number(req.params.categoryId);
+        const categoryId :any = req.params.categoryId;
         const category = await Categories.findOne({ where: { CategoryID: categoryId } });
 
-        if (category) {
-            return res.status(200).json(category);
-        } else {
-            return res.status(404).send({ message: 'Category not found' });
+        if (! category) {
+            return res.status(404).json({ message: 'Category not found' });
         }
-
+        
+        return res.status(200).json(category);
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message })
@@ -56,7 +57,10 @@ export const s_createCategory = async (req: Request, res: Response) => {
         if (!Name || Name.trim() === '') {
             return res.status(400).send({ message: 'Please provide a category name' });
         }
-
+        const categoryIsExist = await Categories.findOne({where:{Name:Name}});
+        if(categoryIsExist){
+            return res.status(409).send({ message: `This Category  '${Name}' Is Already Exisit` });
+        }
         // Create the category
         const category = Categories.create({
             Name: Name,
@@ -100,55 +104,48 @@ export const s_createCategory = async (req: Request, res: Response) => {
 //----------------------- Update a category by ID-----------------------
 export const s_updateCategory = async (req: Request, res: Response) => {
     try {
-        const categoryId = Number(req.params.id);
+        console.log("test");
+        const categoryId :any= req.params.id;
         const { Name, IsActive } = req.body;
 
-        // Find the category by ID
-        const category = await Categories.findOne({ where: { CategoryID: categoryId }, relations: ['Image'] });
+        // البحث عن الفئة
+        const category = await Categories.findOne({ where: { CategoryID: categoryId } });
 
-        if (!category) {
-            return res.status(404).send({ message: 'Category not found' });
-        }
+        if (category) {
+            // تحديث اسم الفئة و حالتها
+            category.Name = Name || category.Name;
+            category.IsActive = IsActive || category.IsActive;
 
-        // Update category details if provided
-        category.Name = Name || category.Name;
-        category.IsActive = IsActive !== undefined ? IsActive : category.IsActive;
-
-        // If an image file is provided
-        if (req.file) {
-            // If the category already has an image, update it, otherwise create a new one
-            let imageResource;
-            if (category.Image) {
-                // Update existing image resource
-                category.Image.entityName = req.file.filename;
-                category.Image.fileType = req.file.mimetype;
-                category.Image.filePath = req.file.path;
-                imageResource = await category.Image.save();
-            } else {
-                // Create a new image resource and associate it with the category
-                imageResource = await Resources.create({
+            // إذا كانت هناك صورة جديدة
+            if (req.file) {
+                const imageResources = await Resources.create({
                     entityName: req.file.filename,
                     fileType: req.file.mimetype,
                     filePath: req.file.path,
                     Category: category  // Associate resource with the category
                 }).save();
 
-                category.Image = imageResource;
+                // حفظ الصورة
+                category.Image = imageResources || category.Image;
             }
-        }
 
-        // Save the updated category
-        const updatedCategory = await category.save();
+            // حفظ الفئة بعد التعديل
+            const updatedCategory = await category.save();
 
-        if (updatedCategory) {
-            return res.status(200).json(updatedCategory);
+            const savedCategory = await Categories.findOne({ where: { CategoryID: categoryId } });
+
+            if (updatedCategory) {
+                return res.status(200).json(savedCategory); // إرسال النتيجة
+            } else {
+                return res.status(400).send({ message: 'Category could not be updated' });
+            }
         } else {
             return res.status(400).send({ message: 'Category could not be updated' });
         }
 
     } catch (err: any) {
         console.log(err);
-        return res.status(500).send({ message: err.message });
+        res.status(500).send({ message: err.message });
     }
 };
 
@@ -284,25 +281,40 @@ export const s_disactivateCategory = async (req: Request, res: Response) => {
 
 export const s_updateSubcategory = async (req: Request, res: Response) => {
     try {
-        const categoryId = Number(req.params.categoryId);
-        const subcategoryId = Number(req.params.subcategoryId);
-        const { Name, IsActive } = req.body;
+        const categoryId = Number(req.params.categoryId); // CategoryID من المسار
+        const subcategoryId = Number(req.params.subcategoryId); // SubCategoryID من المسار
+        const { Name, IsActive, CategoryId } = req.body; // البيانات من الـ request body
 
+        // العثور على الفئة الأم (Category) والفئة الفرعية (SubCategory)
         const category = await Categories.findOne({ where: { CategoryID: categoryId } });
         const subcategory = await SubCategories.findOne({ where: { SubCategoryID: subcategoryId } });
 
         if (category && subcategory) {
+            // إذا كان هناك CategoryId جديد في الـ request body، نقوم بتحديث الفئة الأم
+            if (CategoryId) {
+                // التأكد من أن الفئة الأم الجديدة موجودة
+                const newCategory = await Categories.findOne({ where: { CategoryID: CategoryId } });
+                if (newCategory) {
+                    subcategory.Category = newCategory; // ربط الفئة الفرعية بالفئة الأم الجديدة
+                } else {
+                    return res.status(404).send({ message: 'New Category not found' });
+                }
+            }
+
+            // تحديث البيانات في الفئة الفرعية
             subcategory.Name = Name || subcategory.Name;
             subcategory.IsActive = IsActive || subcategory.IsActive;
 
+            // حفظ التحديثات
             const updatedSubcategory = await subcategory.save();
+            
             if (updatedSubcategory) {
                 return res.status(200).json(updatedSubcategory);
             } else {
                 return res.status(400).send({ message: 'Subcategory could not be updated' });
             }
         } else {
-            return res.status(404).send({ message: 'Subcategory not found' });
+            return res.status(404).send({ message: 'Category or Subcategory not found' });
         }
 
     } catch (err: any) {
@@ -357,3 +369,6 @@ export const s_getNewCollection = async (req: Request, res: Response) => {
         res.status(500).send({ message: err.message });
     }
 }
+
+
+

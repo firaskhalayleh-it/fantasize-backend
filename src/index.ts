@@ -22,7 +22,6 @@ import orderPackageRoute from "./routes/Packages Routes/ordersPackagesRoutes";
 import reviewsRoute from "./routes/Reviews Routes/reviewsRoutes";
 import offerRoute from "./routes/Offers Routes/offersRoutes";
 import orderRoute from "./routes/Order Routes/orderRoute";
-import notificationRoute from "./routes/Notification Routes/notificationRoute";
 import adminDashboardRoutes from "./routes/Admin Dashboard Rotue/adminDashbourdRoute";
 import customizationRoute from "./routes/CustomizationRoute/customizationRoute";
 import exploreRoute from "./routes/Explore Route/exploreRoute";
@@ -34,25 +33,33 @@ import './config/passportConfig';
 import ip from 'ip';
 const app = express();
 const IP = ip.address();
-app.use(cookieParser());
-// app.use(cors());
+// const corsOptions = {
+//   origin: "http://127.0.0.1:5500",
+//   credentials: true,  
+// };
 
+// app.use(cors(corsOptions));
+
+
+app.use(cookieParser());
 
 const PORT = process.env.APP_PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use(session({
   secret: 'secret-key',
   resave: false,
   saveUninitialized: true,
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'cookie'],
   
@@ -64,6 +71,7 @@ app.use(cors({
 }));
 setupSwagger(app);
 app.use('/api', authGoogleFacebookRoute);
+app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
 app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
 app.use("/api", authRoute);
 app.use("/api", userRoute);
@@ -81,10 +89,9 @@ app.use("/api", reviewsRoute);
 app.use("/api", offerRoute);
 app.use("/api", orderRoute);
 app.use("/api", adminDashboardRoutes);
-app.use("/api", notificationRoute);
 app.use("/api", customizationRoute);
-app.use("/explore", exploreRoute);
-app.use("/home", homeRoute);
+app.use("/api", exploreRoute);
+app.use("/api", notificationRoute);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -8,6 +8,14 @@ import { uploadFields } from "../../middlewares/multerMiddleware";
 const productRoute = express.Router();
 
 
+/**
+ *  @description   Get all products 
+ *  @route         /products
+ *  @method        GET
+ *  @access        Public
+ */
+
+productRoute.get('/GetAllProducts', isAuthorized, c_getAllProducts);
 
 
 
@@ -42,7 +50,7 @@ productRoute.post('/createProduct', isAuthorized, uploadFields, c_createProduct)
  *  @method        PUT
  *  @access        admin
  */
-productRoute.put('/product/:productId', isAuthorized, c_updateProduct);
+productRoute.put('/product/:productId', isAuthorized,uploadFields, c_updateProduct);
 
 
 /**

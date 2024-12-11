@@ -152,10 +152,13 @@ async function notifyAllUsers(subject: string, template: any): Promise<void> {
         }
 
         const notification = new Notifications();
-        notification.user = user;
-        notification.template = template.body;
-        notification.subject = subject;
-        await notification.save();
+notification.user = user;
+notification.template = template.body;
+notification.subject = subject;
+console.log("Saving notification:", notification);
+await notification.save();
+console.log("Notification saved successfully");
+
     });
 
     await Promise.all(notificationPromises);

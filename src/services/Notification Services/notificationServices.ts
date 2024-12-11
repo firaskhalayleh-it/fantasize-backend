@@ -34,6 +34,21 @@ export const s_getNotifications = async (req: Request, res: Response) => {
     }
 };
 
+//----------------------- Get All Notification -----------------------
+export const s_getAllNotification = async (req: Request, res: Response) => {
+    try{
+        const notifications = await Notifications.find({order: { createdAt: 'DESC' } });
+        if(!notifications.length) {
+            return res.status(404).send({msg: "No notifications found for this user."}) ;
+        }
+
+        return notifications;
+        
+    } catch (err: any) {
+        res.status(500).send({ message: err.message });
+    }
+};
+
 //----------------------- Delete a notification -----------------------
 export const s_deleteNotification = async (req: Request, res: Response) => {
     try {
