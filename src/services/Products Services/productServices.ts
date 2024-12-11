@@ -306,3 +306,27 @@ export const s_getRandomWomenProducts = async (req: Request, res: Response) => {
         res.status(500).send({ message: err.message })
     }
 }
+
+
+// ---------------------  delete product ---------------------
+export const s_deleteProduct = async (req: Request, res: Response) => {
+    try {
+        const productId = Number(req.params.productId);
+        if (!productId) {
+            return res.status(400).send({ message: "Please provide a product ID" });
+        }
+        const productRepository = (Products);
+        const product = await productRepository.findOne({ where: { ProductID: productId } });
+
+        if (!product) {
+            return res.status(404).send({ message: "Product not found" });
+        }
+
+        await productRepository.delete({ ProductID: productId });
+
+        return "Product deleted successfully";
+    } catch (err: any) {
+        console.log(err);
+        return res.status(500).send({ message: err.message });
+    }
+}
