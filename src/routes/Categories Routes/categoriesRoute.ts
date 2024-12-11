@@ -22,6 +22,15 @@ categoryRoute.get('/categories', c_getAllCategories);
  */
 categoryRoute.post('/categories', isAuthorized, uploadSingle, c_createCategory);
 
+
+
+/**
+ *  @description   Get a category by ID
+ *  @route         /categories/:id
+ *  @method        GET
+ *  @access        Public
+ */
+categoryRoute.get('/category/:id', c_getCategory);
 /**
  *  @description   Update a category by ID
  *  @route         /categories/:id

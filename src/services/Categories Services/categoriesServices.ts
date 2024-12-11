@@ -49,6 +49,7 @@ export const s_getCategory = async (req: Request, res: Response) => {
 }
 
 
+
 export const s_createCategory = async (req: Request, res: Response) => {
     try {
         const { Name, IsActive } = req.body;
@@ -104,7 +105,6 @@ export const s_createCategory = async (req: Request, res: Response) => {
 //----------------------- Update a category by ID-----------------------
 export const s_updateCategory = async (req: Request, res: Response) => {
     try {
-        console.log("test");
         const categoryId :any= req.params.id;
         const { Name, IsActive } = req.body;
 
@@ -122,7 +122,7 @@ export const s_updateCategory = async (req: Request, res: Response) => {
                     entityName: req.file.filename,
                     fileType: req.file.mimetype,
                     filePath: req.file.path,
-                    Category: category  // Associate resource with the category
+                    Category: category  
                 }).save();
 
                 // حفظ الصورة
@@ -322,6 +322,9 @@ export const s_updateSubcategory = async (req: Request, res: Response) => {
         res.status(500).send({ message: err.message })
     }
 }
+
+
+
 
 //----------------------- get the subcategory for home with picture as new collection under condition that item added to this sub category in less than 3 days -----------------------
 export const s_getNewCollection = async (req: Request, res: Response) => {

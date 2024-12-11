@@ -91,7 +91,6 @@ app.use("/api", orderRoute);
 app.use("/api", adminDashboardRoutes);
 app.use("/api", customizationRoute);
 app.use("/api", exploreRoute);
-app.use("/api", notificationRoute);
 
 app.use(notFound);
 app.use(errorHandler);

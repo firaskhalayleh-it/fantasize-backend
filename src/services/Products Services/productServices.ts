@@ -109,7 +109,7 @@ export const s_getProductByCategoryID = async (req: Request, res: Response) => {
 
 // ---------------------> Create a new product <---------------------
 export const s_createProduct = async (req: Request, res: Response) => {
-    try { 
+    try {
         const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Material } = req.body;
 
         if (!Name || !Price || !Description || !SubCategoryID || !Quantity || !BrandName || !Material) {
@@ -158,7 +158,7 @@ export const s_createProduct = async (req: Request, res: Response) => {
                 entityName: image.filename,
                 filePath: image.path,
                 fileType: image.mimetype,
-                Product: product 
+                Product: product
             });
             return await resources.save(resource);
         }));
@@ -168,7 +168,7 @@ export const s_createProduct = async (req: Request, res: Response) => {
                 entityName: video.filename,
                 filePath: video.path,
                 fileType: video.mimetype,
-                Product: product 
+                Product: product
             });
             return await resources.save(resource);
         }));
@@ -189,7 +189,7 @@ export const s_createProduct = async (req: Request, res: Response) => {
 
 export const s_updateProduct = async (req: Request, res: Response) => {
     try {
-        const  productId :any = req.params.productId;
+        const productId: any = req.params.productId;
         const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Material } = req.body;
         if (!productId) {
             return res.status(400).send({ message: "Please provide a product ID" });
@@ -267,34 +267,23 @@ export const s_updateProduct = async (req: Request, res: Response) => {
     }
 };
 
-// ---------------------> delete a product <---------------------
-
+// ---------------------> Search for a product <---------------------
 export const s_singleProduct = async (req: Request, res: Response) => {
     try {
-        const { productId } = req.body;
+        const productId: any = req.params.id;
+        const product = await Products.findOne({ where: { ProductID: productId }, relations: ['Brand', 'SubCategory', 'Review', 'Review.User', 'Review.User.UserProfilePicture', 'Offer'] });
 
-        // Check if the product exists
-        const isExistProduct = await Products.findOne({ where: { ProductID: productId } });
-
-        if (isExistProduct) {
-            // Delete related resources first (assuming 'productId' is the correct field in 'Resources')
-            await Resources.delete({ Product: productId });
-
-            // Now delete the product
-            await Products.delete({ ProductID: productId });
-
-            return res.status(200).send({ message: "Product and related resources deleted successfully." });
-        } else {
-            return res.status(404).send({ message: "Product not found." });
+        if (!product) {
+            return "The Product Not Found !";
         }
+
+        return product;
     } catch (err: any) {
-        console.error(err);
-        return res.status(500).send({
-            message: "An error occurred",
-            error: err.message,
-        });
+        console.log(err);
+        res.status(500).send({ message: err.message })
     }
 };
+
 
 
 // --------------------- get 5 random products under men category ---------------------
@@ -372,3 +361,28 @@ export const s_deleteProduct = async (req: Request, res: Response) => {
         return res.status(500).send({ message: err.message });
     }
 }
+
+
+// ---------------------  get product by name ---------------------
+export const s_getProductByName = async (req: Request, res: Response) => {
+    try {
+        const productName = req.params.productName;
+        const products = await Products.find({ where: { Name: Like(`%${productName}%`) }, relations: ['SubCategory', 'Offer'] });
+        if (!products) {
+            return res.status(404).send({ message: "The Product Not Found !" });
+        }
+        products.map(product => {
+            if (!product.Offer) {
+                product.Offer = new Offers; // Set Offers to an empty array if it's null
+            }
+            return product;
+        }
+        );
+        return products;
+    }
+    catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message })
+    }
+}
+
