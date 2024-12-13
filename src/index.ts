@@ -29,6 +29,7 @@ import { setupSwagger } from "./swagger/swagger";
 import authGoogleFacebookRoute from "./routes/Auth Routes/authUsingFacebookGoogleRoutes";
 import materialRoutes from "./routes/Material Route/MaterialRoute";
 import homeRoute from "./routes/Home Routes/home_route";
+import searchRoute from "./routes/search Route/searchRoute";
 import './config/passportConfig';
 
 import ip from 'ip';
@@ -94,6 +95,8 @@ app.use("/api", customizationRoute);
 app.use("/explore", exploreRoute);
 app.use("/material", materialRoutes);
 app.use("/home", homeRoute);
+app.use("/search", searchRoute);
+
 
 app.use(notFound);
 app.use(errorHandler);
