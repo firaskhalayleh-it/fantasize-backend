@@ -27,6 +27,7 @@ import customizationRoute from "./routes/CustomizationRoute/customizationRoute";
 import exploreRoute from "./routes/Explore Route/exploreRoute";
 import { setupSwagger } from "./swagger/swagger";
 import authGoogleFacebookRoute from "./routes/Auth Routes/authUsingFacebookGoogleRoutes";
+import materialRoutes from "./routes/Material Route/MaterialRoute";
 import homeRoute from "./routes/Home Routes/home_route";
 import './config/passportConfig';
 
@@ -62,10 +63,10 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'cookie'],
-  
 
-  
-  
+
+
+
 
 
 }));
@@ -90,7 +91,9 @@ app.use("/api", offerRoute);
 app.use("/api", orderRoute);
 app.use("/api", adminDashboardRoutes);
 app.use("/api", customizationRoute);
-app.use("/api", exploreRoute);
+app.use("/explore", exploreRoute);
+app.use("/api", materialRoutes);
+app.use("/home", homeRoute);
 
 app.use(notFound);
 app.use(errorHandler);

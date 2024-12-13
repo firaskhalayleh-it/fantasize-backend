@@ -8,6 +8,7 @@ import { FavoriteProducts } from './FavoriteProducts';
 import { OrdersProducts } from './OrdersProducts';
 import { PackageProduct } from '../packages/packageProduct';
 import { Customization } from '../Customization';
+import { MaterialProduct } from './MaterialProduct';
 
 @Entity()
 export class Products extends BaseEntity {
@@ -33,20 +34,17 @@ export class Products extends BaseEntity {
   Status: string;
 
 
-  @Column('enum', {
-    enum: ['None', 'cotton', 'polyester', 'nylon', 'silk', 'wool', 'leather', 'rubber', 'linen', 'denim', 'cashmere', 'velvet', 'satin', 'suede', 'tweed', 'corduroy', 'chiffon', 'georgette', 'muslin', 'organza', 'taffeta', 'velour', 'velveteen', 'viscose', 'acrylic', 'rayon', 'spandex', 'lycra', 'modal', 'bamboo', 'jute', 'hemp', 'ramie', 'acetate', 'lyocell', 'modacrylic', 'olefin', 'polypropylene', 'elastane'],
-    default: 'None'
-  })
-  Material: string;
+  @OneToMany(() => MaterialProduct, (materialProduct) => materialProduct.Product)
+  MaterialProduct: MaterialProduct[];
 
-  @Column('decimal',{ precision: 9, scale: 2, default: 0 })
-  DiscountPrice:number
+  @Column('decimal', { precision: 9, scale: 2, default: 0 })
+  DiscountPrice: number
 
   @Column('int', { default: 0 })
   AvgRating: number;
 
 
-  @ManyToOne(() => Brands, (brand) => brand.Products, )
+  @ManyToOne(() => Brands, (brand) => brand.Products,)
   Brand: Brands;
 
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Products,)
@@ -57,7 +55,7 @@ export class Products extends BaseEntity {
   @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Product)
   PackageProduct: PackageProduct[];
 
-  @ManyToOne(() => Offers, (offer) => offer.Products, )
+  @ManyToOne(() => Offers, (offer) => offer.Products,)
   Offer: Offers;
 
   @OneToMany(() => Resources, (resource) => resource.Product, { eager: true })
@@ -95,10 +93,10 @@ export class Products extends BaseEntity {
   @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product)
   FavoriteProducts: FavoriteProducts[];
 
-  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product )
+  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product)
   OrdersProducts: OrdersProducts[];
 
-  
+
   @CreateDateColumn()
   CreatedAt: Date;
 
@@ -120,41 +118,41 @@ export class Products extends BaseEntity {
 
   @BeforeInsert()
   @BeforeUpdate()
-  updateDiscountPrice =()=>{
+  updateDiscountPrice = () => {
     this.DisPrice();
   }
 
-@AfterLoad()
-calculateAvgRating = () => {
+  @AfterLoad()
+  calculateAvgRating = () => {
     if (!Array.isArray(this.Review) || this.Review.length === 0) {
-        this.AvgRating = 0;
+      this.AvgRating = 0;
     } else {
-        const totalRating = this.Review.reduce((acc, review) => acc + review.Rating, 0);
-        this.AvgRating = totalRating / this.Review.length;
+      const totalRating = this.Review.reduce((acc, review) => acc + review.Rating, 0);
+      this.AvgRating = totalRating / this.Review.length;
     }
-}
+  }
 
-@AfterLoad()
-checkDiscountPrice= () =>{
-  this.DisPrice();
-}
+  @AfterLoad()
+  checkDiscountPrice = () => {
+    this.DisPrice();
+  }
 
 
-DisPrice = () => {
-  if (this.Offer && this.Offer.IsActive) {
+  DisPrice = () => {
+    if (this.Offer && this.Offer.IsActive) {
       this.DiscountPrice = this.Price - (this.Price * this.Offer.Discount / 100);
-  } else {
+    } else {
       this.DiscountPrice = 0;
+    }
   }
-}
 
 
-toJSON(){
-  if(this.DiscountPrice === 0){
-    const {DiscountPrice , ...returnWithoutDisPrice}=this;
-    return returnWithoutDisPrice;
-  }else{
-    return this;
+  toJSON() {
+    if (this.DiscountPrice === 0) {
+      const { DiscountPrice, ...returnWithoutDisPrice } = this;
+      return returnWithoutDisPrice;
+    } else {
+      return this;
+    }
   }
-}
 }

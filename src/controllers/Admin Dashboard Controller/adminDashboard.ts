@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { AdminDashboardService } from '../../services/Admin Dashboard Service/adminDashboard';
+import { database } from '../../config/database';
 
 export class AdminDashboardController {
   
@@ -20,8 +21,8 @@ export class AdminDashboardController {
       const totalSubCategories = await dashboardService.getTotalSubCategories();
       const totalActiveOffers = await dashboardService.getTotalActiveOffers();
       const getAvgPriceForOrders = await dashboardService.getAvgPriceForOrders();
-      const AverageSale = await dashboardService.AverageSale();
-      const TotalSale = await dashboardService.TotalSale();
+      const AverageSale = await dashboardService.averageSale();
+      const TotalSale = await dashboardService.totalSale();
       const calculateGlobalAverageRating = await dashboardService.calculateGlobalAverageRating();
       const monthlyEarnings  = await dashboardService.getMonthlyEarnings();
       res.status(200).json({

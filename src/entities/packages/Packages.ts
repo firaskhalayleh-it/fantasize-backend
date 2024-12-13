@@ -23,6 +23,7 @@ import { FavoritePackages } from './FavoritePackages';
 import { OrdersPackages } from './OrdersPackages';
 import { PackageProduct } from './packageProduct';
 import { Customization } from '../Customization';
+import { MaterialPackage } from './MaterialPackage';
 @Entity()
 
 export class Packages extends BaseEntity {
@@ -44,6 +45,9 @@ export class Packages extends BaseEntity {
   @Column('int')
   Quantity: number;
 
+
+  @OneToMany(() => MaterialPackage, (materialPackage) => materialPackage.Package)
+  MaterialPackage: MaterialPackage[];
 
 
   @Column('enum', { enum: ['out of stock', 'in stock', 'running low'], default: 'in stock' })

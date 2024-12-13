@@ -3,9 +3,11 @@ import { Products } from "../../entities/products/Products";
 import { Brands } from "../../entities/Brands";
 import { SubCategories } from "../../entities/categories/SubCategories";
 import { Offers } from "../../entities/Offers";
-import { getRepository, Like } from "typeorm";
+import { getRepository, In, Like } from "typeorm";
 import { Resources } from "../../entities/Resources";
 import { Categories } from "../../entities/categories/Categories";
+import { MaterialProduct } from "../../entities/products/MaterialProduct";
+import { Material } from "../../entities/Material";
 // import { } from "../Resources Services/resourceService";
 // import { uploadFiles } from "../../config/Multer config/multerConfig";
 
@@ -38,7 +40,11 @@ export const s_getAllProducts = async (req: Request, res: Response) => {
 export const s_getProduct = async (req: Request, res: Response) => {
     try {
         const productId: any = req.params.id;
-        const product = await Products.findOne({ where: { ProductID: productId }, relations: ['Review', 'Review.User', 'Review.User.UserProfilePicture', 'Offer'] });
+        const product = await Products.findOne({
+            where: { ProductID: productId }, relations: ['Review', 'Review.User', 'Review.User.UserProfilePicture', 'Offer',
+                'Resource', 'SubCategory', 'SubCategory.Category', 'Brand',
+            ]
+        });
 
         if (!product) {
             return "The Product Not Found !";
@@ -110,9 +116,9 @@ export const s_getProductByCategoryID = async (req: Request, res: Response) => {
 // ---------------------> Create a new product <---------------------
 export const s_createProduct = async (req: Request, res: Response) => {
     try {
-        const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Material } = req.body;
+        const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Materials  } = req.body;
 
-        if (!Name || !Price || !Description || !SubCategoryID || !Quantity || !BrandName || !Material) {
+        if (!Name || !Price || !Description || !SubCategoryID || !Quantity || !BrandName || !Materials) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
         const productExisted = await Products.findOne({ where: { Name } });
@@ -139,11 +145,26 @@ export const s_createProduct = async (req: Request, res: Response) => {
             return res.status(400).send({ message: "Please provide at least one image or video" });
         }
 
-        const product = Products.create({
+        const materials = await Material.find({ where: { MaterialID: In(Materials) } });
+        if (!materials || materials.length === 0) {
+            return res.status(400).send({ message: "Material not found" });
+        }
+
+        const productMaterials = materials.map(material => {
+            return MaterialProduct.create({
+                Material: material,
+                Product: product
+            });
+        });
+
+        await MaterialProduct.save(productMaterials);
+
+        let product: Products;
+        product = Products.create({
             Name: String(Name),
             Price: Number(Price),
-            Description,
-            Material,
+            Description: String(Description),
+            MaterialProduct: productMaterials,
             Quantity: Number(Quantity),
             Brand: brand,
             SubCategory: subCategory,
@@ -190,7 +211,7 @@ export const s_createProduct = async (req: Request, res: Response) => {
 export const s_updateProduct = async (req: Request, res: Response) => {
     try {
         const productId: any = req.params.productId;
-        const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Material } = req.body;
+        const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Materials} = req.body;
         if (!productId) {
             return res.status(400).send({ message: "Please provide a product ID" });
         }
@@ -208,9 +229,34 @@ export const s_updateProduct = async (req: Request, res: Response) => {
             }
             product.Name = Name;
         }
+
+        const material = await Material.find({ where: { MaterialID: In(Materials) } });
+
+        const materialProduct = await MaterialProduct.find({ where: { Product: product } });
+
+        if (!material) {
+            return res.status(404).send({ message: "Material not found" });
+        }
+
+        if (!materialProduct) {
+            return res.status(404).send({ message: "Material not found" });
+        }
+
+        for (const material of Materials) {
+            const materialProduct = await MaterialProduct.create({
+                Material: material,
+                Product: product
+            });
+            await materialProduct.save();
+        }
+
         if (Price) product.Price = Number(Price);
         if (Description) product.Description = Description;
-        if (Material) product.Material = Material;
+        if (Materials) for (const material of Materials) {
+            const materialproduct = await MaterialProduct.findOne({ where: { Product: product, Material: material } }); 
+            product.MaterialProduct = materialproduct ? [...product.MaterialProduct, materialproduct] : product.MaterialProduct;
+            
+        }
         if (Quantity) product.Quantity = Number(Quantity);
 
         if (BrandName) {

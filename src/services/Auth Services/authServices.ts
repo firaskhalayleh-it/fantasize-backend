@@ -66,6 +66,7 @@ export const s_loginUser = async (req: Request, res: Response) => {
         }
 
         user.DeviceToken = DeviceToken ?? user.DeviceToken;
+        user.lastlogin = new Date();
         await user.save();
 
 
@@ -77,6 +78,7 @@ export const s_loginUser = async (req: Request, res: Response) => {
 
             const token = await generateToken(user.UserID);
             res.cookie("authToken", token, { httpOnly: true })
+
 
             return (token);
 

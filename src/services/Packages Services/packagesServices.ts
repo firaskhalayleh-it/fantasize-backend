@@ -9,6 +9,8 @@ import { PackageProduct } from '../../entities/packages/packageProduct';
 import { getRepository } from 'typeorm';
 import { Resources } from '../../entities/Resources';
 import { Categories } from '../../entities/categories/Categories';
+import { Material } from '../../entities/Material';
+import { MaterialPackage } from '../../entities/packages/MaterialPackage';
 
 
 //----------------------- Create a new package-----------------------
@@ -18,7 +20,12 @@ export const s_createPackage = async (req: Request, res: Response) => {
     try {
         await queryRunner.startTransaction();
 
-        const { Name, Description, Price, Quantity, SubCategoryId, products } = req.body;
+        const { Name, Description, Price, Quantity, SubCategoryId, products, Materials } = req.body;
+
+        if (!Name || !Description || !Price || !Quantity || !SubCategoryId || !products) {
+            await queryRunner.rollbackTransaction();
+            return res.status(400).send({ message: "Please fill all the fields" });
+        }
 
         // Parse products if it's a string (as it comes from multipart/form-data)
         let parsedProducts;
@@ -44,6 +51,23 @@ export const s_createPackage = async (req: Request, res: Response) => {
         // Extract product names and quantities
         const productNames = parsedProducts.map((p: { productName: string }) => p.productName);
         const quantities = parsedProducts.map((p: { quantity: number }) => p.quantity);
+        const materials = await Material.find({ where: { MaterialID: Materials.Name } });
+        let packageMaterial;
+        for (const material of Materials) {
+            const materialEntity = await queryRunner.manager.findOne(Material, { where: { Name: material.Name } });
+            if (!materialEntity) {
+                await queryRunner.rollbackTransaction();
+                return res.status(400).send({ message: `Material ${material.Name} not found` });
+            }
+
+            packageMaterial = queryRunner.manager.create(MaterialPackage, {
+                Material: materialEntity,
+                percentage: material.percentage,
+            });
+
+            await queryRunner.manager.save(packageMaterial);
+        }
+
 
         // Check if the required products are available in the database
         const productsInDB = await queryRunner.manager.find(Products, { where: { Name: In(productNames) } });
@@ -74,6 +98,7 @@ export const s_createPackage = async (req: Request, res: Response) => {
             Description: Description,
             Price: Price,
             Quantity: Quantity,
+            Materials: [packageMaterial],
             SubCategory: subcategory,
         });
 
@@ -130,9 +155,9 @@ export const s_createPackage = async (req: Request, res: Response) => {
 //----------------------- Get all packages-----------------------
 export const s_getAllPackages = async (req: Request, res: Response) => {
     try {
-        const getAllPackages = await Packages.find({ relations: ['PackageProduct', 'Reviews','SubCategory', 'Resource', 'Customization' ,'Offer'] });
+        const getAllPackages = await Packages.find({ relations: ['PackageProduct', 'Reviews', 'SubCategory', 'Resource', 'Customization', 'Offer'] });
         if (!getAllPackages || getAllPackages.length === 0) {
-            return  res.status(404).json({msg :`Not Found Packages`});
+            return res.status(404).json({ msg: `Not Found Packages` });
         }
         return getAllPackages
     } catch (err: any) {
@@ -187,8 +212,8 @@ export const s_getPackageByID = async (req: Request, res: Response) => {
 export const s_updatePackage = async (req: Request, res: Response) => {
     try {
         const pkgId: any = req.params.packageId;
-        const { Name, Description, Price, Quantity, SubCategoryId, products } = req.body;
-console.log("req.files",req.files);
+        const { Name, Description, Price, Quantity, SubCategoryId, products, Materials } = req.body;
+        console.log("req.files", req.files);
         // Find the package to update
         const getPackage = await Packages.findOne({ where: { PackageID: pkgId } });
         if (!getPackage) {
@@ -209,6 +234,25 @@ console.log("req.files",req.files);
         if (Description) getPackage.Description = Description;
         if (Price) getPackage.Price = Price;
         if (Quantity) getPackage.Quantity = Quantity;
+        if (Materials) if (Materials) {
+            let packageMaterial;
+            for (const material of Materials) {
+                const materialEntity = await Material.findOne({ where: { Name: material.Name } });
+                if (!materialEntity) {
+                    return res.status(400).send({ message: `Material ${material.Name} not found` });
+                }
+
+                packageMaterial = MaterialPackage.create({
+                    Material: materialEntity,
+                    percentage: material.percentage,
+                });
+
+                await packageMaterial.save();
+            }
+            if (packageMaterial) {
+                getPackage.MaterialPackage = [packageMaterial];
+            }
+        }
 
         // Validate products only if provided
         if (products && Array.isArray(products)) {

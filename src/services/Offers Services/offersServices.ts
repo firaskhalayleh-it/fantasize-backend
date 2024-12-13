@@ -160,7 +160,7 @@ export const s_getAllOffers = async (req: Request, res: Response) => {
             Price: product.Price,
             Quantity: product.Quantity,
             Status: product.Status,
-            Material: product.Material,
+            Material: product.MaterialProduct.map(material => material),
             AvgRating: product.AvgRating,
             Offer: {
                 OfferID: product.Offer.OfferID,

@@ -69,7 +69,7 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
                 if (packageQuantity == null) {
                     return res.status(400).send({ message: "Package quantity not found" });
                 }
-                
+
                 orderPackage.Package.Quantity = packageQuantity - orderPackage.quantity;
                 console.log(orderPackage.Package.Quantity);
                 console.log(orderPackage.quantity);
@@ -103,7 +103,7 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
 
         await order.save();
         // Send notifications
-             await sendOrderNotification(userId, order.OrderID.toString(), orderdetails); // You can customize the summary here
+        await sendOrderNotification(userId, order.OrderID.toString(), orderdetails); // You can customize the summary here
 
         return res.status(200).send({ message: "Order checked out successfully", order });
     } catch (err: any) {
@@ -125,13 +125,13 @@ export const s_getAllOrdersUser = async (req: Request, res: Response) => {
         const orders = await Orders.find({
             where: { User: { UserID: userId }, Status: true },
             relations: [
-                "OrdersProducts", 
-                "OrdersProducts.Product", 
-                "OrdersPackages", 
+                "OrdersProducts",
+                "OrdersProducts.Product",
+                "OrdersPackages",
                 "OrdersPackages.Package"
             ]
         });
-        
+
         console.log(orders);
         return res.status(200).send(orders);
     } catch (err: any) {
@@ -150,7 +150,9 @@ export const s_getCartUser = async (req: Request, res: Response) => {
         }
         const order = await Orders.findOne({
             where: { User: { UserID: userId }, Status: false },
-            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package", "PaymentMethod", "Address", "OrdersProducts.OrderedCustomization", "OrdersProducts.OrderedCustomization"]
+            relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages",
+                "OrdersPackages.Package", "PaymentMethod", "Address",
+                "OrdersProducts.OrderedCustomization", "OrdersProducts.OrderedCustomization"]
         });
         if (!order) {
             return res.status(404).send({ message: "Cart not found" });
@@ -160,6 +162,7 @@ export const s_getCartUser = async (req: Request, res: Response) => {
     catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message });
+        
     }
 }
 
