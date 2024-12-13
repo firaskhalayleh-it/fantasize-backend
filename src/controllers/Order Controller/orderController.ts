@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { s_checkoutOrderUser, s_getAllOrdersAdmin, s_getAllOrdersUser, s_getOrder, s_getCartUser } from '../../services/Order Services/orderServices';
+import { s_checkoutOrderUser, s_getAllOrdersAdmin, s_getAllOrdersUser, s_getOrder, s_getCartUser ,s_updateOrderStatus} from '../../services/Order Services/orderServices';
 
 //----------------------- Create a new order for a user-----------------------
 export const c_checkoutOrderUser = async (req: Request, res: Response) => {
@@ -38,3 +38,10 @@ export const c_getCartForUser = async (req: Request, res: Response) => {
 
 }
 
+
+//----------------------- Update order status-----------------------
+export const c_updateOrderStatus = async (req: Request, res: Response) => {
+    const result= await s_updateOrderStatus(req, res);
+    res.status(200).json(result);
+
+}

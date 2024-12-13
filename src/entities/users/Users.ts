@@ -31,9 +31,11 @@ export class Users extends BaseEntity {
   Role: Relation<Roles>;
 
   @Column('varchar', { unique: false })
+  @Index()
   Username: string;
 
   @Column('varchar', { unique: true })
+  @Index()
   Email: string;
 
   @Column('varchar', { nullable: true })

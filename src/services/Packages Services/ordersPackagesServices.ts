@@ -7,6 +7,7 @@ import { OrdersPackages } from '../../entities/packages/OrdersPackages';
 import { Orders } from '../../entities/Orders';
 import { OrderedCustomization } from '../../entities/OrderedCustomization';
 import { getRepository } from 'typeorm';
+import { or } from 'ip';
 
 // ----------------------- Create a New Package Order -----------------------
 export const createNewOrderPackage = async (req: Request, res: Response) => {
@@ -46,11 +47,11 @@ export const createNewOrderPackage = async (req: Request, res: Response) => {
 
     if (!order) {
       // If no pending order exists, create a new one
-      order = Orders.create({
-        User: user,
-        Status: false,
-        OrdersPackages: [],
-      });
+      order = new Orders();
+      order.User = user;
+      order.Status = 'pending';
+      order.TotalPrice = 0;
+      order.OrdersPackages = [];
       await order.save();
     }
 

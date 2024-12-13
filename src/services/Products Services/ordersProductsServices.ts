@@ -38,18 +38,17 @@ export const createNewOrderProduct = async (req: Request, res: Response) => {
         let order = await Orders.findOne({
             where: {
                 User: { UserID: userId },
-                Status: false,
+                Status: 'pending' ,
             },
             relations: ["User", "OrdersProducts", "OrdersProducts.Product", "OrdersProducts.OrderedCustomization"],
         });
 
         if (!order) {
             // If no pending order exists, create a new one
-            order = Orders.create({
-                User: user,
-                Status: false,
-                OrdersProducts: [],
-            });
+            order = new Orders();
+            order.User = user;
+            order.Status = 'pending';
+            order.OrdersProducts = [];
             await order.save();
             order.OrdersProducts = [];
         } else {
@@ -157,7 +156,7 @@ export const updateOrderProduct = async (req: Request, res: Response) => {
         const orderProduct = await OrdersProducts.findOne({
             where: {
                 Order: { OrderID: orderId },
-                OrderProductID: productId 
+                OrderProductID: productId
             },
             relations: ["Order", "Product", "OrderedCustomization"]
         });

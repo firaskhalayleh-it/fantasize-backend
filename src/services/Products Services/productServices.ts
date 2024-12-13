@@ -116,9 +116,9 @@ export const s_getProductByCategoryID = async (req: Request, res: Response) => {
 // ---------------------> Create a new product <---------------------
 export const s_createProduct = async (req: Request, res: Response) => {
     try {
-        const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Materials  } = req.body;
+        const { Name, Price, Description, SubCategoryID, Quantity, BrandName  } = req.body;
 
-        if (!Name || !Price || !Description || !SubCategoryID || !Quantity || !BrandName || !Materials) {
+        if (!Name || !Price || !Description || !SubCategoryID || !Quantity || !BrandName ) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
         const productExisted = await Products.findOne({ where: { Name } });
@@ -145,26 +145,16 @@ export const s_createProduct = async (req: Request, res: Response) => {
             return res.status(400).send({ message: "Please provide at least one image or video" });
         }
 
-        const materials = await Material.find({ where: { MaterialID: In(Materials) } });
-        if (!materials || materials.length === 0) {
-            return res.status(400).send({ message: "Material not found" });
-        }
+     
 
-        const productMaterials = materials.map(material => {
-            return MaterialProduct.create({
-                Material: material,
-                Product: product
-            });
-        });
+      
 
-        await MaterialProduct.save(productMaterials);
 
         let product: Products;
         product = Products.create({
             Name: String(Name),
             Price: Number(Price),
             Description: String(Description),
-            MaterialProduct: productMaterials,
             Quantity: Number(Quantity),
             Brand: brand,
             SubCategory: subCategory,
@@ -211,7 +201,7 @@ export const s_createProduct = async (req: Request, res: Response) => {
 export const s_updateProduct = async (req: Request, res: Response) => {
     try {
         const productId: any = req.params.productId;
-        const { Name, Price, Description, SubCategoryID, Quantity, BrandName, Materials} = req.body;
+        const { Name, Price, Description, SubCategoryID, Quantity, BrandName} = req.body;
         if (!productId) {
             return res.status(400).send({ message: "Please provide a product ID" });
         }
@@ -230,33 +220,13 @@ export const s_updateProduct = async (req: Request, res: Response) => {
             product.Name = Name;
         }
 
-        const material = await Material.find({ where: { MaterialID: In(Materials) } });
 
-        const materialProduct = await MaterialProduct.find({ where: { Product: product } });
 
-        if (!material) {
-            return res.status(404).send({ message: "Material not found" });
-        }
-
-        if (!materialProduct) {
-            return res.status(404).send({ message: "Material not found" });
-        }
-
-        for (const material of Materials) {
-            const materialProduct = await MaterialProduct.create({
-                Material: material,
-                Product: product
-            });
-            await materialProduct.save();
-        }
+     
 
         if (Price) product.Price = Number(Price);
         if (Description) product.Description = Description;
-        if (Materials) for (const material of Materials) {
-            const materialproduct = await MaterialProduct.findOne({ where: { Product: product, Material: material } }); 
-            product.MaterialProduct = materialproduct ? [...product.MaterialProduct, materialproduct] : product.MaterialProduct;
-            
-        }
+        
         if (Quantity) product.Quantity = Number(Quantity);
 
         if (BrandName) {

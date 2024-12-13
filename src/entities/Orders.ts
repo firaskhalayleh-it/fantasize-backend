@@ -30,7 +30,7 @@ export class Orders extends BaseEntity {
   User: Users;
 
 
-  @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.Orders)
+  @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.Orders, {nullable: true})
   @JoinColumn({ name: 'PaymentMethodID' })
   PaymentMethod: PaymentMethods;
 
@@ -38,22 +38,21 @@ export class Orders extends BaseEntity {
   @JoinColumn({ name: 'AddressID' })
   Address: Addresses;
 
-  @OneToMany(() => OrdersProducts, (ordersProduct) => ordersProduct.Order, { cascade: true, eager: true })
+  @OneToMany(() => OrdersProducts, (ordersProduct) => ordersProduct.Order, { cascade: true, eager: true ,nullable: true})
   OrdersProducts: OrdersProducts[] 
   
-  @OneToMany(() => OrdersPackages, (ordersPackages) => ordersPackages.Order, { cascade: true, eager: true })
+  @OneToMany(() => OrdersPackages, (ordersPackages) => ordersPackages.Order, { cascade: true, eager: true ,nullable: true})
   OrdersPackages: OrdersPackages[]
   
 
 
-  @Column('boolean',)
-  Status: boolean; // false = pending, true = purchased
+  @Column('enum', {enum: ['pending', 'purchased','under review','rejected'], default: 'pending'})
+  Status: String; 
 
   @Column('boolean', { default: false })
   IsGift: boolean;
 
-  @Column('varchar', { nullable: true })
-  GiftMessage: string;
+  
 
   @Column('boolean', { default: false })
   IsAnonymous: boolean;

@@ -92,7 +92,7 @@ app.use("/api", orderRoute);
 app.use("/api", adminDashboardRoutes);
 app.use("/api", customizationRoute);
 app.use("/explore", exploreRoute);
-app.use("/api", materialRoutes);
+app.use("/material", materialRoutes);
 app.use("/home", homeRoute);
 
 app.use(notFound);

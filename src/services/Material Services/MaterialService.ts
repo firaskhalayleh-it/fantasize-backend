@@ -4,11 +4,11 @@ import { Products } from '../../entities/products/Products';
 import { Material } from '../../entities/Material';
 import { Request, Response } from 'express';
 import { MaterialProduct } from '../../entities/products/MaterialProduct';
-import { getManager, In } from 'typeorm';
+import { In } from 'typeorm';
 import { Packages } from '../../entities/packages/Packages';
 import { MaterialPackage } from '../../entities/packages/MaterialPackage';
 
-
+// Create Material
 export const s_createMaterial = async (req: Request, res: Response) => {
     try {
         const { MaterialName } = req.body;
@@ -16,28 +16,37 @@ export const s_createMaterial = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Material name is required!' });
         }
 
+        // Check if material with the same name already exists
+        const existingMaterial = await Material.findOne({ where: { Name: MaterialName } });
+        if (existingMaterial) {
+            return res.status(409).json({ message: 'Material with this name already exists!' });
+        }
+
         const material = Material.create({
             Name: MaterialName,
         });
 
-        await Material.save(material);
+        await material.save();
 
-        res.status(201).json({ message: 'Material created successfully!' });
+        res.status(201).json({ message: 'Material created successfully!', material });
     } catch (error) {
+        console.error('Error creating material:', error);
         res.status(500).json({ message: 'Internal server error!' });
     }
 };
 
-
+// Get All Materials
 export const s_getMaterials = async (req: Request, res: Response) => {
     try {
         const materials = await Material.find();
         res.status(200).json(materials);
     } catch (error) {
+        console.error('Error fetching materials:', error);
         res.status(500).json({ message: 'Internal server error!' });
     }
-}
+};
 
+// Get Material by ID
 export const s_getMaterialById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -52,10 +61,12 @@ export const s_getMaterialById = async (req: Request, res: Response) => {
 
         res.status(200).json(material);
     } catch (error) {
+        console.error('Error fetching material by ID:', error);
         res.status(500).json({ message: 'Internal server error!' });
     }
-}
+};
 
+// Update Material
 export const s_updateMaterial = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -73,16 +84,23 @@ export const s_updateMaterial = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Material not found!' });
         }
 
-        material.Name = MaterialName;
-        await Material.save(material);
+        // Check if another material with the new name exists
+        const existingMaterial = await Material.findOne({ where: { Name: MaterialName } });
+        if (existingMaterial && existingMaterial.MaterialID !== material.MaterialID) {
+            return res.status(409).json({ message: 'Another material with this name already exists!' });
+        }
 
-        res.status(200).json({ message: 'Material updated successfully!' });
+        material.Name = MaterialName;
+        await material.save();
+
+        res.status(200).json({ message: 'Material updated successfully!', material });
     } catch (error) {
+        console.error('Error updating material:', error);
         res.status(500).json({ message: 'Internal server error!' });
     }
-}
+};
 
-
+// Delete Material
 export const s_deleteMaterial = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -100,11 +118,10 @@ export const s_deleteMaterial = async (req: Request, res: Response) => {
 
         res.status(200).json({ message: 'Material deleted successfully!' });
     } catch (error) {
+        console.error('Error deleting material:', error);
         res.status(500).json({ message: 'Internal server error!' });
     }
-}
-
-// assign multiple materials to product
+};
 
 export const s_assignMaterialsToProduct = async (req: Request, res: Response) => {
     const { ProductID, Materials } = req.body;
@@ -119,68 +136,70 @@ export const s_assignMaterialsToProduct = async (req: Request, res: Response) =>
     }
 
     try {
-        // Start a transaction
-        await getManager().transaction(async transactionalEntityManager => {
-            // Fetch the product
-            const product = await transactionalEntityManager.findOne(Products, { where: { ProductID: Number(ProductID) } });
+        // Fetch the product
+        const product = await Products.findOne({ where: { ProductID: Number(ProductID) } });
 
-            if (!product) {
-                throw { status: 404, message: 'Product not found!' };
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found!' });
+        }
+
+        // Initialize total percentage
+        let totalPercentage = 0;
+
+        for (const materialItem of Materials) {
+            const { name, percentage } = materialItem;
+
+            if (!name || typeof percentage !== 'number') {
+                return res.status(400).json({ message: 'Each material must have a valid name and percentage!' });
             }
 
-            // Initialize total percentage
-            let totalPercentage = 0;
+            // Fetch the material by name (assuming name is unique)
+            const material = await Material.findOne({ where: { Name: name } });
 
-            // Prepare MaterialProduct entries
-            const materialProductEntries: MaterialProduct[] = [];
-
-            for (const materialItem of Materials) {
-                const { name, percentage } = materialItem;
-
-                if (!name || typeof percentage !== 'number') {
-                    throw { status: 400, message: 'Each material must have a valid name and percentage!' };
-                }
-
-                // Fetch the material by name (assuming name is unique)
-                const material = await transactionalEntityManager.findOne(Material, { where: { Name: name } });
-
-                if (!material) {
-                    throw { status: 404, message: `Material '${name}' not found!` };
-                }
-
-                totalPercentage += percentage;
-
-                const materialProduct = new MaterialProduct();
-                materialProduct.Material = material;
-                materialProduct.Product = product;
-                materialProduct.percentage = percentage;
-
-                materialProductEntries.push(materialProduct);
+            if (!material) {
+                return res.status(404).json({ message: `Material '${name}' not found!` });
             }
 
-            // Optional: Validate that totalPercentage equals 100
-            if (totalPercentage !== 100) {
-                throw { status: 400, message: 'Total percentage of all materials must equal 100!' };
-            }
+            totalPercentage += percentage;
 
-            // Save all MaterialProduct entries
-            await transactionalEntityManager.save(MaterialProduct, materialProductEntries);
+            // Check if the material is already assigned to the product
+            const existingAssignment = await MaterialProduct.findOne({
+                where: { Product: { ProductID: Number(ProductID) }, Material: { MaterialID: material.MaterialID } },
+            });
+
+            if (existingAssignment) {
+                existingAssignment.percentage = percentage;
+                await existingAssignment.save();
+            } else {
+                const materialProduct = MaterialProduct.create({
+                    Material: material,
+                    Product: product,
+                    percentage: percentage,
+                });
+                await materialProduct.save();
+            }
+        }
+
+        // Validate that total percentage equals 100
+        const totalExistingPercentageResult = await MaterialProduct.find({
+            where: { Product: { ProductID: Number(ProductID) } },
+            select: ['percentage'],
         });
+
+        const totalExistingPercentage = totalExistingPercentageResult.reduce((sum, mp) => sum + mp.percentage, 0);
+
+
+        if (totalExistingPercentage !== 100) {
+            return res.status(400).json({ message: 'Total percentage of all materials must equal 100!' });
+        }
 
         res.status(200).json({ message: 'Materials assigned to product successfully!' });
     } catch (error) {
-        if (error && error) {
-            res.status(400).json({ message: error });
-        } else {
-            console.error('Internal server error:', error);
-            res.status(500).json({ message: 'Internal server error!' });
-        }
+        console.error('Internal server error:', error);
+        res.status(500).json({ message: 'Internal server error!' });
     }
 };
-
-
-
-
+// Update Materials for Product
 export const s_updateMaterialsForProduct = async (req: Request, res: Response) => {
     const { ProductID, Materials } = req.body;
 
@@ -194,95 +213,83 @@ export const s_updateMaterialsForProduct = async (req: Request, res: Response) =
     }
 
     try {
-        await getManager().transaction(async transactionalEntityManager => {
-            // Fetch the product
-            const product = await transactionalEntityManager.findOne(Products, { where: { ProductID: Number(ProductID) }, relations: ['MaterialProduct', 'MaterialProduct.Material'] });
+        // Fetch the product with its materials
+        const product = await Products.findOne({
+            where: { ProductID: Number(ProductID) },
+            relations: ['MaterialProduct', 'MaterialProduct.Material'],
+        });
 
-            if (!product) {
-                throw { status: 404, message: 'Product not found!' };
-            }
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found!' });
+        }
 
-            // Initialize total percentage
-            let totalPercentage = 0;
+        // Initialize total percentage
+        let totalPercentage = 0;
 
-            // Prepare a map for existing MaterialProduct entries
-            const existingMaterialMap: Map<string, MaterialProduct> = new Map();
-            product.MaterialProduct.forEach(mp => {
-                if (mp.Material && mp.Material.Name) {
-                    existingMaterialMap.set(mp.Material.Name, mp);
-                }
-            });
-
-            // Prepare arrays for updates and additions
-            const materialProductUpdates: MaterialProduct[] = [];
-            const materialProductAdditions: MaterialProduct[] = [];
-
-            for (const materialItem of Materials) {
-                const { name, percentage } = materialItem;
-
-                if (!name || typeof percentage !== 'number') {
-                    throw { status: 400, message: 'Each material must have a valid name and percentage!' };
-                }
-
-                // Fetch the material by name (assuming name is unique)
-                const material = await transactionalEntityManager.findOne(Material, { where: { Name: name } });
-
-                if (!material) {
-                    throw { status: 404, message: `Material '${name}' not found!` };
-                }
-
-                totalPercentage += percentage;
-
-                if (existingMaterialMap.has(name)) {
-                    // Update existing MaterialProduct
-                    const existingMP = existingMaterialMap.get(name)!;
-                    existingMP.percentage = percentage;
-                    materialProductUpdates.push(existingMP);
-                } else {
-                    // Add new MaterialProduct
-                    const newMP = new MaterialProduct();
-                    newMP.Material = material;
-                    newMP.Product = product;
-                    newMP.percentage = percentage;
-                    materialProductAdditions.push(newMP);
-                }
-            }
-
-            // Optional: Validate that totalPercentage equals 100
-            if (totalPercentage !== 100) {
-                throw { status: 400, message: 'Total percentage of all materials must equal 100!' };
-            }
-
-            // Save updates
-            if (materialProductUpdates.length > 0) {
-                await transactionalEntityManager.save(MaterialProduct, materialProductUpdates);
-            }
-
-            // Save additions
-            if (materialProductAdditions.length > 0) {
-                await transactionalEntityManager.save(MaterialProduct, materialProductAdditions);
-            }
-
-            // Optionally, handle removals if some existing materials are not in the update request
-            const updatedMaterialNames = Materials.map(m => m.name);
-            const materialsToRemove = product.MaterialProduct.filter(mp => mp.Material && !updatedMaterialNames.includes(mp.Material.Name));
-            if (materialsToRemove.length > 0) {
-                await transactionalEntityManager.remove(MaterialProduct, materialsToRemove);
+        // Map existing materials
+        const existingMaterialsMap: Map<string, MaterialProduct> = new Map();
+        product.MaterialProduct.forEach(mp => {
+            if (mp.Material && mp.Material.Name) {
+                existingMaterialsMap.set(mp.Material.Name, mp);
             }
         });
 
+        // Process incoming materials
+        for (const materialItem of Materials) {
+            const { name, percentage } = materialItem;
+
+            if (!name || typeof percentage !== 'number') {
+                return res.status(400).json({ message: 'Each material must have a valid name and percentage!' });
+            }
+
+            // Fetch the material by name
+            const material = await Material.findOne({ where: { Name: name } });
+
+            if (!material) {
+                return res.status(404).json({ message: `Material '${name}' not found!` });
+            }
+
+            totalPercentage += percentage;
+
+            if (existingMaterialsMap.has(name)) {
+                // Update existing percentage
+                const existingAssignment = existingMaterialsMap.get(name)!;
+                existingAssignment.percentage = percentage;
+                await existingAssignment.save();
+                existingMaterialsMap.delete(name);
+            } else {
+                // Assign new material
+                const materialProduct = MaterialProduct.create({
+                    Material: material,
+                    Product: product,
+                    percentage: percentage,
+                });
+                await materialProduct.save();
+            }
+        }
+
+       
+
+        // Validate that total percentage equals 100
+       const totalExistingPercentageResult = await MaterialProduct.find({
+            where: { Product: { ProductID: Number(ProductID) } },
+            select: ['percentage'],
+        });
+
+        const totalExistingPercentage = totalExistingPercentageResult.reduce((sum, mp) => sum + mp.percentage, 0);
+
+        if (totalExistingPercentage !== 100) {
+            return res.status(400).json({ message: 'Total percentage of all materials must equal 100!' });
+        }
+
         res.status(200).json({ message: 'Materials updated for product successfully!' });
     } catch (error) {
-        if (error && error) {
-            res.status(400).json({ message: error });
-        } else {
-            console.error('Internal server error:', error);
-            res.status(500).json({ message: 'Internal server error!' });
-        }
+        console.error('Internal server error:', error);
+        res.status(500).json({ message: 'Internal server error!' });
     }
 };
 
-
+// Unassign Materials from Product
 export const s_unassignMaterialsFromProduct = async (req: Request, res: Response) => {
     const { ProductID, MaterialNames } = req.body;
 
@@ -296,50 +303,45 @@ export const s_unassignMaterialsFromProduct = async (req: Request, res: Response
     }
 
     try {
-        await getManager().transaction(async transactionalEntityManager => {
-            // Fetch the product with its materials
-            const product = await transactionalEntityManager.findOne(Products, {
-                where: { ProductID: Number(ProductID) },
-                relations: ['MaterialProduct', 'MaterialProduct.Material'],
-            });
-
-            if (!product) {
-                throw { status: 404, message: 'Product not found!' };
-            }
-
-            // Fetch materials to unassign
-            const materials = await transactionalEntityManager.find(Material, {
-                where: { Name: In(MaterialNames) },
-            });
-
-            if (materials.length !== MaterialNames.length) {
-                const foundNames = materials.map(m => m.Name);
-                const notFound = MaterialNames.filter(name => !foundNames.includes(name));
-                throw { status: 404, message: `Materials not found: ${notFound.join(', ')}` };
-            }
-
-            // Find MaterialProduct entries to remove
-            const materialProductsToRemove = product.MaterialProduct.filter(mp => mp.Material && MaterialNames.includes(mp.Material.Name));
-
-            if (materialProductsToRemove.length === 0) {
-                throw { status: 404, message: 'No matching materials assigned to the product!' };
-            }
-
-            // Remove the MaterialProduct entries
-            await transactionalEntityManager.remove(MaterialProduct, materialProductsToRemove);
+        // Fetch the product with its materials
+        const product = await Products.findOne({
+            where: { ProductID: Number(ProductID) },
+            relations: ['MaterialProduct', 'MaterialProduct.Material'],
         });
+
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found!' });
+        }
+
+        // Fetch materials to unassign
+        const materials = await Material.find({
+            where: { Name: In(MaterialNames) },
+        });
+
+        if (materials.length !== MaterialNames.length) {
+            const foundNames = materials.map(m => m.Name);
+            const notFound = MaterialNames.filter(name => !foundNames.includes(name));
+            return res.status(404).json({ message: `Materials not found: ${notFound.join(', ')}` });
+        }
+
+        // Remove the assignments
+        for (const material of materials) {
+            const assignment = await MaterialProduct.findOne({
+                where: { Product: { ProductID: Number(ProductID) }, Material: { MaterialID: material.MaterialID } },
+            });
+            if (assignment) {
+                await assignment.remove();
+            }
+        }
 
         res.status(200).json({ message: 'Materials unassigned from product successfully!' });
     } catch (error) {
-        if (error && error) {
-            res.status(400).json({ message: error });
-        } else {
-            console.error('Internal server error:', error);
-            res.status(500).json({ message: 'Internal server error!' });
-        }
+        console.error('Internal server error:', error);
+        res.status(500).json({ message: 'Internal server error!' });
     }
 };
 
+// Get Materials for Product
 export const s_getMaterialsForProduct = async (req: Request, res: Response) => {
     const { ProductID } = req.params;
 
@@ -369,6 +371,7 @@ export const s_getMaterialsForProduct = async (req: Request, res: Response) => {
     }
 };
 
+// Get Products for Material
 export const s_getProductsForMaterial = async (req: Request, res: Response) => {
     const { MaterialID } = req.params;
 
@@ -379,7 +382,7 @@ export const s_getProductsForMaterial = async (req: Request, res: Response) => {
     try {
         const material = await Material.findOne({
             where: { MaterialID: Number(MaterialID) },
-            relations: ['materialProduct', 'materialProduct.Product'],
+            relations: ['materialProduct', 'materialProduct.Product', 'materialProduct.Product.MaterialProduct'],
         });
 
         if (!material) {
@@ -396,11 +399,10 @@ export const s_getProductsForMaterial = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Internal server error:', error);
         res.status(500).json({ message: 'Internal server error' });
-
-
     }
-}
+};
 
+// Assign Materials to Package
 export const s_assignMaterialsToPackage = async (req: Request, res: Response) => {
     const { PackageID, Materials } = req.body;
 
@@ -414,65 +416,70 @@ export const s_assignMaterialsToPackage = async (req: Request, res: Response) =>
     }
 
     try {
-        await getManager().transaction(async transactionalEntityManager => {
-            // Fetch the package
-            const pkg = await transactionalEntityManager.findOne(Packages, { where: { PackageID: Number(PackageID) } });
+        // Fetch the package
+        const pkg = await Packages.findOne({ where: { PackageID: Number(PackageID) } });
 
-            if (!pkg) {
-                throw { status: 404, message: 'Package not found!' };
+        if (!pkg) {
+            return res.status(404).json({ message: 'Package not found!' });
+        }
+
+        // Initialize total percentage
+        let totalPercentage = 0;
+
+        for (const materialItem of Materials) {
+            const { name, percentage } = materialItem;
+
+            if (!name || typeof percentage !== 'number') {
+                return res.status(400).json({ message: 'Each material must have a valid name and percentage!' });
             }
 
-            // Initialize total percentage
-            let totalPercentage = 0;
+            // Fetch the material by name (assuming name is unique)
+            const material = await Material.findOne({ where: { Name: name } });
 
-            // Prepare MaterialPackage entries
-            const materialPackageEntries: MaterialPackage[] = [];
-
-            for (const materialItem of Materials) {
-                const { name, percentage } = materialItem;
-
-                if (!name || typeof percentage !== 'number') {
-                    throw { status: 400, message: 'Each material must have a valid name and percentage!' };
-                }
-
-                // Fetch the material by name (assuming name is unique)
-                const material = await transactionalEntityManager.findOne(Material, { where: { Name: name } });
-
-                if (!material) {
-                    throw { status: 404, message: `Material '${name}' not found!` };
-                }
-
-                totalPercentage += percentage;
-
-                const materialPackage = new MaterialPackage();
-                materialPackage.Material = material;
-                materialPackage.Package = pkg;
-                materialPackage.percentage = percentage;
-
-                materialPackageEntries.push(materialPackage);
+            if (!material) {
+                return res.status(404).json({ message: `Material '${name}' not found!` });
             }
 
-            // Optional: Validate that totalPercentage equals 100
-            if (totalPercentage !== 100) {
-                throw { status: 400, message: 'Total percentage of all materials must equal 100!' };
-            }
+            totalPercentage += percentage;
 
-            // Save all MaterialPackage entries
-            await transactionalEntityManager.save(MaterialPackage, materialPackageEntries);
+            // Check if the material is already assigned to the package
+            const existingAssignment = await MaterialPackage.findOne({
+                where: { Package: { PackageID: Number(PackageID) }, Material: { MaterialID: material.MaterialID } },
+            });
+
+            if (existingAssignment) {
+                existingAssignment.percentage = percentage;
+                await existingAssignment.save();
+            } else {
+                const materialPackage = MaterialPackage.create({
+                    Material: material,
+                    Package: pkg,
+                    percentage: percentage,
+                });
+                await materialPackage.save();
+            }
+        }
+
+        // Validate that total percentage equals 100
+       const totalExistingPercentageResult = await MaterialPackage.find({
+            where: { Package: { PackageID: Number(PackageID) } },
+            select: ['percentage'],
         });
+        
+        const totalExistingPercentage = totalExistingPercentageResult.reduce((sum, mp) => sum + mp.percentage, 0);
+
+        if (totalExistingPercentage !== 100) {
+            return res.status(400).json({ message: 'Total percentage of all materials must equal 100!' });
+        }
 
         res.status(200).json({ message: 'Materials assigned to package successfully!' });
     } catch (error) {
-        if (error && error) {
-            res.status(400).json({ message: error });
-        } else {
-            console.error('Internal server error:', error);
-            res.status(500).json({ message: 'Internal server error!' });
-        }
+        console.error('Internal server error:', error);
+        res.status(500).json({ message: 'Internal server error!' });
     }
 };
 
-
+// Update Materials for Package
 export const s_updateMaterialsForPackage = async (req: Request, res: Response) => {
     const { PackageID, Materials } = req.body;
 
@@ -486,98 +493,86 @@ export const s_updateMaterialsForPackage = async (req: Request, res: Response) =
     }
 
     try {
-        await getManager().transaction(async transactionalEntityManager => {
-            // Fetch the package with its materials
-            const pkg = await transactionalEntityManager.findOne(Packages, {
-                where: { PackageID: Number(PackageID) },
-                relations: ['MaterialPackage', 'MaterialPackage.Material'],
-            });
+        // Fetch the package with its materials
+        const pkg = await Packages.findOne({
+            where: { PackageID: Number(PackageID) },
+            relations: ['MaterialPackage', 'MaterialPackage.Material'],
+        });
 
-            if (!pkg) {
-                throw { status: 404, message: 'Package not found!' };
-            }
+        if (!pkg) {
+            return res.status(404).json({ message: 'Package not found!' });
+        }
 
-            // Initialize total percentage
-            let totalPercentage = 0;
+        // Initialize total percentage
+        let totalPercentage = 0;
 
-            // Prepare a map for existing MaterialPackage entries
-            const existingMaterialMap: Map<string, MaterialPackage> = new Map();
-            pkg.MaterialPackage.forEach(mp => {
-                if (mp.Material && mp.Material.Name) {
-                    existingMaterialMap.set(mp.Material.Name, mp);
-                }
-            });
-
-            // Prepare arrays for updates and additions
-            const materialPackageUpdates: MaterialPackage[] = [];
-            const materialPackageAdditions: MaterialPackage[] = [];
-
-            for (const materialItem of Materials) {
-                const { name, percentage } = materialItem;
-
-                if (!name || typeof percentage !== 'number') {
-                    throw { status: 400, message: 'Each material must have a valid name and percentage!' };
-                }
-
-                // Fetch the material by name (assuming name is unique)
-                const material = await transactionalEntityManager.findOne(Material, { where: { Name: name } });
-
-                if (!material) {
-                    throw { status: 404, message: `Material '${name}' not found!` };
-                }
-
-                totalPercentage += percentage;
-
-                if (existingMaterialMap.has(name)) {
-                    // Update existing MaterialPackage
-                    const existingMP = existingMaterialMap.get(name)!;
-                    existingMP.percentage = percentage;
-                    materialPackageUpdates.push(existingMP);
-                } else {
-                    // Add new MaterialPackage
-                    const newMP = new MaterialPackage();
-                    newMP.Material = material;
-                    newMP.Package = pkg;
-                    newMP.percentage = percentage;
-                    materialPackageAdditions.push(newMP);
-                }
-            }
-
-            // Optional: Validate that totalPercentage equals 100
-            if (totalPercentage !== 100) {
-                throw { status: 400, message: 'Total percentage of all materials must equal 100!' };
-            }
-
-            // Save updates
-            if (materialPackageUpdates.length > 0) {
-                await transactionalEntityManager.save(MaterialPackage, materialPackageUpdates);
-            }
-
-            // Save additions
-            if (materialPackageAdditions.length > 0) {
-                await transactionalEntityManager.save(MaterialPackage, materialPackageAdditions);
-            }
-
-            // Optionally, handle removals if some existing materials are not in the update request
-            const updatedMaterialNames = Materials.map(m => m.name);
-            const materialsToRemove = pkg.MaterialPackage.filter(mp => mp.Material && !updatedMaterialNames.includes(mp.Material.Name));
-            if (materialsToRemove.length > 0) {
-                await transactionalEntityManager.remove(MaterialPackage, materialsToRemove);
+        // Map existing materials
+        const existingMaterialsMap: Map<string, MaterialPackage> = new Map();
+        pkg.MaterialPackage.forEach(mp => {
+            if (mp.Material && mp.Material.Name) {
+                existingMaterialsMap.set(mp.Material.Name, mp);
             }
         });
 
+        // Process incoming materials
+        for (const materialItem of Materials) {
+            const { name, percentage } = materialItem;
+
+            if (!name || typeof percentage !== 'number') {
+                return res.status(400).json({ message: 'Each material must have a valid name and percentage!' });
+            }
+
+            // Fetch the material by name
+            const material = await Material.findOne({ where: { Name: name } });
+
+            if (!material) {
+                return res.status(404).json({ message: `Material '${name}' not found!` });
+            }
+
+            totalPercentage += percentage;
+
+            if (existingMaterialsMap.has(name)) {
+                // Update existing percentage
+                const existingAssignment = existingMaterialsMap.get(name)!;
+                existingAssignment.percentage = percentage;
+                await existingAssignment.save();
+                existingMaterialsMap.delete(name);
+            } else {
+                // Assign new material
+                const materialPackage = MaterialPackage.create({
+                    Material: material,
+                    Package: pkg,
+                    percentage: percentage,
+                });
+                await materialPackage.save();
+            }
+        }
+
+        // Remove materials not in the update request
+        for (const [name, assignment] of existingMaterialsMap) {
+            await assignment.remove();
+        }
+
+        // Validate that total percentage equals 100
+       const totalExistingPercentageResult = await MaterialPackage.find({
+            where: { Package: { PackageID: Number(PackageID) } },
+            select: ['percentage'],
+        });
+
+        const totalExistingPercentage = totalExistingPercentageResult.reduce((sum, mp) => sum + mp.percentage, 0);
+
+        if (totalExistingPercentage !== 100) {
+            return res.status(400).json({ message: 'Total percentage of all materials must equal 100!' });
+        }
+
         res.status(200).json({ message: 'Materials updated for package successfully!' });
     } catch (error) {
-        if (error && error) {
-            res.status(400).json({ message: error });
-        } else {
-            console.error('Internal server error:', error);
-            res.status(500).json({ message: 'Internal server error!' });
-        }
+        console.error('Internal server error:', error);
+        res.status(500).json({ message: 'Internal server error!' });
     }
 };
 
-
+// Unassign Materials from Package
 export const s_unassignMaterialsFromPackage = async (req: Request, res: Response) => {
     const { PackageID, MaterialNames } = req.body;
 
@@ -591,46 +586,70 @@ export const s_unassignMaterialsFromPackage = async (req: Request, res: Response
     }
 
     try {
-        await getManager().transaction(async transactionalEntityManager => {
-            // Fetch the package with its materials
-            const pkg = await transactionalEntityManager.findOne(Packages, {
-                where: { PackageID: Number(PackageID) },
-                relations: ['MaterialPackage', 'MaterialPackage.Material'],
-            });
-
-            if (!pkg) {
-                throw { status: 404, message: 'Package not found!' };
-            }
-
-            // Fetch materials to unassign
-            const materials = await transactionalEntityManager.find(Material, {
-                where: { Name: In(MaterialNames) }, // Assuming 'Name' is unique
-            });
-
-            if (materials.length !== MaterialNames.length) {
-                const foundNames = materials.map(m => m.Name);
-                const notFound = MaterialNames.filter(name => !foundNames.includes(name));
-                throw { status: 404, message: `Materials not found: ${notFound.join(', ')}` };
-            }
-
-            // Find MaterialPackage entries to remove
-            const materialProductsToRemove = pkg.MaterialPackage.filter(mp => mp.Material && MaterialNames.includes(mp.Material.Name));
-
-            if (materialProductsToRemove.length === 0) {
-                throw { status: 404, message: 'No matching materials assigned to the package!' };
-            }
-
-            // Remove the MaterialPackage entries
-            await transactionalEntityManager.remove(MaterialPackage, materialProductsToRemove);
+        // Fetch the package with its materials
+        const pkg = await Packages.findOne({
+            where: { PackageID: Number(PackageID) },
+            relations: ['MaterialPackage', 'MaterialPackage.Material'],
         });
+
+        if (!pkg) {
+            return res.status(404).json({ message: 'Package not found!' });
+        }
+
+        // Fetch materials to unassign
+        const materials = await Material.find({
+            where: { Name: In(MaterialNames) },
+        });
+
+        if (materials.length !== MaterialNames.length) {
+            const foundNames = materials.map(m => m.Name);
+            const notFound = MaterialNames.filter(name => !foundNames.includes(name));
+            return res.status(404).json({ message: `Materials not found: ${notFound.join(', ')}` });
+        }
+
+        // Remove the assignments
+        for (const material of materials) {
+            const assignment = await MaterialPackage.findOne({
+                where: { Package: { PackageID: Number(PackageID) }, Material: { MaterialID: material.MaterialID } },
+            });
+            if (assignment) {
+                await assignment.remove();
+            }
+        }
 
         res.status(200).json({ message: 'Materials unassigned from package successfully!' });
     } catch (error) {
-        if (error && error) {
-            res.status(400).json({ message: error });
-        } else {
-            console.error('Internal server error:', error);
-            res.status(500).json({ message: 'Internal server error!' });
+        console.error('Internal server error:', error);
+        res.status(500).json({ message: 'Internal server error!' });
+    }
+};
+
+// Get Materials for Package
+export const s_getMaterialsForPackage = async (req: Request, res: Response) => {
+    const { PackageID } = req.params;
+
+    if (!PackageID) {
+        return res.status(400).json({ message: 'Package ID is required!' });
+    }
+
+    try {
+        const pkg = await Packages.findOne({
+            where: { PackageID: Number(PackageID) },
+            relations: ['MaterialPackage', 'MaterialPackage.Material'],
+        });
+
+        if (!pkg) {
+            return res.status(404).json({ message: 'Package not found!' });
         }
+
+        const materials = pkg.MaterialPackage.map(mp => ({
+            name: mp.Material?.Name,
+            percentage: mp.percentage,
+        }));
+
+        res.status(200).json(materials);
+    } catch (error) {
+        console.error('Internal server error:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

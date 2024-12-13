@@ -7,6 +7,7 @@ import { PaymentMethods } from "../../entities/users/PaymentMethods";
 import { Addresses } from "../../entities/users/Addresses";
 import { EmailOptions, orderConfirmationTemplate, sendEmail } from "../../utils/email-config";
 import sendOrderNotification from "../../utils/OrderNotification";
+import { In } from "typeorm";
 
 
 //----------------------- checkout order for a user-----------------------
@@ -23,7 +24,7 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
 
         // Find the pending order
         const order = await Orders.findOne({
-            where: { User: { UserID: user.UserID }, Status: false },
+            where: { User: { UserID: user.UserID }, Status: 'pending' },
             relations: ["OrdersPackages", "OrdersProducts",], // Ensure relations are loaded
         });
 
@@ -96,10 +97,9 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
         // Update order details
         order.PaymentMethod = paymentMethod;
         order.Address = address;
-        order.Status = true;
+        order.Status = 'under review';
         order.IsGift = IsGift ?? false;
         order.IsAnonymous = IsAnonymous ?? false;
-        order.GiftMessage = GiftMessage ?? "";
 
         await order.save();
         // Send notifications
@@ -123,7 +123,7 @@ export const s_getAllOrdersUser = async (req: Request, res: Response) => {
         }
         console.log(`user is : ${user}`);
         const orders = await Orders.find({
-            where: { User: { UserID: userId }, Status: true },
+            where: { User: { UserID: userId }, Status: In(["purchased", "under review", "rejected"]) },
             relations: [
                 "OrdersProducts",
                 "OrdersProducts.Product",
@@ -149,7 +149,7 @@ export const s_getCartUser = async (req: Request, res: Response) => {
             return res.status(404).send({ message: "User not found" });
         }
         const order = await Orders.findOne({
-            where: { User: { UserID: userId }, Status: false },
+            where: { User: { UserID: userId }, Status: 'pending' },
             relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages",
                 "OrdersPackages.Package", "PaymentMethod", "Address",
                 "OrdersProducts.OrderedCustomization", "OrdersProducts.OrderedCustomization"]
@@ -162,7 +162,7 @@ export const s_getCartUser = async (req: Request, res: Response) => {
     catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message });
-        
+
     }
 }
 
@@ -196,6 +196,24 @@ export const s_getOrder = async (req: Request, res: Response) => {
             return res.status(404).send({ message: "Order not found" });
         }
         return res.status(200).send(order);
+    } catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message });
+    }
+}
+
+//----------------------- Update order status-----------------------
+export const s_updateOrderStatus = async (req: Request, res: Response) => {
+    try {
+        const orderId: any = req.params.orderId;
+        const { Status } = req.body;
+        const order = await Orders.findOne({ where: { OrderID: orderId } });
+        if (!order) {
+            return res.status(404).send({ message: "Order not found" });
+        }
+        order.Status = Status;
+        await order.save();
+        return res.status(200).send({ message: "Order status updated successfully", order });
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message });
