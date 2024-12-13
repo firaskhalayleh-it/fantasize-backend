@@ -312,6 +312,24 @@ export function passwordResetTemplate(resetToken: string): string {
 }
 
 
+export const rejectOrderTemplate = (orderId: string, userName: string): string => {
+  return `
+    <h1>Order Rejected</h1>
+    <p>Hi ${userName},</p>
+    <p>Your order with ID ${orderId} has been rejected by the admin cause the customization is not applicable so you need to recheck the 
+    order through your order history and update its customization.</p>
+  `;
+};
+
+export const approveOrderTemplate = (orderId: string, userName: string): string => {
+  return `
+    <h1>Order Approved</h1>
+    <p>Hi ${userName},</p>
+    <p>Your order with ID ${orderId} has been approved by the admin and is now being processed. You will receive an update when your order is shipped.</p>
+  `;
+};
+
+
 
 
 export function welcomeTemplate(userName: string): string {

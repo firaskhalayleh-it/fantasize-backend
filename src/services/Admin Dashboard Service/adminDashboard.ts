@@ -6,6 +6,7 @@ import { Categories } from '../../entities/categories/Categories';
 import { SubCategories } from '../../entities/categories/SubCategories';
 import { Offers } from '../../entities/Offers';
 import { Reviews } from '../../entities/Reviews';
+import { In } from 'typeorm';
 
 export class AdminDashboardService {
   /**
@@ -39,7 +40,7 @@ export class AdminDashboardService {
   async getTotalRevenue(): Promise<number> {
     const result = await Orders.createQueryBuilder('orders')
       .select('SUM(orders.TotalPrice)', 'total_revenue')
-      .where('orders.Status = :status', { status: true })
+      .where('orders.Status = :status', { status: 'purchased' })
       .getRawOne();
     return parseFloat(result?.total_revenue) || 0;
   }
@@ -53,7 +54,7 @@ export class AdminDashboardService {
       .innerJoin('ordersProducts.Order', 'orders')
       .select('products.Name', 'product_name')
       .addSelect('SUM(ordersProducts.Quantity)', 'total_quantity')
-      .where('orders.Status = :status', { status: true })
+      .where('orders.Status = :status', { status: 'purchased' })
       .groupBy('products.Name')
       .orderBy('total_quantity', 'DESC')
       .limit(5)
@@ -96,7 +97,7 @@ export class AdminDashboardService {
   async getAvgExpenseCosts(): Promise<number> {
     const result = await Orders.createQueryBuilder('orders')
       .select('AVG(orders.TotalPrice)', 'avg_cost')
-      .where('orders.Status = :status', { status: true })
+      .where('orders.Status = :status', { status: 'purchased' })
       .getRawOne();
     return parseFloat(result?.avg_cost) || 0;
   }
@@ -109,7 +110,7 @@ export class AdminDashboardService {
     const results = await Orders.createQueryBuilder('orders')
       .select('SUM(orders.TotalPrice)', 'monthly_earnings')
       .addSelect("TO_CHAR(date_trunc('month', orders.\"CreatedAt\"), 'Mon')", 'month')
-      .where('orders.Status = :status', { status: true })
+      .where('orders.Status = :status', { status: 'purchased' })
       .groupBy("date_trunc('month', orders.\"CreatedAt\")")
       .orderBy("date_trunc('month', orders.\"CreatedAt\")")
       .getRawMany();
@@ -179,7 +180,7 @@ export class AdminDashboardService {
   async totalSale(): Promise<number> {
     const result = await Orders.createQueryBuilder('orders')
       .select('SUM(orders.TotalPrice)', 'total_sales')
-      .where('orders.Status = :status', { status: true })
+      .where('orders.Status = :status', { status: 'purchased' })
       .getRawOne();
     return parseFloat(result?.total_sales) || 0;
   }
@@ -190,7 +191,7 @@ export class AdminDashboardService {
   async averageSale(): Promise<number> {
     const result = await Orders.createQueryBuilder('orders')
       .select('AVG(orders.TotalPrice)', 'average_sale')
-      .where('orders.Status = :status', { status: true })
+      .where('orders.Status = :status', { status: 'purchased' })
       .getRawOne();
     return parseFloat(result?.average_sale) || 0;
   }

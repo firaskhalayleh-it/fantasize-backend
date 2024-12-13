@@ -12,6 +12,7 @@ import {
   BeforeInsert,
   BeforeUpdate,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { OrdersPackages } from './packages/OrdersPackages';
 import { Addresses } from './users/Addresses';
@@ -47,6 +48,7 @@ export class Orders extends BaseEntity {
 
 
   @Column('enum', {enum: ['pending', 'purchased','under review','rejected'], default: 'pending'})
+  @Index()
   Status: String; 
 
   @Column('boolean', { default: false })
