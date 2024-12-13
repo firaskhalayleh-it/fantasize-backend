@@ -48,6 +48,8 @@ export const s_search = async (req: Request, res: Response) => {
             if (search.Category?.Name) conditions.push({ SubCategory: { Category: { Name: Like(`%${search.Category.Name}%`) } } });
             if (search.minPrice && search.maxPrice) conditions.push({ Price: Between(search.minPrice, search.maxPrice) });
             if (search.option?.name) conditions.push({ Customization: { option: { optionValues: { name: Like(`%${search.option.name}%`) } } } });
+            if (search.offer.available) conditions.push({ Offer: { Available: search.offer.available } });
+            if (search.offer.discount) conditions.push({ Offer: { Discount: search.offer.discount } });
             return conditions;
         };
 
