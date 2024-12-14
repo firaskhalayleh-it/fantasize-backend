@@ -1,6 +1,6 @@
 // update ,delete and get by id(Profile)  ,get all users  , search user using username
 import express from "express"
-import { c_getAllUser, c_getUser, c_getUserNameWithProfilePic, c_searchUser, c_updateUser, c_updateUserPassword } from "../../controllers/Users Controller/userController";
+import { c_getAllUser, c_getUser, c_getUserNameWithProfilePic, c_searchUser, c_updateUser, c_updateUserPassword ,c_resetUserPassword} from "../../controllers/Users Controller/userController";
 
 import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
 import { uploadSingle } from "../../middlewares/multerMiddleware";
@@ -63,7 +63,16 @@ userRoute.get("/getusers/:id", isAuthorized, c_getUserNameWithProfilePic);
  *  @access       private
  * 
  */
-userRoute.put("/reset_password/:resetToken", c_updateUserPassword);
+userRoute.put("/reset_password/:resetToken", c_resetUserPassword);
+
+/**
+ *  @description  reset user password
+ *  @route        /update_password
+ *  @method       Put
+ *  @access       private
+ * 
+ */
+userRoute.put("/update_password", isAuthorized, c_updateUserPassword);
 
 
 export default userRoute

@@ -16,28 +16,19 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
         const userId = (req as any).user.payload.userId;
         const { PaymentMethodID, AddressID, IsGift, IsAnonymous } = req.body;
 
-        // Find the user
         const user = await Users.findOne({ where: { UserID: userId } });
         if (!user) {
             return res.status(404).send({ message: "User not found" });
         }
 
-        // Find the pending order
         const order = await Orders.findOne({
             where: { User: { UserID: user.UserID }, Status: 'pending' },
-            relations: ["OrdersPackages", "OrdersProducts"],
+            relations: ["OrdersPackages", "OrdersProducts", "OrdersProducts.Product", "OrdersPackages.Package"],
         });
 
         if (!order) {
             return res.status(404).send({ message: "Order not found" });
         }
-
-        const emailHtml = orderConfirmationTemplate(order.OrderID.toString(), user.Username);
-        const emailOptions: EmailOptions = {
-            to: user.Email,
-            subject: "Order Confirmation",
-            html: emailHtml,
-        };
 
         // Validate payment method and address
         const paymentMethod = await PaymentMethods.findOne({ where: { PaymentMethodID, User: { UserID: userId } } });
@@ -51,8 +42,6 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
         }
 
         let orderdetails = "Order Summary:\n\n";
-
-        // Ensure the order contains packages or products
         const hasPackages = (order.OrdersPackages?.length ?? 0) > 0;
         const hasProducts = (order.OrdersProducts?.length ?? 0) > 0;
 
@@ -60,18 +49,11 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
             return res.status(400).send({ message: "Order is empty" });
         }
 
-        // Flag to indicate if special customization was found
         let specialCustomizationFound = false;
 
-        // Process package quantities
+        // Check for special customization but do not deduct inventory yet
         if (hasPackages) {
             for (const orderPackage of order.OrdersPackages) {
-                const packageQuantity = orderPackage.Package?.Quantity;
-                if (packageQuantity == null) {
-                    return res.status(400).send({ message: "Package quantity not found" });
-                }
-
-                // Check for special customization in packages
                 if (orderPackage.OrderedCustomization?.SelectedOptions) {
                     for (const option of orderPackage.OrderedCustomization.SelectedOptions) {
                         for (const optionValue of option.optionValues) {
@@ -81,23 +63,13 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
                         }
                     }
                 }
-
-                orderPackage.Package.Quantity = packageQuantity - orderPackage.quantity;
-                await orderPackage.Package.save();
-
-                orderdetails += `- Package: ${orderPackage.Package?.Name ?? "Unknown"},\n Quantity: ${orderPackage.quantity},\n Total Price: ${orderPackage.Package?.Price * orderPackage.quantity}\n\n`;
+                // Just build order details here, no inventory change yet if special customization found
+                orderdetails += `- Package: ${orderPackage.Package?.Name ?? "Unknown"}, Quantity: ${orderPackage.quantity}, Total Price: ${orderPackage.Package?.Price * orderPackage.quantity}\n\n`;
             }
         }
 
-        // Process product quantities
         if (hasProducts) {
             for (const orderProduct of order.OrdersProducts) {
-                const productQuantity = orderProduct.Product?.Quantity;
-                if (productQuantity == null) {
-                    return res.status(400).send({ message: "Product quantity not found" });
-                }
-
-                // Check for special customization in products
                 if (orderProduct.OrderedCustomization?.SelectedOptions) {
                     for (const option of orderProduct.OrderedCustomization.SelectedOptions) {
                         for (const optionValue of option.optionValues) {
@@ -107,31 +79,47 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
                         }
                     }
                 }
-
-                // Deduct product quantity and prepare order details
-                orderProduct.Product.Quantity = productQuantity - orderProduct.Quantity;
-                await orderProduct.Product.save();
-
-                orderdetails += `- Product: ${orderProduct.Product?.Name ?? "Unknown"}, \n Quantity: ${orderProduct.Quantity},\n Total Price: ${orderProduct.Product?.Price * orderProduct.Quantity}\n\n`;
+                orderdetails += `- Product: ${orderProduct.Product?.Name ?? "Unknown"}, Quantity: ${orderProduct.Quantity}, Total Price: ${orderProduct.Product?.Price * orderProduct.Quantity}\n\n`;
             }
         }
 
-        // Determine order status based on special customization
-        if (specialCustomizationFound) {
-            order.Status = 'under review';
-        } else {
-            order.Status = 'purchased';
-        }
-
-        // Update order details
+        // Update order details (payment, address, etc.)
         order.PaymentMethod = paymentMethod;
         order.Address = address;
         order.IsGift = IsGift ?? false;
         order.IsAnonymous = IsAnonymous ?? false;
 
-        await order.save();
+        // If special customization is found, set status to under review and do NOT deduct inventory
+        if (specialCustomizationFound) {
+            order.Status = 'under review';
+        } else {
+            // Deduct inventory now since it's purchased immediately
+            if (hasPackages) {
+                for (const orderPackage of order.OrdersPackages) {
+                    const packageQuantity = orderPackage.Package?.Quantity;
+                    if (packageQuantity == null) {
+                        return res.status(400).send({ message: "Package quantity not found" });
+                    }
+                    orderPackage.Package.Quantity = packageQuantity - orderPackage.quantity;
+                    await orderPackage.Package.save();
+                }
+            }
 
-        // Send notifications
+            if (hasProducts) {
+                for (const orderProduct of order.OrdersProducts) {
+                    const productQuantity = orderProduct.Product?.Quantity;
+                    if (productQuantity == null) {
+                        return res.status(400).send({ message: "Product quantity not found" });
+                    }
+                    orderProduct.Product.Quantity = productQuantity - orderProduct.Quantity;
+                    await orderProduct.Product.save();
+                }
+            }
+
+            order.Status = 'purchased';
+        }
+
+        await order.save();
         await sendOrderNotification(userId, order.OrderID.toString(), orderdetails);
 
         return res.status(200).send({ message: "Order checked out successfully", order });
@@ -254,36 +242,129 @@ export const s_updateOrderStatus = async (req: Request, res: Response) => {
 export const s_approveOrder = async (req: Request, res: Response) => {
     try {
         const orderId: any = req.params.orderId;
-        const order = await Orders.findOne({ where: { OrderID: orderId } });
+        // Load order with products and packages for inventory operations
+        const order = await Orders.findOne({
+            where: { OrderID: orderId },
+            relations: [
+                "User",
+                "OrdersProducts",
+                "OrdersProducts.Product",
+                "OrdersPackages",
+                "OrdersPackages.Package"
+            ]
+        });
+
         if (!order) {
             return res.status(404).send({ message: "Order not found" });
         }
+
+        // Approve only if order is 'under review'
+        if (order.Status !== 'under review' ) {
+            return res.status(400).send({ message: "Order must be under review to approve" });
+        }
+
+        // Deduct inventory now since we are approving the order
+        const hasPackages = (order.OrdersPackages?.length ?? 0) > 0;
+        const hasProducts = (order.OrdersProducts?.length ?? 0) > 0;
+
+        if (hasPackages) {
+            for (const orderPackage of order.OrdersPackages) {
+                const packageQuantity = orderPackage.Package?.Quantity;
+                if (packageQuantity == null) {
+                    return res.status(400).send({ message: "Package quantity not found" });
+                }
+                // Deduct the previously ordered quantity
+                orderPackage.Package.Quantity = packageQuantity - orderPackage.quantity;
+                await orderPackage.Package.save();
+            }
+        }
+
+        if (hasProducts) {
+            for (const orderProduct of order.OrdersProducts) {
+                const productQuantity = orderProduct.Product?.Quantity;
+                if (productQuantity == null) {
+                    return res.status(400).send({ message: "Product quantity not found" });
+                }
+                // Deduct the previously ordered quantity
+                orderProduct.Product.Quantity = productQuantity - orderProduct.Quantity;
+                await orderProduct.Product.save();
+            }
+        }
+
         order.Status = 'purchased';
-        approveOrderTemplate(order.OrderID.toString(), order.User?.Username ?? "Unknown");
         await order.save();
+        approveOrderTemplate(order.OrderID.toString(), order.User?.Username ?? "Unknown");
+
         return res.status(200).send({ message: "Order approved successfully", order });
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message });
     }
-}
+};
+
 
 export const s_rejectOrder = async (req: Request, res: Response) => {
     try {
         const orderId: any = req.params.orderId;
-        const order = await Orders.findOne({ where: { OrderID: orderId } });
+        // Load order with related products and packages to revert their quantities
+        const order = await Orders.findOne({
+            where: { OrderID: orderId },
+            relations: [
+                "OrdersProducts",
+                "OrdersProducts.Product",
+                "OrdersPackages",
+                "OrdersPackages.Package"
+            ]
+        });
+
         if (!order) {
             return res.status(404).send({ message: "Order not found" });
         }
+
+        // If the order had previously deducted inventory (happens usually when status is 'under review' or 'purchased'),
+        // we need to restore the inventory when it’s rejected.
+        // Check only if the order was previously in a state where inventory was deducted. 
+        // Typically, this would be "under review" or "purchased", but you can adjust this logic if needed.
+        const previouslyDeductedStates = ["under review", "purchased"];
+
+        if (previouslyDeductedStates.includes(order.Status as string)) {
+            // Revert package quantities
+            if (order.OrdersPackages && order.OrdersPackages.length > 0) {
+                for (const orderPackage of order.OrdersPackages) {
+                    if (orderPackage.Package && orderPackage.Package.Quantity !== null && orderPackage.quantity !== null) {
+                        // Add back the quantities that were previously deducted
+                        orderPackage.Package.Quantity = (orderPackage.Package.Quantity ?? 0) + (orderPackage.quantity ?? 0);
+                        await orderPackage.Package.save();
+                    }
+                }
+            }
+
+            // Revert product quantities
+            if (order.OrdersProducts && order.OrdersProducts.length > 0) {
+                for (const orderProduct of order.OrdersProducts) {
+                    if (orderProduct.Product && orderProduct.Product.Quantity !== null && orderProduct.Quantity !== null) {
+                        // Add back the quantities that were previously deducted
+                        orderProduct.Product.Quantity = (orderProduct.Product.Quantity ?? 0) + (orderProduct.Quantity ?? 0);
+                        await orderProduct.Product.save();
+                    }
+                }
+            }
+        }
+
+        // Now set order status to 'rejected'
         order.Status = 'rejected';
-        rejectOrderTemplate(order.OrderID.toString(), order.User?.Username ?? "Unknown");
         await order.save();
-        return res.status(200).send({ message: "Order rejected successfully", order });
+
+        // Optionally send out a reject order email/notification
+        rejectOrderTemplate(order.OrderID.toString(), order.User?.Username ?? "Unknown");
+
+        return res.status(200).send({ message: "Order rejected successfully and quantities restored", order });
     } catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message });
     }
-}
+};
+
 
 
 

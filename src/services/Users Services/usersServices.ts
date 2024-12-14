@@ -85,7 +85,7 @@ export const s_updateUser = async (req: Request, res: Response) => {
 };
 
 //----------------------- update user password by token -----------------------
-export const s_updateUserPassword = async (req: Request, res: Response) => {
+export const s_resetUserPassowrd = async (req: Request, res: Response) => {
     try {
         const { password } = req.body;
         const resetToken = req.params.resetToken;
@@ -182,3 +182,30 @@ export const s_getUserNameWithProfilePic = async (req: Request, res: Response) =
         return res.status(500).json({ message: err.message });
     }
 };
+
+//----------------------- update user password -----------------------
+export const s_updateUserPassword = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user.payload.userId;
+        const { oldPassword, newPassword } = req.body;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        const user = await Users.findOne({ where: { UserID: userId } });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const passwordMatch = await bcrypt.compare(oldPassword, user.Password);
+        if (!passwordMatch) {
+            return res.status(401).json({ message: "Invalid password" });
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.Password = hashedPassword;
+        await user.save();
+        return res.status(200).json({ message: "Password updated successfully" });
+    }
+    catch (err: any) {
+        console.log(err);
+        return res.status(500).json({ message: err.message });
+    }
+}

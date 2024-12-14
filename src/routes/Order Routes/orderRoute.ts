@@ -2,7 +2,8 @@
 
 import express from 'express';
 import { IsAuthenticated, isAuthorized } from '../../middlewares/isAuthentecated';
-import { c_checkoutOrderUser, c_getOrder, c_getAllOrdersAdmin, c_getAllOrdersUser, c_getCartForUser, c_updateOrderStatus } from '../../controllers/Order Controller/orderController';
+import { c_checkoutOrderUser, c_getOrder, c_getAllOrdersAdmin,
+     c_getAllOrdersUser, c_getCartForUser, c_updateOrderStatus,c_approveOrder,c_rejectOrder } from '../../controllers/Order Controller/orderController';
 
 const orderRoute = express.Router();
 
@@ -55,6 +56,22 @@ export const userOrders = orderRoute.get('/cart', IsAuthenticated, c_getCartForU
  * @access        private
     */
 orderRoute.put('/orders/:orderId', isAuthorized, c_updateOrderStatus);
+
+/**
+ * @description   Approve order
+ * @route         /orders/:orderId/approve
+ * @method        PUT
+ * @access        private
+ */
+orderRoute.put('/orders/:orderId/approve', isAuthorized, c_approveOrder);
+
+/**
+ * @description   Reject order
+ * @route         /orders/:orderId/reject
+ * @method        PUT
+ * @access        private
+ */
+orderRoute.put('/orders/:orderId/reject', isAuthorized, c_rejectOrder);
 
 
 export default orderRoute;

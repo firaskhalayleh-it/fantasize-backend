@@ -1,6 +1,6 @@
 // register(create user and role) , log in , log out
 import express from "express";
-import { c_loginUser, c_logOutUser, c_registerUser, c_resetPassword, c_signInWithFacebook, c_signInWithGoogle } from "../../controllers/Auth Controller/authController";
+import { c_loginUser, c_logOutUser, c_registerUser, c_resetPassword, c_signInWithGoogle } from "../../controllers/Auth Controller/authController";
 import { IsAuthenticated } from "../../middlewares/isAuthentecated";
 import { auth } from "firebase-admin";
 import { uploadSingle } from "../../middlewares/multerMiddleware";
@@ -48,14 +48,7 @@ authRoute.post("/logout", IsAuthenticated, c_logOutUser);
 
 authRoute.post("/reset_password", c_resetPassword);
 
-/**
- *  @description  log in with facebook
- *  @route        /login_with_facebook
- *  @method       Post
- *  @access       public
- * 
- */
-authRoute.post("/login_with_facebook", uploadSingle, c_signInWithFacebook);
+    
 
 
 

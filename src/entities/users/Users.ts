@@ -95,8 +95,7 @@ export class Users extends BaseEntity {
   @Column('varchar', { nullable: true, unique: true })
   googleId: string;
 
-  @Column('varchar', { nullable: true, unique: true })
-  facebookId: string;
+ 
 
   @CreateDateColumn()
   CreatedAt: Date;
