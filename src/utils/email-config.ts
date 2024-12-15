@@ -331,7 +331,6 @@ export const approveOrderTemplate = (orderId: string, userName: string): string 
 
 
 
-
 export function welcomeTemplate(userName: string): string {
   return `
       <h1>Welcome to Fantasize, ${userName}!</h1>

@@ -30,6 +30,7 @@ import authGoogleFacebookRoute from "./routes/Auth Routes/authUsingFacebookGoogl
 import materialRoutes from "./routes/Material Route/MaterialRoute";
 import homeRoute from "./routes/Home Routes/home_route";
 import searchRoute from "./routes/search Route/searchRoute";
+import notificationRoute from "./routes/Notification Routes/notificationRoute";
 import generaroute from "./routes/general Routes/generalRoute";
 import './config/passportConfig';
 
@@ -98,6 +99,7 @@ app.use("/material", materialRoutes);
 app.use("/home", homeRoute);
 app.use("/search", searchRoute);
 app.use("/api", generaroute);
+app.use("/notifications", notificationRoute); 
 
 
 app.use(notFound);
