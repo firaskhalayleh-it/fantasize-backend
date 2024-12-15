@@ -68,7 +68,10 @@ export const s_search = async (req: Request, res: Response) => {
             .leftJoinAndSelect("product.Customization", "cust")
             .leftJoinAndSelect("product.MaterialProduct", "materialProd")
             .leftJoinAndSelect("materialProd.Material", "mat")
-            .leftJoinAndSelect("product.Offer", "offer");
+            .leftJoinAndSelect("product.Offer", "offer")
+            .leftJoinAndSelect("product.Brand", "brand")
+            .leftJoinAndSelect("product.Resource", "resources");
+
 
         if (search?.Name) {
             productQuery.andWhere("product.Name ILIKE :productName", { productName: `%${search.Name}%` });
@@ -143,7 +146,9 @@ export const s_search = async (req: Request, res: Response) => {
             .leftJoinAndSelect("package.Customization", "cust")
             .leftJoinAndSelect("package.MaterialPackage", "materialPack")
             .leftJoinAndSelect("materialPack.Material", "mat")
-            .leftJoinAndSelect("package.Offer", "offer");
+            .leftJoinAndSelect("package.Offer", "offer")
+            .leftJoinAndSelect("package.Resource", "resources");
+            
 
         if (search?.Name) {
             packageQuery.andWhere("package.Name ILIKE :packageName", { packageName: `%${search.Name}%` });

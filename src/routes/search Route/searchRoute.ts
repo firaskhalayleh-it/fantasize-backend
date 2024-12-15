@@ -9,20 +9,20 @@ const searchRoute = Router();
  * @route         /search/user
  * @access        Private
  */
-searchRoute.get('/user', IsAuthenticated, c_searchUser);
+searchRoute.post('/user', IsAuthenticated, c_searchUser);
 
 /**
  * @description   Search for a product and package
  * @route         /search
  * @access        Private
  */
-searchRoute.get('/', IsAuthenticated, c_search);
+searchRoute.post('/', IsAuthenticated, c_search);
 
 /**
  * @description   Search for an order
  * @route         /search/order
  * @access        Private
  */
-searchRoute.get('/order', IsAuthenticated, c_searchOrder);
+searchRoute.post('/order', IsAuthenticated, c_searchOrder);
 
 export default searchRoute;
