@@ -81,3 +81,18 @@ export const s_deleteBrand = async (req:Request , res:Response) =>{
     res.status(500).send({ message: err.message })
 }
 } 
+
+// ---------------------> Get brand for product <---------------------
+export const s_getBrandForProduct = async (req: Request, res: Response) => {
+    try {
+        const brandId: any = req.params.brandId;
+        const brand = await Brands.findOne({ where: { BrandID: brandId } });
+        if (!brand) {
+            return `sorry its not found brand`
+        }
+        return brand;
+    } catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message })
+    }
+}

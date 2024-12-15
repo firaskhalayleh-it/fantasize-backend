@@ -1,7 +1,12 @@
 
 
 import { Request, Response } from 'express';
-import { s_createProduct, s_getAllProducts, s_getProduct, s_getProductByCategoryAndSubCategory, s_getProductByCategoryID, s_updateProduct,s_getRandomMenProducts,s_getRandomWomenProducts } from '../../services/Products Services/productServices';
+import {
+    s_createProduct, s_getAllProducts, s_getProduct,
+    s_getProductByCategoryAndSubCategory, s_getProductByCategoryID,
+    s_updateProduct, s_getRandomMenProducts, s_getRandomWomenProducts, 
+    s_deleteProduct, s_getLastProduct, 
+} from '../../services/Products Services/productServices';
 
 
 
@@ -52,3 +57,16 @@ export const c_getRandomWomenProducts = async (req: Request, res: Response) => {
     const result = await s_getRandomWomenProducts(req, res);
     return res.status(200).send(result);
 }
+
+// ---------------------> Delete product <---------------------
+export const c_deleteProduct = async (req: Request, res: Response) => {
+    const result = await s_deleteProduct(req, res);
+    return res.status(200).send(result);
+}
+
+// ---------------------> Get last product <---------------------
+export const c_getLastProduct = async (req: Request, res: Response) => {
+    const result = await s_getLastProduct(req, res);
+    return res.status(200).send(result);
+}
+

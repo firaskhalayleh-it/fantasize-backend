@@ -1,7 +1,9 @@
 import express from "express"
 
 import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
-import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory, c_updateProduct, c_getAllProducts, c_getProductByCategoryID, c_getRandomMenProducts, c_getRandomWomenProducts } from "../../controllers/Products Controller/productController";
+import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory,
+     c_updateProduct, c_getAllProducts, c_getProductByCategoryID, 
+     c_getRandomMenProducts, c_getRandomWomenProducts ,c_deleteProduct,c_getLastProduct} from "../../controllers/Products Controller/productController";
 import FavoriteProductRoute from "./favoriteProductsRoutes";
 import { uploadFields } from "../../middlewares/multerMiddleware";
 
@@ -100,7 +102,21 @@ productRoute.get('/products/random/women', c_getRandomWomenProducts);
 
 
 
+/**
+ *  @description   Delete a product
+ *  @route         /products/:productId
+ *  @method        DELETE
+ *  @access        admin
+ */
+productRoute.delete('/products/:productId', isAuthorized, c_deleteProduct);
 
+/**
+ *  @description   Get last product
+ *  @route         /products/last
+ *  @method        GET
+ *  @access        public
+ */
+productRoute.get('/last/product', c_getLastProduct);
 
 
 

@@ -31,7 +31,7 @@ export class Orders extends BaseEntity {
   User: Users;
 
 
-  @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.Orders, {nullable: true})
+  @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.Orders, { nullable: true })
   @JoinColumn({ name: 'PaymentMethodID' })
   PaymentMethod: PaymentMethods;
 
@@ -39,22 +39,26 @@ export class Orders extends BaseEntity {
   @JoinColumn({ name: 'AddressID' })
   Address: Addresses;
 
-  @OneToMany(() => OrdersProducts, (ordersProduct) => ordersProduct.Order, { cascade: true, eager: true ,nullable: true})
-  OrdersProducts: OrdersProducts[] 
-  
-  @OneToMany(() => OrdersPackages, (ordersPackages) => ordersPackages.Order, { cascade: true, eager: true ,nullable: true})
+  @OneToMany(() => OrdersProducts, (ordersProduct) => ordersProduct.Order, { cascade: true, eager: true, nullable: true })
+  OrdersProducts: OrdersProducts[]
+
+  @OneToMany(() => OrdersPackages, (ordersPackages) => ordersPackages.Order, { cascade: true, eager: true, nullable: true })
   OrdersPackages: OrdersPackages[]
-  
 
 
-  @Column('enum', {enum: ['pending', 'purchased','under review','rejected'], default: 'pending'})
+
+  @Column('enum', {
+    enum: ['pending', 'purchased', 'under review', 'rejected',
+      'shipped', 'delivered', 'returned', 'canceled','completed'
+    ], default: 'pending'
+  })
   @Index()
-  Status: String; 
+  Status: String;
 
   @Column('boolean', { default: false })
   IsGift: boolean;
 
-  
+
 
   @Column('boolean', { default: false })
   IsAnonymous: boolean;
@@ -70,21 +74,21 @@ export class Orders extends BaseEntity {
 
   @BeforeInsert()
   @BeforeUpdate()
-   calculateTotalPrice() {
+  calculateTotalPrice() {
     let totalPrice = 0;
-  
+
     if (Array.isArray(this.OrdersProducts) && this.OrdersProducts.length > 0) {
       this.OrdersProducts.forEach((orderProduct) => {
         totalPrice += Number(orderProduct.TotalPrice);
       });
     }
-  
+
     if (Array.isArray(this.OrdersPackages) && this.OrdersPackages.length > 0) {
       this.OrdersPackages.forEach((orderPackage) => {
         totalPrice += Number(orderPackage.TotalPrice);
       });
     }
-  
+
     this.TotalPrice = totalPrice;
   }
 
@@ -105,8 +109,8 @@ export class Orders extends BaseEntity {
       throw new Error('User already has a pending order');
     }
 
-    
+
   }
-  
- 
+
+
 }

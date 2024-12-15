@@ -4,14 +4,15 @@ import { Router } from 'express';
 import { c_addGeneral, c_getGeneral, c_updateGeneral } from '../../controllers/general controllers/generalController';
 import { c_addContactUs, c_getContactUs, c_getContactUsById } from '../../controllers/general controllers/contactUsController';
 
-const router = Router();
+const generaroute = Router();
 
 
-router.get('/general', c_getGeneral);
-router.post('/general', c_addGeneral);
-router.put('/general', c_updateGeneral);
+generaroute.get('/general', c_getGeneral);
+generaroute.post('/general', c_addGeneral);
+generaroute.put('/general', c_updateGeneral);
 
-router.get('/contactUs', c_getContactUs);
-router.get('/contactUs/:id', c_getContactUsById);
-router.post('/contactUs', c_addContactUs);
+generaroute.get('/contactUs', c_getContactUs);
+generaroute.get('/contactUs/:id', c_getContactUsById);
+generaroute.post('/contactUs', c_addContactUs);
 
+export default generaroute;

@@ -365,6 +365,27 @@ export const s_rejectOrder = async (req: Request, res: Response) => {
     }
 };
 
+// get all orders for a user
+export const s_getOrdersForUser = async (req: Request, res: Response) => {
+    try {
+        const userId = req.params.userId;
+        const user = await Users.findOne({ where: { UserID: userId } });
+        if (!user) {
+            return res.status(404).send({ message: "User not found" });
+        }
+        const orders = await Orders.find({
+            where: { User: { UserID: userId } },
+            relations: ["OrdersProducts", "OrdersPackages",]
+        });
+        return res.status(200).send(orders);
+    }
+    catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message });
+    }
+}
+
+
 
 
 

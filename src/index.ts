@@ -30,6 +30,7 @@ import authGoogleFacebookRoute from "./routes/Auth Routes/authUsingFacebookGoogl
 import materialRoutes from "./routes/Material Route/MaterialRoute";
 import homeRoute from "./routes/Home Routes/home_route";
 import searchRoute from "./routes/search Route/searchRoute";
+import generaroute from "./routes/general Routes/generalRoute";
 import './config/passportConfig';
 
 import ip from 'ip';
@@ -61,7 +62,7 @@ app.use(passport.session());
 
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'cookie'],
 
@@ -96,6 +97,7 @@ app.use("/explore", exploreRoute);
 app.use("/material", materialRoutes);
 app.use("/home", homeRoute);
 app.use("/search", searchRoute);
+app.use("/api", generaroute);
 
 
 app.use(notFound);

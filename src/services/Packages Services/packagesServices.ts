@@ -51,9 +51,9 @@ export const s_createPackage = async (req: Request, res: Response) => {
         // Extract product names and quantities
         const productNames = parsedProducts.map((p: { productName: string }) => p.productName);
         const quantities = parsedProducts.map((p: { quantity: number }) => p.quantity);
-       
 
-          
+
+
 
 
         // Check if the required products are available in the database
@@ -220,7 +220,7 @@ export const s_updatePackage = async (req: Request, res: Response) => {
         if (Description) getPackage.Description = Description;
         if (Price) getPackage.Price = Price;
         if (Quantity) getPackage.Quantity = Quantity;
-      
+
         // Validate products only if provided
         if (products && Array.isArray(products)) {
             // Extract product names and quantities from request
@@ -385,3 +385,16 @@ export const s_getRandomPackagesMen = async (req: Request, res: Response) => {
 }
 
 
+// ----------------------------get last package--------------------------------
+export const s_getLastPackage = async (req: Request, res: Response) => {
+    try {
+        const lastPackage = await Packages.findOne({ where:{}, order: { PackageID: 'DESC' }, relations: ['PackageProduct', 'Reviews', 'SubCategory', 'Resource', 'Customization', 'Offer'] });
+        if (!lastPackage) {
+            return res.status(404).send({ message: "No packages found" });
+        }
+        return lastPackage;
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ message: error });
+    }
+}

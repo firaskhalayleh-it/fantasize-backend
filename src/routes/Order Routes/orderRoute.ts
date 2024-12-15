@@ -3,7 +3,8 @@
 import express from 'express';
 import { IsAuthenticated, isAuthorized } from '../../middlewares/isAuthentecated';
 import { c_checkoutOrderUser, c_getOrder, c_getAllOrdersAdmin,
-     c_getAllOrdersUser, c_getCartForUser, c_updateOrderStatus,c_approveOrder,c_rejectOrder } from '../../controllers/Order Controller/orderController';
+     c_getAllOrdersUser, c_getCartForUser, c_updateOrderStatus
+     ,c_approveOrder,c_rejectOrder,c_getOrdersForUser } from '../../controllers/Order Controller/orderController';
 
 const orderRoute = express.Router();
 
@@ -55,7 +56,7 @@ export const userOrders = orderRoute.get('/cart', IsAuthenticated, c_getCartForU
  * @method        PUT
  * @access        private
     */
-orderRoute.put('/orders/:orderId', isAuthorized, c_updateOrderStatus);
+orderRoute.patch('/orders/:orderId', isAuthorized, c_updateOrderStatus);
 
 /**
  * @description   Approve order
@@ -63,7 +64,7 @@ orderRoute.put('/orders/:orderId', isAuthorized, c_updateOrderStatus);
  * @method        PUT
  * @access        private
  */
-orderRoute.put('/orders/:orderId/approve', isAuthorized, c_approveOrder);
+orderRoute.patch('/orders/:orderId/approve', isAuthorized, c_approveOrder);
 
 /**
  * @description   Reject order
@@ -71,7 +72,15 @@ orderRoute.put('/orders/:orderId/approve', isAuthorized, c_approveOrder);
  * @method        PUT
  * @access        private
  */
-orderRoute.put('/orders/:orderId/reject', isAuthorized, c_rejectOrder);
+orderRoute.patch('/orders/:orderId/reject', isAuthorized, c_rejectOrder);
+
+/**
+ * @description   Get orders for a user
+ * @route         /user/orders/:userId
+ * @method        GET
+ * @access        private
+ */
+orderRoute.get('/user/orders/:userId', IsAuthenticated, c_getOrdersForUser);
 
 
 export default orderRoute;

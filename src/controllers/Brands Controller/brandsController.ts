@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { s_addNewBrand, s_deleteBrand, s_getAllBrands, s_updateBrand } from '../../services/Brands Services/brandsServices';
+import { s_addNewBrand, s_deleteBrand, s_getAllBrands, s_updateBrand ,s_getBrandForProduct} from '../../services/Brands Services/brandsServices';
 
 //-----------------------Add a new brand -----------------------
 export const c_addNewBrand = async (req:Request , res:Response) =>{
@@ -31,3 +31,10 @@ export const c_deleteBrand = async (req:Request , res:Response) =>{
     const result = await s_deleteBrand(req, res);
     res.status(200).json(result);
 } 
+
+//----------------------- Get brand for product-----------------------
+export const c_getBrandForProduct = async (req:Request , res:Response) =>{
+
+    const result = await s_getBrandForProduct(req, res);
+    res.status(200).json(result);
+}

@@ -116,9 +116,9 @@ export const s_getProductByCategoryID = async (req: Request, res: Response) => {
 // ---------------------> Create a new product <---------------------
 export const s_createProduct = async (req: Request, res: Response) => {
     try {
-        const { Name, Price, Description, SubCategoryID, Quantity, BrandName  } = req.body;
+        const { Name, Price, Description, SubCategoryID, Quantity, BrandID } = req.body;
 
-        if (!Name || !Price || !Description || !SubCategoryID || !Quantity || !BrandName ) {
+        if (!Name || !Price || !Description || !SubCategoryID || !Quantity || !BrandID) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
         const productExisted = await Products.findOne({ where: { Name } });
@@ -126,7 +126,7 @@ export const s_createProduct = async (req: Request, res: Response) => {
             return res.status(409).send({ message: "Product already exists" });
         }
 
-        const brand = await Brands.findOne({ where: { Name: BrandName } });
+        const brand = await Brands.findOne({ where: { BrandID: BrandID } });
         if (!brand) {
             return res.status(400).send({ message: "Brand not found" });
         }
@@ -145,9 +145,9 @@ export const s_createProduct = async (req: Request, res: Response) => {
             return res.status(400).send({ message: "Please provide at least one image or video" });
         }
 
-     
 
-      
+
+
 
 
         let product: Products;
@@ -201,7 +201,7 @@ export const s_createProduct = async (req: Request, res: Response) => {
 export const s_updateProduct = async (req: Request, res: Response) => {
     try {
         const productId: any = req.params.productId;
-        const { Name, Price, Description, SubCategoryID, Quantity, BrandName} = req.body;
+        const { Name, Price, Description, SubCategoryID, Quantity, BrandID } = req.body;
         if (!productId) {
             return res.status(400).send({ message: "Please provide a product ID" });
         }
@@ -222,15 +222,14 @@ export const s_updateProduct = async (req: Request, res: Response) => {
 
 
 
-     
+
 
         if (Price) product.Price = Number(Price);
         if (Description) product.Description = Description;
-        
         if (Quantity) product.Quantity = Number(Quantity);
 
-        if (BrandName) {
-            const brand = await Brands.findOne({ where: { Name: BrandName } });
+        if (BrandID) {
+            const brand = await Brands.findOne({ where: { BrandID: BrandID } });
             if (!brand) {
                 return res.status(404).send({ message: "Brand not found" });
             }
@@ -283,22 +282,6 @@ export const s_updateProduct = async (req: Request, res: Response) => {
     }
 };
 
-// ---------------------> Search for a product <---------------------
-export const s_singleProduct = async (req: Request, res: Response) => {
-    try {
-        const productId: any = req.params.id;
-        const product = await Products.findOne({ where: { ProductID: productId }, relations: ['Brand', 'SubCategory', 'Review', 'Review.User', 'Review.User.UserProfilePicture', 'Offer'] });
-
-        if (!product) {
-            return "The Product Not Found !";
-        }
-
-        return product;
-    } catch (err: any) {
-        console.log(err);
-        res.status(500).send({ message: err.message })
-    }
-};
 
 
 
@@ -379,26 +362,18 @@ export const s_deleteProduct = async (req: Request, res: Response) => {
 }
 
 
-// ---------------------  get product by name ---------------------
-export const s_getProductByName = async (req: Request, res: Response) => {
+
+// ---------------------  get last product created ---------------------
+export const s_getLastProduct = async (req: Request, res: Response) => {
     try {
-        const productName = req.params.productName;
-        const products = await Products.find({ where: { Name: Like(`%${productName}%`) }, relations: ['SubCategory', 'Offer'] });
-        if (!products) {
+        const product = await Products.findOne({ where: {}, order: { ProductID: "DESC" }, relations: ['SubCategory', 'Offer'] });
+        if (!product) {
             return res.status(404).send({ message: "The Product Not Found !" });
         }
-        products.map(product => {
-            if (!product.Offer) {
-                product.Offer = new Offers; // Set Offers to an empty array if it's null
-            }
-            return product;
-        }
-        );
-        return products;
+        return product;
     }
     catch (err: any) {
         console.log(err);
         res.status(500).send({ message: err.message })
     }
 }
-
