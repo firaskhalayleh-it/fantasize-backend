@@ -139,7 +139,7 @@ export const s_getAllOrdersUser = async (req: Request, res: Response) => {
         }
         console.log(`user is : ${user}`);
         const orders = await Orders.find({
-            where: { User: { UserID: userId }, Status: In(["purchased", "under review", "rejected"]) },
+            where: { User: { UserID: userId }, Status: In(["purchased", "under review", "rejected"]) }, order: { OrderID: "DESC" },
             relations: [
                 "OrdersProducts",
                 "OrdersProducts.Product",
@@ -259,7 +259,7 @@ export const s_approveOrder = async (req: Request, res: Response) => {
         }
 
         // Approve only if order is 'under review'
-        if (order.Status !== 'under review' ) {
+        if (order.Status !== 'under review') {
             return res.status(400).send({ message: "Order must be under review to approve" });
         }
 
