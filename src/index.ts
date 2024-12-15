@@ -98,7 +98,7 @@ app.use("/explore", exploreRoute);
 app.use("/material", materialRoutes);
 app.use("/home", homeRoute);
 app.use("/search", searchRoute);
-app.use("/api", generaroute);
+app.use("/general", generaroute);
 app.use("/notifications", notificationRoute); 
 
 

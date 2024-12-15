@@ -7,12 +7,53 @@ import { c_addContactUs, c_getContactUs, c_getContactUsById } from '../../contro
 const generaroute = Router();
 
 
-generaroute.get('/general', c_getGeneral);
-generaroute.post('/general', c_addGeneral);
-generaroute.put('/general', c_updateGeneral);
+/** 
+ * @description   Get general data
+* @route         GET /general/get
+* @access        Public
+*
+**/
+generaroute.get('/get', c_getGeneral);
 
+/** 
+ * @description   Create general data
+ * @route         POST /general/create
+ * @access        Private
+**/
+generaroute.post('/create', c_addGeneral);
+
+/** 
+ * @description   Update general data
+ * @route         PUT /general/update
+ * @access        Private
+ * 
+ **/
+generaroute.put('/update', c_updateGeneral);
+
+
+/** 
+ * @description   Get contact us data
+ * @route         GET /general/contactUs
+ * @access        Public
+ * 
+ **/
 generaroute.get('/contactUs', c_getContactUs);
+
+/** 
+ * @description   Get contact us data by id
+ * @route         GET /general/contactUs/:id
+ * @access        Public
+ * 
+ **/
+
 generaroute.get('/contactUs/:id', c_getContactUsById);
+
+/** 
+ * @description   Create contact us data
+ * @route         POST /general/contactUs
+ * @access        Public
+ * 
+ **/
 generaroute.post('/contactUs', c_addContactUs);
 
 export default generaroute;
