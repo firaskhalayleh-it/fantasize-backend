@@ -65,9 +65,15 @@ export const s_loginUser = async (req: Request, res: Response) => {
             return ({ error: 'Wrong Email Or Password !' });
         }
 
+        if (user.Password == null) {
+            return res.status(401).send({ error: 'Please Login With Google or use set password through forgot password process' });
+        }
+
+
         user.DeviceToken = DeviceToken ?? user.DeviceToken;
         user.lastlogin = new Date();
         await user.save();
+
 
 
         const passwordMatch = await bcrypt.compare(password, user!.Password);

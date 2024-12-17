@@ -38,7 +38,7 @@ export const createNewOrderProduct = async (req: Request, res: Response) => {
         let order = await Orders.findOne({
             where: {
                 User: { UserID: userId },
-                Status: 'pending' ,
+                Status: 'pending',
             },
             relations: ["User", "OrdersProducts", "OrdersProducts.Product", "OrdersProducts.OrderedCustomization"],
         });
@@ -47,10 +47,9 @@ export const createNewOrderProduct = async (req: Request, res: Response) => {
             // If no pending order exists, create a new one
             order = new Orders();
             order.User = user;
+            order.OrdersProducts = [];
             order.Status = 'pending';
-            order.OrdersProducts = [];
             await order.save();
-            order.OrdersProducts = [];
         } else {
             order.OrdersProducts = order.OrdersProducts || [];
         }
@@ -59,6 +58,7 @@ export const createNewOrderProduct = async (req: Request, res: Response) => {
         let orderProduct = order.OrdersProducts.find(
             (op) => op.Product.ProductID === productId
         );
+
 
         if (orderProduct) {
             // Update quantity and total price
@@ -111,6 +111,7 @@ export const createNewOrderProduct = async (req: Request, res: Response) => {
         order.calculateTotalPrice();
         await order.save();
 
+
         // Reload the order with updated relations to ensure changes are reflected
         const updatedOrder = await Orders.findOne({
             where: { OrderID: order.OrderID },
@@ -135,12 +136,11 @@ export const createNewOrderProduct = async (req: Request, res: Response) => {
 // ----------------------- Update a Specific Product Order -----------------------
 export const updateOrderProduct = async (req: Request, res: Response) => {
     try {
-        const orderId = Number(req.params.orderId);
-        const productId = Number(req.params.productId);
+        const orderProductId = Number(req.params.orderProductId);
         const { quantity, orderedOptions } = req.body;
 
         // Input Validation
-        if (isNaN(orderId) || isNaN(productId)) {
+        if (isNaN(orderProductId)) {
             return res.status(400).send({ message: "Invalid orderId or productId" });
         }
 
@@ -155,14 +155,20 @@ export const updateOrderProduct = async (req: Request, res: Response) => {
         // Fetch the specific OrderProduct using QueryBuilder
         const orderProduct = await OrdersProducts.findOne({
             where: {
-                Order: { OrderID: orderId },
-                OrderProductID: productId
+                
+                OrderProductID: orderProductId
             },
             relations: ["Order", "Product", "OrderedCustomization"]
         });
 
         if (!orderProduct) {
             return res.status(404).send({ message: "Order Product not found" });
+        }
+
+        if (orderProduct.Order.Status !== 'rejected') {
+            {
+                orderProduct.Order.Status = 'under review';
+            }
         }
 
         // Update Quantity if provided
@@ -203,7 +209,7 @@ export const updateOrderProduct = async (req: Request, res: Response) => {
 
         // Recalculate the total price of the order
         const order = await Orders.findOne({
-            where: { OrderID: orderId },
+            where: { OrderID: orderProduct.Order.OrderID },
             relations: ["OrdersPackages", "OrdersProducts", "OrdersProducts.Product"],
         });
 
@@ -218,7 +224,7 @@ export const updateOrderProduct = async (req: Request, res: Response) => {
 
         // Reload the order with all relations to return updated data
         const updatedOrder = await Orders.findOne({
-            where: { OrderID: orderId },
+            where: { OrderID: orderProduct.Order.OrderID },
             relations: [
                 "User",
                 "OrdersPackages",
@@ -245,7 +251,7 @@ export const updateOrderProduct = async (req: Request, res: Response) => {
 export const deleteOrderProduct = async (req: Request, res: Response) => {
     try {
         const orderId = Number(req.params.orderId);
-        const productId = Number(req.params.productId);
+        const productId = Number(req.params.orderProductId);
 
         // Fetch the specific OrderProduct
         const orderProduct = await OrdersProducts.findOne({
@@ -284,6 +290,29 @@ export const deleteOrderProduct = async (req: Request, res: Response) => {
 
     } catch (err: any) {
         console.error("Error in deleteOrderProduct:", err);
+        res.status(500).send({ message: err.message });
+    }
+};
+
+
+// ----------------------- get orderProduct by id ----------------------
+export const getOrderProductById = async (req: Request, res: Response) => {
+    try {
+        const orderProductId = Number(req.params.orderProductId);
+
+        const orderProduct = await OrdersProducts.findOne({
+            where: { OrderProductID: orderProductId },
+            relations: ["Order", "Product", "OrderedCustomization"]
+        });
+
+        if (!orderProduct) {
+            return res.status(404).send({ message: "Order Product not found" });
+        }
+
+        return res.status(200).json(orderProduct);
+
+    } catch (err: any) {
+        console.error("Error in getOrderProductById:", err);
         res.status(500).send({ message: err.message });
     }
 };

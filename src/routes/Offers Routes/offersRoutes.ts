@@ -2,12 +2,14 @@ import express from 'express';
 import { IsAuthenticated, isAuthorized } from '../../middlewares/isAuthentecated';
 
 import {
-    c_getOfferByID, c_createOfferProduct,
+    c_getOfferByID,
     c_createOfferPackage, c_getAllOffers,
     c_getAllOffersForProduct, c_getAllOffersForPackage,
     c_updateOffer, c_getAllOffersForHomePage,
     c_homeOffers,
-    c_createNewOffer
+    
+    c_createNewOffer,
+    c_createOfferProduct
 } from '../../controllers/Offers Controller/offersController';
 
 const offerRoute = express.Router();
@@ -20,13 +22,7 @@ const offerRoute = express.Router();
  */
 offerRoute.post('/addOffer', isAuthorized, c_createNewOffer);
 
-/**
- *  @description   Create a new offer for a prodcut
- *  @route         /offers
- *  @method        POST
- *  @access        private
- */
-offerRoute.post('/offers/o', isAuthorized, c_createOfferProduct);
+
 
 /**
  *  @description   Get all offers
@@ -71,7 +67,7 @@ offerRoute.get('/offers_homeOffers', c_homeOffers);
  *  @method        POST
  *  @access        private
  */
-offerRoute.post('/offers/product', isAuthorized, c_createOfferProduct);
+offerRoute.post('/offers/products', isAuthorized, c_createOfferProduct);
 
 
 /**
@@ -80,7 +76,7 @@ offerRoute.post('/offers/product', isAuthorized, c_createOfferProduct);
  *  @method        POST
  *  @access        private
  */
-offerRoute.post('/offers/package', isAuthorized, c_createOfferPackage);
+offerRoute.post('/offers/packages', isAuthorized, c_createOfferPackage);
 
 /**
  *  @description   Get all offers for a product

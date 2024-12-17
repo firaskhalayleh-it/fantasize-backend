@@ -35,7 +35,7 @@ export class Customization extends BaseEntity {
       name: string;
       value: string;
       isSelected: boolean;
-      fileName?: string;
+      filePath?: string;
     }[];
   };
 

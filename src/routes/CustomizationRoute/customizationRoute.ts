@@ -1,7 +1,12 @@
 //route of customization
 import express from 'express';
-import { c_assignCustomizationToPackage, c_assignCustomizationToProduct, c_createCustomization, c_getAllCustomizations, c_getCustomizationById, c_removeCustomizationFromPackage, c_removeCustomizationFromProduct, c_updateCustomization } from '../../controllers/Customizations Controller/customizationController';
-import { IsAuthenticated,isAuthorized } from '../../middlewares/isAuthentecated';
+import {
+    c_assignCustomizationToPackage, c_assignCustomizationToProduct, c_createCustomization, c_getAllCustomizations,
+    c_getCustomizationById, c_removeCustomizationFromPackage, c_removeCustomizationFromProduct, c_updateCustomization,
+    c_deleteCustomization
+} from '../../controllers/Customizations Controller/customizationController';
+import { IsAuthenticated, isAuthorized } from '../../middlewares/isAuthentecated';
+
 import { uploadDynamic, uploadFields, uploadMultiple, uploadSingle } from '../../middlewares/multerMiddleware';
 
 const customizationRoute = express.Router();
@@ -64,6 +69,10 @@ customizationRoute.delete('/customization/package', IsAuthenticated, isAuthorize
 
 
 
+
+
+
+
 /** 
  *   @description Get customization by id
  *   @route /customization/:id
@@ -72,7 +81,16 @@ customizationRoute.delete('/customization/package', IsAuthenticated, isAuthorize
  *      
 */
 
-customizationRoute.get('/customization/:id', IsAuthenticated, isAuthorized, c_getCustomizationById);
+customizationRoute.get('/customization/:id', isAuthorized, c_getCustomizationById);
+
+
+/**
+ *  @description    Delete customization
+ *  @route          /customization/:id
+ *  @method         delete
+ *  @access         private
+ */
+customizationRoute.delete('/customization/:id', isAuthorized, c_deleteCustomization);
 
 
 

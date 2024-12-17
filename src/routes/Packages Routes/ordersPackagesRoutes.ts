@@ -2,7 +2,8 @@
 import express from 'express';
 
 import { IsAuthenticated } from '../../middlewares/isAuthentecated';
-import { c_createNewOrderUser, c_deleteorderPackage, c_updateOrderPackage } from '../../controllers/Packages Controller/ordersPackagesController';
+import { c_createNewOrderUser, c_deleteorderPackage, c_updateOrderPackage, c_getOrderPackage } from '../../controllers/Packages Controller/ordersPackagesController';
+import { uploadSingle } from '../../middlewares/multerMiddleware';
 
 const orderPackageRoute = express.Router();
 
@@ -12,7 +13,7 @@ const orderPackageRoute = express.Router();
  *  @method        POST
  *  @access        private 
  */
-orderPackageRoute.post('/orderpackage',IsAuthenticated,c_createNewOrderUser);
+orderPackageRoute.post('/orderpackage', IsAuthenticated, c_createNewOrderUser);
 
 /**
  *  @description   Update a specific package order
@@ -20,7 +21,7 @@ orderPackageRoute.post('/orderpackage',IsAuthenticated,c_createNewOrderUser);
  *  @method        PUT
  *  @access        private
  */
-orderPackageRoute.put('/orderpackage/:orderId/:packageId',IsAuthenticated,c_updateOrderPackage);
+orderPackageRoute.put('/orderpackage/:orderPackageId', IsAuthenticated,uploadSingle, c_updateOrderPackage);
 
 /**
  * @description   Delete a specific package order
@@ -29,7 +30,17 @@ orderPackageRoute.put('/orderpackage/:orderId/:packageId',IsAuthenticated,c_upda
  * @access        private
  * 
     */
-orderPackageRoute.delete('/orderpackage/:orderId/:packageId',IsAuthenticated,c_deleteorderPackage);
+orderPackageRoute.delete('/orderpackage/:orderId/:orderPackageId', IsAuthenticated, c_deleteorderPackage);
+
+
+/**
+ * @description   Get a specific package order
+ * @route         /orderpackage/:orderId/:packageId
+ * @method        GET
+ * @access        private
+ * 
+*/
+orderPackageRoute.get('/orderpackage/:orderPackageId', IsAuthenticated, c_getOrderPackage);
 
 
 export default orderPackageRoute;

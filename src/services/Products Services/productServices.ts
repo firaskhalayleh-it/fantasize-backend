@@ -20,15 +20,9 @@ export const s_getAllProducts = async (req: Request, res: Response) => {
             return res.status(404).send({ message: "No Products Found!" });
         }
 
-        // Modify products to ensure Offers is not null
-        const modifiedProducts = products.map(product => {
-            if (!product.Offer) {
-                product.Offer = new Offers; // Set Offers to an empty array if it's null
-            }
-            return product;
-        });
 
-        return res.status(200).send(modifiedProducts);
+
+        return res.status(200).send(products);
     } catch (err: any) {
         console.error(err);
         return res.status(500).send({ message: "An error occurred while fetching products.", error: err.message });

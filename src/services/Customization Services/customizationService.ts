@@ -13,7 +13,7 @@ export const s_createCustomization = async (req: Request, res: Response) => {
                 name: string;
                 value: string;
                 isSelected: boolean;
-                fileName?: string;
+                filePath?: string;
             }[];
         };
 
@@ -70,17 +70,17 @@ export const s_createCustomization = async (req: Request, res: Response) => {
             option.optionValues = option.optionValues.map((optVal) => {
                 if (!optVal || typeof optVal.name !== 'string') {
                     console.error('Invalid optionValue detected:', optVal);
-                    optVal = { name: '', value: '', isSelected: false, fileName: '' }; // Provide default structure
+                    optVal = { name: '', value: '', isSelected: false, filePath: '' }; // Provide default structure
                 }
 
                 const sanitizedFieldName = optVal.name.trim();
                 const file = filesMap[sanitizedFieldName];
                 if (file) {
-                    optVal.fileName = file.filename;
-                    console.log(`File found for optVal.name: ${optVal.name}, fileName: ${file.filename}`);
+                    optVal.filePath = file.filename;
+                    console.log(`File found for optVal.name: ${optVal.name}, filePath: ${file.filename}`);
                 } else {
-                    optVal.fileName = '';
-                    console.log(`No file found for optVal.name: ${optVal.name}; setting fileName to empty string.`);
+                    optVal.filePath = '';
+                    console.log(`No file found for optVal.name: ${optVal.name}; setting filePath to empty string.`);
                 }
                 return optVal;
             });
@@ -290,3 +290,18 @@ export const s_getCustomization = async (req: Request, res: Response) => {
     }
 };
 
+
+export const s_deleteCustomization = async (req: Request, res: Response) => {
+    try {
+        const customizationId: any = req.params.id;
+        const customization = await Customization.findOne({ where: { CustomizationID: customizationId } });
+        if (!customization) {
+            return res.status(404).send({ message: 'Customization not found' });
+        }
+        await customization.remove();
+        return res.status(200).send({ message: 'Customization deleted successfully' });
+    } catch (err: any) {
+        console.log(err);
+        return res.status(500).send({ message: err.message });
+    }
+};

@@ -3,7 +3,7 @@ import { Offers } from "../../entities/Offers";
 import { Products } from "../../entities/products/Products";
 import { Packages } from "../../entities/packages/Packages";
 import { createNewOffer } from "../../utils/OfferNotification";
-import { IsNull, LessThan, MoreThan, Not } from "typeorm";
+import { IsNull, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not } from "typeorm";
 
 
 //----------------------- Create a new offer  -----------------------
@@ -28,40 +28,40 @@ export const s_createNewOffer = async (req: Request, res: Response) => {
 //----------------------- Create a new offer for Product -----------------------
 export const s_createOfferProduct = async (req: Request, res: Response) => {
     try {
-        req.body.forEach( async(element :any) => {
+        req.body.forEach(async (element: any) => {
 
-        const {Discount, ValidFrom, ValidTo, ProductID } = element;
-        if (!ValidFrom || isNaN(new Date(ValidFrom).getTime())) {
-            return res.status(400).send({ message: "Invalid 'ValidFrom' date." });
-        }
+            const { Discount, ValidFrom, ValidTo, ProductID } = element;
+            if (!ValidFrom || isNaN(new Date(ValidFrom).getTime())) {
+                return res.status(400).send({ message: "Invalid 'ValidFrom' date." });
+            }
 
-        if (!ValidTo || isNaN(new Date(ValidTo).getTime())) {
-            return res.status(400).send({ message: "Invalid 'ValidTo' date." });
-        }
+            if (!ValidTo || isNaN(new Date(ValidTo).getTime())) {
+                return res.status(400).send({ message: "Invalid 'ValidTo' date." });
+            }
 
-        const validfrom = new Date(ValidFrom);
-        const validto = new Date(ValidTo);
+            const validfrom = new Date(ValidFrom);
+            const validto = new Date(ValidTo);
 
-        const product = await Products.findOne({ where: { ProductID: ProductID } });
-        if (!product) {
-            return res.status(404).send({ message: "Product not found" });
-        }
-        const productOffer = Offers.create({
-            Discount: Discount,
-            ValidFrom: validfrom,
-            ValidTo: validto,
+            const product = await Products.findOne({ where: { ProductID: ProductID } });
+            if (!product) {
+                return res.status(404).send({ message: "Product not found" });
+            }
+            const productOffer = Offers.create({
+                Discount: Discount,
+                ValidFrom: validfrom,
+                ValidTo: validto,
+            });
+
+            productOffer.Products = [ProductID];
+            await productOffer.save();
+            product.Offer = productOffer;
+
+            await product.save();
+
+            await createNewOffer();
         });
 
-        productOffer.Products = [ProductID];
-        await productOffer.save();
-        product.Offer = productOffer;
-
-        await product.save();
-
-        await createNewOffer();
-    });
-
-    return res.status(200).send({ message: "Product offer added successfully." });
+        return res.status(200).send({ message: "Product offer added successfully." });
 
     } catch (err: any) {
         console.log(err);
@@ -72,55 +72,55 @@ export const s_createOfferProduct = async (req: Request, res: Response) => {
 //----------------------- Create a new offer for Package -----------------------
 export const s_createOfferPackage = async (req: Request, res: Response) => {
     try {
-        
+
         // console.log(req.body.length);
-        req.body.forEach( async(element :any) => {
+        req.body.forEach(async (element: any) => {
             // console.log("element",element.Discount);
             // console.log("element",element.ValidFrom);
 
             const { Discount, ValidFrom, ValidTo, PackageID } = element;
             console.log("================");
-            console.log("ValidFrom",ValidFrom);
-    console.log("ValidTo",ValidTo);
-    console.log("Discount",Discount);
-    console.log("PackageID",PackageID);
-        
-//         const { Discount, ValidFrom, ValidTo, PackageID } = req.body;
-//         // console.log(req.body);
-//         console.log("================");
-//         console.log("ValidFrom",ValidFrom);
-// console.log("ValidTo",ValidTo);
-// console.log("Discount",Discount);
-// console.log("PackageID",PackageID);
-        if (!ValidFrom || isNaN(new Date(ValidFrom).getTime())) {
-            return res.status(400).send({ message: "Invalid 'ValidFrom' date." });
-        }
+            console.log("ValidFrom", ValidFrom);
+            console.log("ValidTo", ValidTo);
+            console.log("Discount", Discount);
+            console.log("PackageID", PackageID);
 
-        if (!ValidTo || isNaN(new Date(ValidTo).getTime())) {
-            return res.status(400).send({ message: "Invalid 'ValidTo' date." });
-        }
+            //         const { Discount, ValidFrom, ValidTo, PackageID } = req.body;
+            //         // console.log(req.body);
+            //         console.log("================");
+            //         console.log("ValidFrom",ValidFrom);
+            // console.log("ValidTo",ValidTo);
+            // console.log("Discount",Discount);
+            // console.log("PackageID",PackageID);
+            if (!ValidFrom || isNaN(new Date(ValidFrom).getTime())) {
+                return res.status(400).send({ message: "Invalid 'ValidFrom' date." });
+            }
 
-        const validfrom = new Date(ValidFrom);
-        const validto = new Date(ValidTo);
+            if (!ValidTo || isNaN(new Date(ValidTo).getTime())) {
+                return res.status(400).send({ message: "Invalid 'ValidTo' date." });
+            }
 
-        const pkg = await Packages.findOne({ where: { PackageID: PackageID } });
-        if (!pkg) {
-            return res.status(404).send({ message: "Package not found" });
-        }
+            const validfrom = new Date(ValidFrom);
+            const validto = new Date(ValidTo);
 
-        const packageOffer = Offers.create({
-            Discount: Discount,
-            ValidFrom: validfrom,
-            ValidTo: validto,
+            const pkg = await Packages.findOne({ where: { PackageID: PackageID } });
+            if (!pkg) {
+                return res.status(404).send({ message: "Package not found" });
+            }
+
+            const packageOffer = Offers.create({
+                Discount: Discount,
+                ValidFrom: validfrom,
+                ValidTo: validto,
+            });
+
+            packageOffer.Packages = [PackageID];
+            await packageOffer.save();
+            pkg.Offer = packageOffer;
+            await pkg.save();
+
+            await createNewOffer();
         });
-
-        packageOffer.Packages = [PackageID];
-        await packageOffer.save();
-        pkg.Offer = packageOffer;
-        await pkg.save();
-
-        await createNewOffer();
-    });
         return res.status(200).send({ message: "Package offer added successfully." });
     } catch (err: any) {
         console.log(err);
@@ -145,70 +145,8 @@ export const s_getAllOffers = async (req: Request, res: Response) => {
 
         const today = new Date().toISOString().slice(0, 23).replace('T', ' ');
 
-        // Filter products with active offers
-        const activeProductOffers = products.filter(product => {
-            if (product.Offer && product.Offer.ValidFrom && product.Offer.ValidTo) {
-                const validFrom = new Date(product.Offer.ValidFrom);
-                const validTo = new Date(product.Offer.ValidTo);
-                return validFrom < new Date(today) && validTo > new Date(today);
-            }
-            return false;
-        }).map(product => ({
-            ProductID: product.ProductID,
-            Name: product.Name,
-            Description: product.Description,
-            Price: product.Price,
-            Quantity: product.Quantity,
-            Status: product.Status,
-            Material: product.MaterialProduct.map(material => material),
-            AvgRating: product.AvgRating,
-            Offer: {
-                OfferID: product.Offer.OfferID,
-                Discount: product.Offer.Discount,
-                IsActive: product.Offer.IsActive,
-                ValidFrom: product.Offer.ValidFrom,
-                ValidTo: product.Offer.ValidTo,
-            },
-            Review: product.Review.map(review => review),
-            Resource: product.Resource.map(resource => resource),
-            Customization: product.Customization.map(customization => customization),
-            SubCategory: product.SubCategory ? product.SubCategory : null,
-        }));
-
-        // Filter packages with active offers
-        const activePackageOffers = packages.filter(pkg => {
-            if (pkg.Offer && pkg.Offer.ValidFrom && pkg.Offer.ValidTo) {
-                const validFrom = new Date(pkg.Offer.ValidFrom);
-                const validTo = new Date(pkg.Offer.ValidTo);
-                return validFrom < new Date(today) && validTo > new Date(today);
-            }
-            return false;
-        }).map(pkg => ({
-            PackageID: pkg.PackageID,
-            Name: pkg.Name,
-            Description: pkg.Description,
-            Price: pkg.Price,
-            Quantity: pkg.Quantity,
-            Status: pkg.Status,
-            AvgRating: pkg.AvgRating,
-            Offer: {
-                OfferID: pkg.Offer.OfferID,
-                Discount: pkg.Offer.Discount,
-                IsActive: pkg.Offer.IsActive,
-                ValidFrom: pkg.Offer.ValidFrom,
-                ValidTo: pkg.Offer.ValidTo,
-            },
-            Review: pkg.Reviews.map(review => review),
-            Resource: pkg.Resource.map(resource => resource),
-            Customization: pkg.Customization.map(customization => customization),
-            SubCategory: pkg.SubCategory ? pkg.SubCategory : null,
-        }));
-
-        if (activeProductOffers.length === 0 && activePackageOffers.length === 0) {
-            return res.status(404).send({ message: "No active offers found" });
-        }
-
-        const combinedOffers = [...activeProductOffers, ...activePackageOffers];
+        
+        const combinedOffers = [, ...products, ...packages];
         return res.status(200).send(combinedOffers);
 
     } catch (err: any) {
@@ -311,7 +249,7 @@ export const s_homeOffers = async (req: Request, res: Response) => {
         // Fetch products with active offers
         const products = await Products.find({
             where: {
-                Offer: { ValidFrom: LessThan(today), ValidTo: MoreThan(today), IsActive: true }
+                Offer: {IsActive: true }
             },
             relations: ["Offer", "Resource"]
         });
@@ -319,7 +257,7 @@ export const s_homeOffers = async (req: Request, res: Response) => {
         // Fetch packages with active offers
         const packages = await Packages.find({
             where: {
-                Offer: { ValidFrom: LessThan(today), ValidTo: MoreThan(today), IsActive: true }
+                Offer: {IsActive: true }
             },
             relations: ["Offer", "Resource"]
         });

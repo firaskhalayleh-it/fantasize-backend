@@ -8,6 +8,7 @@ import { Orders } from '../../entities/Orders';
 import { OrderedCustomization } from '../../entities/OrderedCustomization';
 import { getRepository } from 'typeorm';
 import { or } from 'ip';
+import { Resources } from '../../entities/Resources';
 
 // ----------------------- Create a New Package Order -----------------------
 export const createNewOrderPackage = async (req: Request, res: Response) => {
@@ -162,28 +163,34 @@ export const createNewOrderPackage = async (req: Request, res: Response) => {
 // ----------------------- Update a Specific Package Order -----------------------
 export const updateOrderPackage = async (req: Request, res: Response) => {
   try {
-    const orderId = Number(req.params.orderId);
-    const packageId = Number(req.params.packageId);
+    const orderPackageId = Number(req.params.orderPackageId);
     const { quantity, orderedOptions } = req.body;
 
+    const userId = (req as any).user.payload.userId;
+    const user = await Users.findOne({ where: { UserID: userId } });
+
     // Input Validation
-    if (isNaN(orderId) || isNaN(packageId)) {
+    if (  isNaN(orderPackageId)) {
       return res.status(400).send({ message: "Invalid orderId or packageId" });
     }
 
-    if (quantity !== undefined && (typeof quantity !== 'number' || quantity <= 0)) {
-      return res.status(400).send({ message: "Quantity must be a positive integer" });
-    }
+    // convert ordreredOptions to array if it is not
+
+
 
     if (orderedOptions && !Array.isArray(orderedOptions)) {
-      return res.status(400).send({ message: "orderedOptions must be an array" });
+
+      try {
+        req.body.orderedOptions = JSON.parse(orderedOptions);
+      } catch (err) {
+        return res.status(400).send({ message: "orderedOptions must be an array" });
+      }
     }
 
     // Fetch the specific OrdersPackage using QueryBuilder
     const orderPackage = await OrdersPackages.findOne({
       where: {
-        Order: { OrderID: orderId },
-        OrderPackageID: packageId,
+        OrderPackageID: orderPackageId,
       },
       relations: ["Order", "Package", "OrderedCustomization"],
     });
@@ -195,9 +202,30 @@ export const updateOrderPackage = async (req: Request, res: Response) => {
 
     // Update Quantity if provided
     if (quantity !== undefined && quantity !== orderPackage.quantity) {
-      orderPackage.quantity = quantity;
+      orderPackage.quantity = Number(quantity);
       orderPackage.TotalPrice = parseFloat((quantity * orderPackage.Package.Price).toFixed(2));
       await orderPackage.save();
+    }
+
+    if (req.file) {
+      const resource = await Resources.findOne({ where: { User: { UserID: user?.UserID } } });
+      if (resource) {
+        resource.filePath = req.file.path;
+        resource.fileType = req.file.mimetype;
+        resource.entityName = req.file.filename;
+        await Resources.save(resource);
+      } else {
+        const newResource = new Resources();
+        newResource.filePath = req.file.path;
+        newResource.fileType = req.file.mimetype;
+        newResource.entityName = req.file.filename;
+        if (user) {
+          newResource.User = user;
+        } else {
+          return res.status(404).send({ message: "User not found" });
+        }
+        await Resources.save(newResource);
+      }
     }
 
     // Handle Ordered Options if provided
@@ -228,10 +256,14 @@ export const updateOrderPackage = async (req: Request, res: Response) => {
         await orderPackage.save();
       }
     }
+    if (orderPackage.Order.Status == 'rejected') {
+      orderPackage.Order.Status = 'under review';
+      await orderPackage.Order.save();
+    }
 
     // Recalculate the total price of the order
     const order = await Orders.findOne({
-      where: { OrderID: orderId },
+      where: { OrderID: Number(orderPackage.Order.OrderID) },
       relations: ["OrdersPackages", "OrdersPackages.Package"],
     });
 
@@ -243,11 +275,11 @@ export const updateOrderPackage = async (req: Request, res: Response) => {
       order.TotalPrice = parseFloat(Number(total).toFixed(2));
       await order.save();
     }
-    
+
 
     // Reload the order with all relations to return updated data
     const updatedOrder = await Orders.findOne({
-      where: { OrderID: orderId },
+      where: { OrderID: Number(orderPackage.Order.OrderID) },
       relations: [
         "User",
         "OrdersPackages",
@@ -269,13 +301,13 @@ export const updateOrderPackage = async (req: Request, res: Response) => {
 export const deleteOrderPackage = async (req: Request, res: Response) => {
   try {
     const orderId = Number(req.params.orderId);
-    const packageId = Number(req.params.packageId);
+    const orderPackageId = Number(req.params.orderPackageId);
 
     // Fetch the specific OrderPackage
     const orderPkg = await OrdersPackages.findOne({
       where: {
         Order: { OrderID: orderId },
-        Package: { PackageID: packageId },
+        OrderPackageID: orderPackageId,
       },
       relations: ["Order", "Package", "OrderedCustomization"]
     });
@@ -308,6 +340,31 @@ export const deleteOrderPackage = async (req: Request, res: Response) => {
 
   } catch (err: any) {
     console.error("Error in deleteOrderPackage:", err);
+    res.status(500).send({ message: err.message });
+  }
+};
+
+
+// ----------------------- Get order package by id  ----------------------
+export const getOrderPackage = async (req: Request, res: Response) => {
+  try {
+    const orderPackageId = Number(req.params.orderPackageId);
+
+    const orderPackage = await OrdersPackages.findOne({
+      where: {
+        OrderPackageID: orderPackageId
+      },
+      relations: ["Order", "Package", "OrderedCustomization"]
+    });
+
+    if (!orderPackage) {
+      return res.status(404).send({ message: "Order Package not found" });
+    }
+
+    return res.status(200).json(orderPackage);
+
+  } catch (err: any) {
+    console.error("Error in getOrderPackage:", err);
     res.status(500).send({ message: err.message });
   }
 };

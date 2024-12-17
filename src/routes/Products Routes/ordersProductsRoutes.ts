@@ -5,7 +5,8 @@ import express from "express";
 import {
     c_createNewOrderUser,
     c_deleteOrderProduct,
-    c_updateOrderProduct
+    c_updateOrderProduct,
+    c_getOrderProductById
 } from "../../controllers/Products Controller/ordersProductsController";
 import { isAuthorized, IsAuthenticated } from "../../middlewares/isAuthentecated";
 import { uploadSingle } from "../../middlewares/multerMiddleware";
@@ -26,7 +27,7 @@ orderProductRoute.post('/order', IsAuthenticated, c_createNewOrderUser);
  *  @method        PUT
  *  @access        private
  */
-orderProductRoute.put('/order/:orderId/:productId', isAuthorized, c_updateOrderProduct);
+orderProductRoute.put('/orderproduct/:orderProductId', isAuthorized, c_updateOrderProduct);
 
 
 /**
@@ -36,7 +37,17 @@ orderProductRoute.put('/order/:orderId/:productId', isAuthorized, c_updateOrderP
  *  @access        private
  */
 
-orderProductRoute.delete('/order/:orderId/:productId', isAuthorized, c_deleteOrderProduct);
+orderProductRoute.delete('/order/:orderId/:orderProductId', isAuthorized, c_deleteOrderProduct);
+
+
+
+/**
+ *  @description   Get a specific product order
+ *  @route         /order/:orderId/:productId
+ *  @method        GET
+ *  @access        private
+ */
+orderProductRoute.get('/orderproduct/:orderProductId', isAuthorized, c_getOrderProductById);
 
 
 export default orderProductRoute;

@@ -10,7 +10,7 @@ export const database = new DataSource({
     database: process.env.DATABASE_NAME,
     logging: false,
     synchronize: true,
-    schema: 'fatansize_test',
+    schema: 'fantasize_test',
     entities: [
         'src/entities/**/*.ts',
         'src/entities/*.ts',

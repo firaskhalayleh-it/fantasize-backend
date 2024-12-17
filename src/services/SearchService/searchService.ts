@@ -73,8 +73,18 @@ export const s_search = async (req: Request, res: Response) => {
             .leftJoinAndSelect("product.Resource", "resources");
 
 
+        const packageQuery = packageRepository
+            .createQueryBuilder("package")
+            .leftJoinAndSelect("package.SubCategory", "subCat")
+            .leftJoinAndSelect("subCat.Category", "cat")
+            .leftJoinAndSelect("package.Customization", "cust")
+            .leftJoinAndSelect("package.MaterialPackage", "materialPack")
+            .leftJoinAndSelect("materialPack.Material", "mat")
+            .leftJoinAndSelect("package.Offer", "offer")
+            .leftJoinAndSelect("package.Resource", "resources");
         if (search?.Name) {
             productQuery.andWhere("product.Name ILIKE :productName", { productName: `%${search.Name}%` });
+            packageQuery.andWhere("package.Name ILIKE :packageName", { packageName: `%${search.Name}%` });
         }
 
         if (search?.Category?.Name) {
@@ -86,11 +96,7 @@ export const s_search = async (req: Request, res: Response) => {
         }
 
         if (search?.Brand) {
-            // Note: Brand is a ManyToOne - ensure Brand.Name is a column. If Brand is an entity, join it.
-            // If `Brand` is an entity with a Name column, you'll need a join:
-            // productQuery.leftJoinAndSelect("product.Brand", "brandEntity");
-            // productQuery.andWhere("brandEntity.Name ILIKE :brandName", { brandName: `%${search.Brand}%` });
-            // Adjust as per your schema. For now, assuming Brand is a column (string):
+            
             productQuery.andWhere("CAST(product.Brand as varchar) ILIKE :brandName", { brandName: `%${search.Brand}%` });
         }
 
@@ -125,9 +131,9 @@ export const s_search = async (req: Request, res: Response) => {
                 productQuery.andWhere(
                     new Brackets((qb) => {
                         qb.andWhere(`cust.option->>'name' ILIKE :custName${index}`, { [`custName${index}`]: `%${custObj.name}%` })
-                          .andWhere(`cust.option->'optionValues' @> :custValue${index}`, { 
-                            [`custValue${index}`]: JSON.stringify([{ name: custObj.value }]) 
-                          });
+                            .andWhere(`cust.option->'optionValues' @> :custValue${index}`, {
+                                [`custValue${index}`]: JSON.stringify([{ name: custObj.value }])
+                            });
                     })
                 );
             });
@@ -139,16 +145,7 @@ export const s_search = async (req: Request, res: Response) => {
             .getManyAndCount();
 
         // Build package query
-        const packageQuery = packageRepository
-            .createQueryBuilder("package")
-            .leftJoinAndSelect("package.SubCategory", "subCat")
-            .leftJoinAndSelect("subCat.Category", "cat")
-            .leftJoinAndSelect("package.Customization", "cust")
-            .leftJoinAndSelect("package.MaterialPackage", "materialPack")
-            .leftJoinAndSelect("materialPack.Material", "mat")
-            .leftJoinAndSelect("package.Offer", "offer")
-            .leftJoinAndSelect("package.Resource", "resources");
-            
+
 
         if (search?.Name) {
             packageQuery.andWhere("package.Name ILIKE :packageName", { packageName: `%${search.Name}%` });
@@ -190,9 +187,9 @@ export const s_search = async (req: Request, res: Response) => {
                 packageQuery.andWhere(
                     new Brackets((qb) => {
                         qb.andWhere(`cust.option->>'name' ILIKE :custNamePack${index}`, { [`custNamePack${index}`]: `%${custObj.name}%` })
-                          .andWhere(`cust.option->'optionValues' @> :custValuePack${index}`, { 
-                            [`custValuePack${index}`]: JSON.stringify([{ name: custObj.value }]) 
-                          });
+                            .andWhere(`cust.option->'optionValues' @> :custValuePack${index}`, {
+                                [`custValuePack${index}`]: JSON.stringify([{ name: custObj.value }])
+                            });
                     })
                 );
             });
@@ -242,27 +239,28 @@ export const s_searchOrder = async (req: Request, res: Response) => {
         // Search by date range
         if (search?.startDate && search?.endDate) {
             orderQuery.andWhere("order.CreatedAt BETWEEN :startDate AND :endDate", {
-                startDate: search.startDate,
-                endDate: search.endDate,
+                startDate: new Date(search.startDate),
+                endDate: new Date(search.endDate),
             });
         }
 
         // Search by status
         if (search?.Status) {
-            orderQuery.andWhere("order.Status ILIKE :status", { status: `%${search.Status}%` });
+            orderQuery.andWhere("CAST(order.Status AS TEXT) ILIKE :status", { status: `%${search.Status}%` });
         }
 
         // Search by Product Name
         if (search?.Product?.Name) {
-            orderQuery.andWhere("prod.Name ILIKE :prodName", { prodName: `%${search.Product.Name}%` });
+            orderQuery.andWhere("CAST(prod.Name AS TEXT) ILIKE :prodName", { prodName: `%${search.Product.Name}%` });
         }
 
         // Search by Package Name
         if (search?.Package?.Name) {
-            orderQuery.andWhere("pack.Name ILIKE :packName", { packName: `%${search.Package.Name}%` });
+            orderQuery.andWhere("CAST(pack.Name AS TEXT) ILIKE :packName", { packName: `%${search.Package.Name}%` });
         }
 
         const orders = await orderQuery
+            .orderBy("order.CreatedAt", "DESC") // Order by CreatedAt in descending order
             .take(10) // limit results for pagination or remove if not needed
             .getMany();
 

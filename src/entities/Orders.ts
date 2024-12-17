@@ -31,11 +31,11 @@ export class Orders extends BaseEntity {
   User: Users;
 
 
-  @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.Orders, { nullable: true })
+  @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.Orders, { nullable: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn({ name: 'PaymentMethodID' })
   PaymentMethod: PaymentMethods;
 
-  @ManyToOne(() => Addresses, (address) => address.Orders)
+  @ManyToOne(() => Addresses, (address) => address.Orders, { nullable: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn({ name: 'AddressID' })
   Address: Addresses;
 
@@ -49,7 +49,7 @@ export class Orders extends BaseEntity {
 
   @Column('enum', {
     enum: ['pending', 'purchased', 'under review', 'rejected',
-      'shipped', 'delivered', 'returned', 'canceled','completed'
+      'shipped', 'delivered', 'returned', 'canceled', 'completed'
     ], default: 'pending'
   })
   @Index()
@@ -101,7 +101,7 @@ export class Orders extends BaseEntity {
     }
 
     const pendingOrder = await Orders.findOne({
-      where: { User: user, Status: false },
+      where: { User: user, Status: 'pending' },
       relations: ['OrdersPackages', 'OrdersProducts'],
     });
 

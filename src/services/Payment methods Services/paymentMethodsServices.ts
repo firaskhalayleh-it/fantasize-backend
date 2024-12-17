@@ -18,7 +18,7 @@ export const s_createPaymentMethod = async (req: Request, res: Response) => {
         }
 
 
-        
+
         const parsedDate = new Date(ExpiryDate);
         if (isNaN(parsedDate.getTime())) {
             return "Invalid date format. Please use 'YYYY-MM-DD' format.";
@@ -111,10 +111,7 @@ export const s_deletePaymentMethod = async (req: Request, res: Response) => {
         }
         const paymentMethodId = Number(req.body.PaymentMethodID)
 
-        const existingOrders = await Orders.find({ where: { PaymentMethod: { PaymentMethodID: paymentMethodId } } });
-        if (existingOrders.length > 0) {
-            return res.status(400).send({ message: "Cannot delete payment method with existing orders" });
-        }
+       
 
         const deletePaymentMethod = await PaymentMethods.delete({ PaymentMethodID: paymentMethodId });
         if (deletePaymentMethod.affected === 0) {

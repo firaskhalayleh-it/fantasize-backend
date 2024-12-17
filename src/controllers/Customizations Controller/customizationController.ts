@@ -6,7 +6,8 @@ import {
     , s_getAllCustomizations,
     s_removeCustomizationFromPackage, s_removeCustomizationFromProduct
     , s_updateCustomization,
-    s_getCustomization
+    s_getCustomization,
+    s_deleteCustomization
 } from "../../services/Customization Services/customizationService";
 
 
@@ -57,3 +58,8 @@ export const c_getCustomizationById = async (req:Request , res : Response)=> {
     res.status(200).json(result);
 }
 
+
+export const c_deleteCustomization = async (req:Request , res : Response)=> {
+    const result = await s_deleteCustomization(req,res);
+    res.status(200).json(result);
+}
