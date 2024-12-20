@@ -1,20 +1,17 @@
-import { Entity, ManyToOne, CreateDateColumn, PrimaryColumn, OneToMany } from 'typeorm';
+import { Entity, ManyToOne, CreateDateColumn, PrimaryColumn, OneToMany, PrimaryGeneratedColumn, BaseEntity } from 'typeorm';
 import { Users } from '../users/Users';
 import { Packages } from '../packages/Packages';
 
 @Entity()
-export class FavoritePackages {
-    @PrimaryColumn()
-    UserID: number;
-
-    @PrimaryColumn()
-    PackageID: number;
+export class FavoritePackages extends BaseEntity{
+    @PrimaryGeneratedColumn('increment')
+    favoritePackageID: number;
 
     @ManyToOne(() => Users, (user) => user.UserID)
     User: Users;
 
-    @OneToMany(() => Packages, (pkg) => pkg.PackageID)
-    Package: Packages[];
+    @ManyToOne(() => Packages, (pkg) => pkg.PackageID)
+    Package: Packages;
 
     @CreateDateColumn()
     CreatedAt: Date;

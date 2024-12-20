@@ -4,26 +4,33 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
-  UpdateDateColumn,
   BaseEntity,
   ManyToMany,
   JoinTable,
   OneToMany,
-  JoinColumn
+  JoinColumn,
+  Relation,
+  BeforeInsert,
+  BeforeUpdate,
+  AfterLoad
 } from 'typeorm';
 import { Offers } from '../Offers';
 import { Reviews } from '../Reviews';
 import { Products } from '../products/Products';
-import { PackageCustomizations } from './PackageCustomizations';
 import { SubCategories } from '../categories/SubCategories';
 import { Resources } from '../Resources';
-
+import { FavoritePackages } from './FavoritePackages';
+import { OrdersPackages } from './OrdersPackages';
+import { PackageProduct } from './packageProduct';
+import { Customization } from '../Customization';
+import { MaterialPackage } from './MaterialPackage';
 @Entity()
+
 export class Packages extends BaseEntity {
   @PrimaryGeneratedColumn()
   PackageID: number;
 
-  @Column('varchar')
+  @Column('varchar', { unique: true })
   Name: string;
 
   @Column('text')
@@ -32,66 +39,120 @@ export class Packages extends BaseEntity {
   @Column('decimal')
   Price: number;
 
-  @Column('varchar')
-  Validity: string;
+  @Column('decimal', { precision: 9, scale: 2, default: 0 })
+  DiscountPrice: number
 
   @Column('int')
   Quantity: number;
 
-  @Column('text')
-  Message: string;
 
-  @Column('json', { nullable: true })
-  Size: any;  
+  @OneToMany(() => MaterialPackage, (materialPackage) => materialPackage.Package)
+  MaterialPackage: MaterialPackage[];
+
 
   @Column('enum', { enum: ['out of stock', 'in stock', 'running low'], default: 'in stock' })
   Status: string;
 
-  @ManyToOne(() => Offers, (offer) => offer.OfferID)
+  @ManyToOne(() => Offers, (offer) => offer.Packages,{eager:true})
   Offer: Offers;
+
+  @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.Package,)
+  OrdersPackages: OrdersPackages[];
 
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Package, { eager: true })
   SubCategory: SubCategories;
 
-  @ManyToMany(() => PackageCustomizations, (packageCustomizations) => packageCustomizations.PackageCustomizationID)
-  @JoinTable({
-    name: 'PackagesCustomizations',  
-    joinColumn: {
-      name: 'PackageID',
-      referencedColumnName: 'PackageID'
-    },
-    inverseJoinColumn: {
-      name: 'PackageCustomizationID',
-      referencedColumnName: 'PackageCustomizationID'
-    }
-  })
-  PackageCustomization: PackageCustomizations[];
+
+  @Column('int', { default: 0 })
+  AvgRating: number;
 
 
 
-  @OneToMany(() => Resources, (resource) => resource.ResourceID)
+  @OneToMany(() => Resources, (resource) => resource.Package, { eager: true })
+  @JoinColumn()
   Resource: Resources[];
 
-  @ManyToOne(() => Products, (product) => product.ProductID)
-  Product: Products[];
+  // @OneToMany(() => Products, (product) => product.Package)
+  // Product: Products[];
+  @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Package, {eager:true})
+  PackageProduct: PackageProduct[];
 
-  @ManyToMany(() => Reviews, (review) => review.Products)
+  @ManyToMany(() => Customization, (pkgCustom) => pkgCustom.Packages, { eager: true })
   @JoinTable({
-    name: 'PackagesReviews',  
+    name: 'PackagesCustomization',
     joinColumn: {
       name: 'PackageID',
       referencedColumnName: 'PackageID'
     },
     inverseJoinColumn: {
-      name: 'ReviewID',
-      referencedColumnName: 'ReviewID'
+      name: 'CustomizationID',
+      referencedColumnName: 'CustomizationID'
     }
   })
-  Review: Reviews[];
+  Customization: Customization[];
+
+
+  @OneToMany(() => FavoritePackages, (favoritePackages) => favoritePackages.Package)
+  FavoritePackages: FavoritePackages[];
+
+  @ManyToMany(() => Reviews, (review) => review.Packages)
+  Reviews: Reviews[];
 
   @CreateDateColumn()
   CreatedAt: Date;
 
-  @UpdateDateColumn()
+  @CreateDateColumn()
   UpdatedAt: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  checkStatus = () => {
+    if (this.Quantity == 0) {
+      this.Status = 'out of stock';
+    } else if (this.Quantity < 10) {
+      this.Status = 'running low';
+    } else {
+      this.Status = 'in stock';
+    }
+  }
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  updateDiscountPrice = () => {
+    this.DisPrice();
+  }
+
+  @AfterLoad()
+  calculateAvgRating() {
+    // Check if the ratings array exists and has items
+    if (this.Reviews && this.Reviews.length > 0) {
+      const totalRating = this.Reviews.reduce((sum, review) => sum + review.Rating, 0);
+      this.AvgRating = totalRating / this.Reviews.length;
+    } else {
+      this.AvgRating = 0; // Or any default value
+    }
+  }
+
+  @AfterLoad()
+  checkDiscountPrice = () => {
+    this.DisPrice();
+  }
+
+  DisPrice = () => {
+    if (this.Offer && this.Offer.IsActive) {
+      this.DiscountPrice = this.Price - (this.Price * this.Offer.Discount / 100);
+    } else {
+      this.DiscountPrice = 0;
+    }
+  }
+
+
+  toJSON() {
+    if (this.DiscountPrice === 0) {
+      const { DiscountPrice, ...returnWithoutDisPrice } = this;
+      return returnWithoutDisPrice;
+    } else {
+      return this;
+    }
+  }
 }

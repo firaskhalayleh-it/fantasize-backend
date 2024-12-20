@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, BaseEntity } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, BaseEntity, JoinColumn, Index } from 'typeorm';
 import { Categories } from './Categories';
 import { Products } from '../products/Products';
 import { Packages } from '../packages/Packages';
@@ -8,17 +8,19 @@ export class SubCategories extends BaseEntity {
   @PrimaryGeneratedColumn()
   SubCategoryID: number;
 
-  @Column('varchar')
+  @Column('varchar',)
+  @Index()
   Name: string;
 
-  // Many SubCategories can belong to one Category
+  @Column('boolean', { default: true })
+  IsActive: boolean;
+
   @ManyToOne(() => Categories, (category) => category.SubCategory)
+  @JoinColumn({ name: "CategoryID" }) 
   Category: Categories;
 
-  // One SubCategory can have many Products
   @OneToMany(() => Products, (product) => product.SubCategory)
   Products: Products[];
-
 
   @OneToMany(() => Packages, (pkg) => pkg.SubCategory)
   Package: Packages[];
