@@ -195,7 +195,6 @@ export const s_getPackageByID = async (req: Request, res: Response) => {
 }
 
 //----------------------- Update a package-----------------------
-
 export const s_updatePackage = async (req: Request, res: Response) => {
     try {
         const pkgId = req.params.packageId;
@@ -249,85 +248,121 @@ export const s_updatePackage = async (req: Request, res: Response) => {
             }
 
             // Handle Products Association
-            if (products && Array.isArray(products)) {
-                const productNames = products.map((p: { productName: string }) => p.productName);
-                const productQuantities = products.map((p: { quantity: number }) => p.quantity);
+            let productsArray: any[] = [];
+
+            if (products) {
+                if (typeof products === 'string') {
+                    try {
+                        productsArray = JSON.parse(products);
+                    } catch (e) {
+                        console.error("Error parsing products:", e);
+                        throw { status: 400, message: "Invalid format for products" };
+                    }
+                } else if (Array.isArray(products)) {
+                    productsArray = products;
+                } else {
+                    throw { status: 400, message: "Invalid format for products" };
+                }
+            }
+
+            if (productsArray && Array.isArray(productsArray)) {
+                const productIds = productsArray.map((p: { productId: number }) => p.productId);
+                const productQuantities = productsArray.map((p: { quantity: number }) => p.quantity);
 
                 // Fetch products from DB
                 const dbProducts = await transactionalEntityManager.find(Products, {
-                    where: { Name: In(productNames) }
+                    where: { ProductID: In(productIds) }
                 });
 
-                if (dbProducts.length !== productNames.length) {
+                if (dbProducts.length !== productIds.length) {
                     throw { status: 400, message: "Some products do not exist" };
                 }
 
-                // Map product names to their DB records
-                const productMap: { [key: string]: Products } = {};
+                // Map product IDs to their DB records
+                const productMap: { [key: number]: Products } = {};
                 dbProducts.forEach(product => {
-                    productMap[product.Name] = product;
+                    productMap[product.ProductID] = product;
                 });
 
                 // Fetch existing PackageProduct entries
                 const existingPackageProducts = pkg.PackageProduct || [];
 
-                // Prepare updates and new associations
-                for (let i = 0; i < dbProducts.length; i++) {
-                    const product = dbProducts[i];
-                    const requestedQuantity = productQuantities[i] * (Quantity || 1); // Adjust based on package quantity
+                // Create a Set of current product IDs for easy lookup
+                const currentProductIdSet = new Set<number>(productIds);
 
-                    const existingPP = existingPackageProducts.find(pp => pp.Product.ProductID === product.ProductID);
+                // Iterate through the incoming products
+                for (let i = 0; i < productsArray.length; i++) {
+                    const incomingProduct = productsArray[i];
+                    const dbProduct = productMap[incomingProduct.productId];
+                    const requestedQuantity = incomingProduct.quantity;
+
+                    if (!dbProduct) {
+                        throw { status: 400, message: `Product with ID ${incomingProduct.productId} does not exist` };
+                    }
+
+                    // Find existing PackageProduct
+                    const existingPP = existingPackageProducts.find(pp => pp.Product.ProductID === dbProduct.ProductID);
 
                     if (existingPP) {
-                        // Update quantity if it has changed
-                        if (existingPP.Quantity !== requestedQuantity) {
-                            const quantityDifference = requestedQuantity - existingPP.Quantity;
+                        // Calculate the difference in quantity
+                        const quantityDifference = requestedQuantity - existingPP.Quantity;
+                        console.log(`Product ID ${dbProduct.ProductID}: Existing Quantity = ${existingPP.Quantity}, Requested Quantity = ${requestedQuantity}, Difference = ${quantityDifference}`);
 
-                            if (quantityDifference > 0 && product.Quantity < quantityDifference) {
-                                throw { status: 400, message: `Insufficient quantity for ${product.Name}` };
+                        if (quantityDifference > 0) {
+                            // Need to assign more products, check stock
+                            if (dbProduct.Quantity < quantityDifference) {
+                                throw { status: 400, message: `Insufficient quantity for product ${dbProduct.Name}` };
                             }
-
-                            // Adjust product stock
-                            product.Quantity -= quantityDifference;
-                            await transactionalEntityManager.save(product);
-
-                            // Update PackageProduct
-                            existingPP.Quantity = requestedQuantity;
-                            await transactionalEntityManager.save(existingPP);
+                            dbProduct.Quantity -= quantityDifference;
+                        } else if (quantityDifference < 0) {
+                            // Need to unassign some products, restore stock
+                            dbProduct.Quantity += Math.abs(quantityDifference);
                         }
+                        // Update the product stock
+                        await transactionalEntityManager.save(dbProduct);
+
+                        // Update the PackageProduct quantity
+                        existingPP.Quantity = requestedQuantity;
+                        await transactionalEntityManager.save(existingPP);
+                        console.log(`Updated PackageProduct for Product ID ${dbProduct.ProductID}: New Quantity = ${existingPP.Quantity}`);
                     } else {
-                        // New product association
-                        if (product.Quantity < requestedQuantity) {
-                            throw { status: 400, message: `Insufficient quantity for ${product.Name}` };
+                        // New product association, check stock
+                        if (dbProduct.Quantity < requestedQuantity) {
+                            throw { status: 400, message: `Insufficient quantity for product ${dbProduct.Name}` };
                         }
 
                         // Adjust product stock
-                        product.Quantity -= requestedQuantity;
-                        await transactionalEntityManager.save(product);
+                        dbProduct.Quantity -= requestedQuantity;
+                        await transactionalEntityManager.save(dbProduct);
 
                         // Create new PackageProduct entry
                         const newPP = transactionalEntityManager.create(PackageProduct, {
                             Package: pkg,
-                            Product: product,
+                            Product: dbProduct,
                             Quantity: requestedQuantity,
-                            ProductName: product.Name,
+                            ProductName: dbProduct.Name,
                         });
                         await transactionalEntityManager.save(PackageProduct, newPP);
+                        console.log(`Created new PackageProduct for Product ID ${dbProduct.ProductID}: Quantity = ${newPP.Quantity}`);
                     }
                 }
 
-                // Remove products no longer associated
+                // Remove PackageProducts that are no longer associated
                 for (const existingPP of existingPackageProducts) {
-                    if (!productNames.includes(existingPP.Product.Name)) {
+                    if (!currentProductIdSet.has(existingPP.Product.ProductID)) {
+                        console.log(`Removing PackageProduct for Product ID ${existingPP.Product.ProductID}: Quantity = ${existingPP.Quantity}`);
+
                         // Restore product stock
                         const product = await transactionalEntityManager.findOne(Products, { where: { ProductID: existingPP.Product.ProductID } });
                         if (product) {
                             product.Quantity += existingPP.Quantity;
                             await transactionalEntityManager.save(product);
+                            console.log(`Restored stock for Product ID ${product.ProductID}: New Stock = ${product.Quantity}`);
                         }
 
                         // Remove PackageProduct entry
                         await transactionalEntityManager.remove(PackageProduct, existingPP);
+                        console.log(`Removed PackageProduct for Product ID ${existingPP.Product.ProductID}`);
                     }
                 }
             }
@@ -368,7 +403,7 @@ export const s_updatePackage = async (req: Request, res: Response) => {
 
             // Retrieve all existing resources associated with the package
             const existingResources = await transactionalEntityManager.find(Resources, {
-                where: { Package: { PackageID: Number(pkgId) } }
+                where: { Package: { PackageID: Number(pkgId) } },
             });
 
             console.log("Existing resources:", existingResources.map(r => ({ id: r.ResourceID, name: r.entityName })));
@@ -394,7 +429,12 @@ export const s_updatePackage = async (req: Request, res: Response) => {
                     console.log(`Delete Result for ResourceID ${resource.ResourceID}:`, deleteResult);
 
                     if (deleteResult.affected && deleteResult.affected > 0) {
-                        const normalizedFilePath = resource.filePath.replace(/\\/g, "/");
+                        let normalizedFilePath = resource.filePath.replace(/\\/g, "/");
+                        if (!normalizedFilePath.startsWith("/")) {
+                            normalizedFilePath = "/" + normalizedFilePath;
+                        }
+                        normalizedFilePath = normalizedFilePath.replace(/\/\//g, "/"); // Replace double slashes with single slash
+
                         const absoluteFilePath = path.resolve(__dirname, '../../', normalizedFilePath);
 
                         console.log(`Deleting ${type} file at:`, absoluteFilePath);
