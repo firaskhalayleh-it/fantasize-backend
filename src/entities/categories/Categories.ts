@@ -12,13 +12,13 @@ export class Categories extends BaseEntity {
   @Index()
   Name: string;
 
-  @OneToOne(() => Resources, (resource) => resource.Category, { eager: true })
+  @OneToOne(() => Resources, (resource) => resource.Category, { eager: true , onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   Image: Resources;
 
   @Column('boolean', { default: true })
   IsActive: boolean;
 
-  @OneToMany(() => SubCategories, (subCategory) => subCategory.Category)
+  @OneToMany(() => SubCategories, (subCategory) => subCategory.Category, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   SubCategory: SubCategories[];
 
 }

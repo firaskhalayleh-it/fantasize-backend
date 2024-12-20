@@ -12,7 +12,7 @@ export class MaterialProduct extends BaseEntity {
     @ManyToOne(() => Material, (material) => material.materialProduct)
     Material: Material;
 
-    @ManyToOne(() => Products, (product) => product.MaterialProduct)
+    @ManyToOne(() => Products, (product) => product.MaterialProduct, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     Product: Products;
 
     @Column('int')

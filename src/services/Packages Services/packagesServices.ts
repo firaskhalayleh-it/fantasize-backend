@@ -2,10 +2,11 @@ import { Request, Response } from 'express';
 import { SubCategories } from '../../entities/categories/SubCategories';
 import { Products } from '../../entities/products/Products';
 import { Packages } from '../../entities/packages/Packages';
-import { In, Like, Not } from 'typeorm';
+import { EntityManager, In, Like, Not } from 'typeorm';
 import { database } from '../../config/database';
 import { PackageProduct } from '../../entities/packages/packageProduct';
-
+import fs from "fs/promises"; // Use fs.promises for async/await
+import path from "path";
 import { getRepository } from 'typeorm';
 import { Resources } from '../../entities/Resources';
 import { Categories } from '../../entities/categories/Categories';
@@ -197,142 +198,286 @@ export const s_getPackageByID = async (req: Request, res: Response) => {
 
 export const s_updatePackage = async (req: Request, res: Response) => {
     try {
-        const pkgId: any = req.params.packageId;
-        const { Name, Description, Price, Quantity, SubCategoryId, products } = req.body;
-        console.log("req.files", req.files);
-        // Find the package to update
-        const getPackage = await Packages.findOne({ where: { PackageID: pkgId } });
-        if (!getPackage) {
-            return res.status(404).send({ message: "Package not found" });
+        const pkgId = req.params.packageId;
+        const { Name, Description, Price, Quantity, SubCategoryId, products, existingImageIDs, existingVideoIDs } = req.body;
+
+        console.log("Requested body:", req.body);
+
+        if (!pkgId) {
+            return res.status(400).json({ message: "Please provide a package ID" });
         }
 
-        // Check subcategory only if SubCategoryId is provided
-        if (SubCategoryId) {
-            const subcategory = await SubCategories.findOne({ where: { SubCategoryID: SubCategoryId } });
-            if (!subcategory) {
-                return res.status(400).send({ message: "SubCategory not found" });
-            }
-            getPackage.SubCategory = subcategory;
-        }
+        await database.manager.transaction(async (transactionalEntityManager: EntityManager) => {
+            // Fetch the package along with its associated resources and products
+            const pkg = await transactionalEntityManager.findOne(Packages, {
+                where: { PackageID: Number(pkgId) },
+                relations: ["Resource", "PackageProduct", "PackageProduct.Product"],
+            });
 
-        // Update optional fields if provided
-        if (Name) getPackage.Name = Name;
-        if (Description) getPackage.Description = Description;
-        if (Price) getPackage.Price = Price;
-        if (Quantity) getPackage.Quantity = Quantity;
-
-        // Validate products only if provided
-        if (products && Array.isArray(products)) {
-            // Extract product names and quantities from request
-            const productNames = products.map((pN: { productName: string }) => pN.productName);
-            const quantities = products.map((q: { quantity: number }) => q.quantity);
-
-            // Check if the required products exist
-            const pNameIsExist = await Products.find({ where: { Name: In(productNames) } });
-            if (pNameIsExist.length !== productNames.length) {
-                return res.status(400).send({ message: "Some products do not exist" });
+            if (!pkg) {
+                throw { status: 404, message: "Package not found" };
             }
 
-            // Fetch existing PackageProduct entries
-            const existingPackageProducts = await PackageProduct.find({ where: { Package: { PackageID: pkgId } } });
+            // Prepare update data
+            const packageUpdateData: Partial<Packages> = {};
 
-            // Update product quantities and handle new or removed products
-            for (let i = 0; i < pNameIsExist.length; i++) {
-                const productInDB = pNameIsExist[i];
-                const requestedQuantity = quantities[i] * (Quantity || 1); // Use Quantity if provided, else default to 1
+            if (Name) {
+                // Check for duplicate package name
+                const existingPackage = await transactionalEntityManager.findOne(Packages, { where: { Name } });
+                if (existingPackage && existingPackage.PackageID !== pkg.PackageID) {
+                    throw { status: 409, message: "Package name already exists" };
+                }
+                packageUpdateData.Name = Name;
+            }
 
-                // Check if the product is already associated with the package
-                const existingPackageProduct = existingPackageProducts.find(pp => pp.Product.ProductID === productInDB.ProductID);
+            if (Description !== undefined && Description !== null) packageUpdateData.Description = Description;
+            if (Price !== undefined && Price !== null) packageUpdateData.Price = parseFloat(Price);
+            if (Quantity !== undefined && Quantity !== null) packageUpdateData.Quantity = parseInt(Quantity, 10);
 
-                if (existingPackageProduct) {
-                    // Adjust the quantity based on the new requested quantity
-                    const quantityDifference = requestedQuantity - existingPackageProduct.Quantity;
+            if (SubCategoryId) {
+                const subCategory = await transactionalEntityManager.findOne(SubCategories, { where: { SubCategoryID: Number(SubCategoryId) } });
+                if (!subCategory) {
+                    throw { status: 404, message: "SubCategory not found" };
+                }
+                packageUpdateData.SubCategory = subCategory;
+            }
 
-                    if (productInDB.Quantity < quantityDifference) {
-                        return res.status(400).send({ message: `Insufficient quantity for ${productInDB.Name}` });
+            // Apply package updates
+            if (Object.keys(packageUpdateData).length > 0) {
+                await transactionalEntityManager.update(Packages, { PackageID: Number(pkgId) }, packageUpdateData);
+                console.log("Package updated:", pkgId);
+            }
+
+            // Handle Products Association
+            if (products && Array.isArray(products)) {
+                const productNames = products.map((p: { productName: string }) => p.productName);
+                const productQuantities = products.map((p: { quantity: number }) => p.quantity);
+
+                // Fetch products from DB
+                const dbProducts = await transactionalEntityManager.find(Products, {
+                    where: { Name: In(productNames) }
+                });
+
+                if (dbProducts.length !== productNames.length) {
+                    throw { status: 400, message: "Some products do not exist" };
+                }
+
+                // Map product names to their DB records
+                const productMap: { [key: string]: Products } = {};
+                dbProducts.forEach(product => {
+                    productMap[product.Name] = product;
+                });
+
+                // Fetch existing PackageProduct entries
+                const existingPackageProducts = pkg.PackageProduct || [];
+
+                // Prepare updates and new associations
+                for (let i = 0; i < dbProducts.length; i++) {
+                    const product = dbProducts[i];
+                    const requestedQuantity = productQuantities[i] * (Quantity || 1); // Adjust based on package quantity
+
+                    const existingPP = existingPackageProducts.find(pp => pp.Product.ProductID === product.ProductID);
+
+                    if (existingPP) {
+                        // Update quantity if it has changed
+                        if (existingPP.Quantity !== requestedQuantity) {
+                            const quantityDifference = requestedQuantity - existingPP.Quantity;
+
+                            if (quantityDifference > 0 && product.Quantity < quantityDifference) {
+                                throw { status: 400, message: `Insufficient quantity for ${product.Name}` };
+                            }
+
+                            // Adjust product stock
+                            product.Quantity -= quantityDifference;
+                            await transactionalEntityManager.save(product);
+
+                            // Update PackageProduct
+                            existingPP.Quantity = requestedQuantity;
+                            await transactionalEntityManager.save(existingPP);
+                        }
+                    } else {
+                        // New product association
+                        if (product.Quantity < requestedQuantity) {
+                            throw { status: 400, message: `Insufficient quantity for ${product.Name}` };
+                        }
+
+                        // Adjust product stock
+                        product.Quantity -= requestedQuantity;
+                        await transactionalEntityManager.save(product);
+
+                        // Create new PackageProduct entry
+                        const newPP = transactionalEntityManager.create(PackageProduct, {
+                            Package: pkg,
+                            Product: product,
+                            Quantity: requestedQuantity,
+                            ProductName: product.Name,
+                        });
+                        await transactionalEntityManager.save(PackageProduct, newPP);
                     }
+                }
 
-                    // Update product quantity in stock
-                    productInDB.Quantity -= quantityDifference;
-                    await productInDB.save();
+                // Remove products no longer associated
+                for (const existingPP of existingPackageProducts) {
+                    if (!productNames.includes(existingPP.Product.Name)) {
+                        // Restore product stock
+                        const product = await transactionalEntityManager.findOne(Products, { where: { ProductID: existingPP.Product.ProductID } });
+                        if (product) {
+                            product.Quantity += existingPP.Quantity;
+                            await transactionalEntityManager.save(product);
+                        }
 
-                    // Update the PackageProduct entry
-                    existingPackageProduct.Quantity = requestedQuantity;
-                    await existingPackageProduct.save();
-                } else {
-                    // New product to be associated with the package
-                    if (productInDB.Quantity < requestedQuantity) {
-                        return res.status(400).send({ message: `Insufficient quantity for ${productInDB.Name}` });
+                        // Remove PackageProduct entry
+                        await transactionalEntityManager.remove(PackageProduct, existingPP);
                     }
-
-                    // Update product quantity in stock
-                    productInDB.Quantity -= requestedQuantity;
-                    await productInDB.save();
-
-                    // Create new PackageProduct entry
-                    const newPackageProduct = PackageProduct.create({
-                        Package: getPackage,
-                        Product: productInDB,
-                        Quantity: requestedQuantity,
-                        ProductName: productInDB.Name,
-                    });
-
-                    await newPackageProduct.save();
                 }
             }
 
-            // Remove products that are no longer associated with the package
-            for (const existingPackageProduct of existingPackageProducts) {
-                if (!productNames.includes(existingPackageProduct.ProductName)) {
-                    // Restore the product quantity in stock
-                    const productInDB = await Products.findOne({ where: { ProductID: existingPackageProduct.Product.ProductID } });
-                    if (productInDB) {
-                        productInDB.Quantity += existingPackageProduct.Quantity;
-                        await productInDB.save();
-                    }
+            // Handle Resource Deletion
+            // Parse existing resource IDs from the request
+            let existingImageIDsArray: number[] = [];
+            let existingVideoIDsArray: number[] = [];
 
-                    // Remove the PackageProduct entry
-                    await existingPackageProduct.remove();
+            if (existingImageIDs) {
+                try {
+                    existingImageIDsArray = JSON.parse(existingImageIDs);
+                    if (!Array.isArray(existingImageIDsArray)) {
+                        throw new Error("existingImageIDs is not an array");
+                    }
+                    existingImageIDsArray = existingImageIDsArray.map((id: any) => Number(id));
+                } catch (e) {
+                    console.error("Error parsing existingImageIDs:", e);
+                    throw { status: 400, message: "Invalid format for existingImageIDs" };
                 }
             }
+
+            if (existingVideoIDs) {
+                try {
+                    existingVideoIDsArray = JSON.parse(existingVideoIDs);
+                    if (!Array.isArray(existingVideoIDsArray)) {
+                        throw new Error("existingVideoIDs is not an array");
+                    }
+                    existingVideoIDsArray = existingVideoIDsArray.map((id: any) => Number(id));
+                } catch (e) {
+                    console.error("Error parsing existingVideoIDs:", e);
+                    throw { status: 400, message: "Invalid format for existingVideoIDs" };
+                }
+            }
+
+            console.log("Parsed existingImageIDsArray:", existingImageIDsArray);
+            console.log("Parsed existingVideoIDsArray:", existingVideoIDsArray);
+
+            // Retrieve all existing resources associated with the package
+            const existingResources = await transactionalEntityManager.find(Resources, {
+                where: { Package: { PackageID: Number(pkgId) } }
+            });
+
+            console.log("Existing resources:", existingResources.map(r => ({ id: r.ResourceID, name: r.entityName })));
+
+            // Separate existing images and videos
+            const existingImageResources = existingResources.filter(r => r.fileType.startsWith('image/'));
+            const existingVideoResources = existingResources.filter(r => r.fileType.startsWith('video/'));
+
+            // Determine which image resources to delete
+            const imageResourcesToDelete = existingImageResources.filter(r => !existingImageIDsArray.includes(r.ResourceID));
+
+            // Determine which video resources to delete
+            const videoResourcesToDelete = existingVideoResources.filter(r => !existingVideoIDsArray.includes(r.ResourceID));
+
+            console.log("Image Resources to delete:", imageResourcesToDelete.map(r => r.ResourceID));
+            console.log("Video Resources to delete:", videoResourcesToDelete.map(r => r.ResourceID));
+
+            // Function to delete resources
+            const deleteResources = async (resourcesToDelete: Resources[], type: string) => {
+                for (const resource of resourcesToDelete) {
+                    console.log(`Deleting ${type} resource:`, resource.ResourceID, resource.filePath);
+                    const deleteResult = await transactionalEntityManager.delete(Resources, { ResourceID: resource.ResourceID });
+                    console.log(`Delete Result for ResourceID ${resource.ResourceID}:`, deleteResult);
+
+                    if (deleteResult.affected && deleteResult.affected > 0) {
+                        const normalizedFilePath = resource.filePath.replace(/\\/g, "/");
+                        const absoluteFilePath = path.resolve(__dirname, '../../', normalizedFilePath);
+
+                        console.log(`Deleting ${type} file at:`, absoluteFilePath);
+                        try {
+                            await fs.unlink(absoluteFilePath);
+                            console.log(`Deleted ${type} file: ${absoluteFilePath}`);
+                        } catch (err: any) {
+                            if (err.code === 'ENOENT') {
+                                console.warn(`${type.charAt(0).toUpperCase() + type.slice(1)} file not found: ${absoluteFilePath}`);
+                            } else {
+                                console.error(`Failed to delete ${type} file: ${absoluteFilePath}`, err);
+                                throw { status: 500, message: `Failed to delete ${type} file: ${absoluteFilePath}` };
+                            }
+                        }
+                    } else {
+                        console.warn(`No ${type} record found with ResourceID: ${resource.ResourceID}`);
+                    }
+                }
+            };
+
+            // Delete image and video resources
+            await deleteResources(imageResourcesToDelete, "image");
+            await deleteResources(videoResourcesToDelete, "video");
+
+            // Handle Resource Addition
+            const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+            const images = files?.['images'] || [];
+            const videos = files?.['videos'] || [];
+
+            console.log("Uploaded images:", images.map(f => f.filename));
+            console.log("Uploaded videos:", videos.map(f => f.filename));
+
+            // Function to insert resources
+            const insertResources = async (files: Express.Multer.File[], type: string) => {
+                for (const file of files) {
+                    const resourceExists = existingResources.some(r => r.entityName === file.filename);
+                    if (!resourceExists) {
+                        const newResource = transactionalEntityManager.create(Resources, {
+                            entityName: file.filename,
+                            filePath: `resources/${file.filename}`,
+                            fileType: file.mimetype,
+                            Package: { PackageID: Number(pkgId) },
+                        });
+                        await transactionalEntityManager.save(Resources, newResource);
+                        console.log(`Inserted new ${type} resource:`, newResource.ResourceID, newResource.filePath);
+                    } else {
+                        console.log(`${type.charAt(0).toUpperCase() + type.slice(1)} resource already exists:`, file.filename);
+                    }
+                }
+            };
+
+            // Insert new image and video resources
+            await insertResources(images, "image");
+            await insertResources(videos, "video");
+
+            console.log("Update transaction completed successfully.");
+        });
+
+        // After transaction, fetch updated package with resources and products
+        const updatedPackage = await database.getRepository(Packages).findOne({
+            where: { PackageID: Number(pkgId) },
+            relations: [
+                "Resource",
+                "SubCategory",
+                "SubCategory.Category",
+                "PackageProduct",
+                "PackageProduct.Product",
+            ]
+        });
+
+        return res.status(200).json({
+            message: "Package updated successfully",
+            success: true,
+            updatedPackage
+        });
+    } catch (error: any) {
+        console.error("Error in s_updatePackage:", error);
+        if (error.status && error.message) {
+            return res.status(error.status).json({ message: error.message, success: false });
         }
-
-        // Save image resources
-        const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
-        const images = files?.['images'] || [];
-        const videos = files?.['videos'] || [];
-
-        const imageResources = await Promise.all(images.map(async (image) => {
-            const resource = Resources.create({
-                entityName: image.filename,
-                filePath: `/resources/${image.filename}`,
-                fileType: image.mimetype,
-                Package: getPackage,
-            });
-            return await resource.save();
-        }));
-
-        // Save video resources
-        const videoResources = await Promise.all(videos.map(async (video) => {
-            const resource = Resources.create({
-                entityName: video.filename,
-                filePath: `/resources/${video.filename}`,
-                fileType: video.mimetype,
-                Package: getPackage,
-            });
-            return await resource.save();
-        }));
-
-        await getPackage.save(); // Save package after all changes
-
-        return res.status(200).send({ message: "Package updated successfully" });
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).send({ message: error });
+        return res.status(500).json({ message: "An internal server error occurred", success: false });
     }
 };
-
 
 //----------------------- get 5 random packages  under women category -----------------------
 export const s_getRandomPackagesWomen = async (req: Request, res: Response) => {
@@ -398,3 +543,4 @@ export const s_getLastPackage = async (req: Request, res: Response) => {
         return res.status(500).send({ message: error });
     }
 }
+

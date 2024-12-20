@@ -76,7 +76,6 @@ app.use(cors({
 setupSwagger(app);
 app.use('/api', authGoogleFacebookRoute);
 app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
-app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
 app.use("/api", authRoute);
 app.use("/api", userRoute);
 app.use("/api", addressRoute);

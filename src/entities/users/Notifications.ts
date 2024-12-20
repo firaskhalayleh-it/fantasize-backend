@@ -22,8 +22,6 @@ export class Notifications extends BaseEntity {
   @Column('varchar')
   subject: string;
 
-  @Column('boolean', { default: false })
-  sent: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

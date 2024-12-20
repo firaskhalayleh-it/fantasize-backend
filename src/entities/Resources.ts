@@ -34,10 +34,10 @@ export class Resources extends BaseEntity {
   @JoinColumn()
   User: Users;
 
-  @ManyToOne(() => Products, (product) => product.Resource)
+  @ManyToOne(() => Products, (product) => product.Resource, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   Product: Products;
 
-  @ManyToOne(() => Packages, (pkg) => pkg.Resource)
+  @ManyToOne(() => Packages, (pkg) => pkg.Resource, { onDelete: 'CASCADE', onUpdate: 'CASCADE' }) 
   Package: Packages;
 
 

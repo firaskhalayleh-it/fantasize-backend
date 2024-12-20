@@ -34,7 +34,7 @@ export class Products extends BaseEntity {
   Status: string;
 
 
-  @OneToMany(() => MaterialProduct, (materialProduct) => materialProduct.Product)
+  @OneToMany(() => MaterialProduct, (materialProduct) => materialProduct.Product, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   MaterialProduct: MaterialProduct[];
 
   @Column('decimal', { precision: 9, scale: 2, default: 0 })
@@ -52,16 +52,16 @@ export class Products extends BaseEntity {
 
   // @ManyToOne(() => Packages, (pkg) => pkg.Product,)
   // Package: Packages;
-  @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Product)
+  @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Product, {  onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   PackageProduct: PackageProduct[];
 
-  @ManyToOne(() => Offers, (offer) => offer.Products,)
+  @ManyToOne(() => Offers, (offer) => offer.Products, { eager: true , onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   Offer: Offers;
 
-  @OneToMany(() => Resources, (resource) => resource.Product, { eager: true })
+  @OneToMany(() => Resources, (resource) => resource.Product, { eager: true ,cascade: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   Resource: Resources[];
 
-  @ManyToMany(() => Customization, (customization) => customization.Product, { eager: true })
+  @ManyToMany(() => Customization, (customization) => customization.Product, { eager: true , onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinTable({
     name: 'ProductsCustomization',
     joinColumn: {
@@ -75,7 +75,7 @@ export class Products extends BaseEntity {
   })
   Customization: Customization[];
 
-  @ManyToMany(() => Reviews, (review) => review.Products, { eager: true })
+  @ManyToMany(() => Reviews, (review) => review.Products, { eager: true , onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinTable({
     name: 'ProductsReviews',
     joinColumn: {
@@ -90,10 +90,10 @@ export class Products extends BaseEntity {
   Review: Reviews[];
 
 
-  @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product)
+  @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   FavoriteProducts: FavoriteProducts[];
 
-  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product)
+  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product )
   OrdersProducts: OrdersProducts[];
 
 

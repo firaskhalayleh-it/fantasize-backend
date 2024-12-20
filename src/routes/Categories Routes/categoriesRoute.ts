@@ -30,7 +30,7 @@ categoryRoute.post('/categories', isAuthorized, uploadSingle, c_createCategory);
  *  @method        GET
  *  @access        Public
  */
-categoryRoute.get('/category/:id', c_getCategory);
+categoryRoute.get('/category/:categoryId', c_getCategory);
 /**
  *  @description   Update a category by ID
  *  @route         /categories/:id

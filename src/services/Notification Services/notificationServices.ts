@@ -89,7 +89,7 @@ export const s_sendNotification = async (req: Request, res: Response) => {
         const emailPromises = users.map(user => sendEmail({ to: user.Email, subject: title, html: body }));
         await Promise.all(emailPromises);
 
-        await Notifications.insert({ subject: title, template: body, sent: true });
+        await Notifications.insert({ subject: title, template: body });
 
         return res.status(200).send({ message: 'Notification sent successfully.' });
     } catch (err: any) {
@@ -111,7 +111,7 @@ export const s_sendPushNotification = async (req: Request, res: Response) => {
         const pushPromises = filteredUsers.map(user => sendPushNotification(user.DeviceToken, title, body, actionUrl || 'https://example.com', imageUrl || 'https://example.com/image.png',buttons));
         await Promise.all(pushPromises);
 
-        await Notifications.insert({ subject: title, template: body, sent: true });
+        await Notifications.insert({ subject: title, template: body });
 
         return res.status(200).send({ message: 'Notification sent successfully.' });
     } catch (err: any) {

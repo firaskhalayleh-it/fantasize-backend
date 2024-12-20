@@ -146,7 +146,7 @@ export const s_getAllOffers = async (req: Request, res: Response) => {
         const today = new Date().toISOString().slice(0, 23).replace('T', ' ');
 
         
-        const combinedOffers = [, ...products, ...packages];
+        const combinedOffers = [ ...products, ...packages];
         return res.status(200).send(combinedOffers);
 
     } catch (err: any) {

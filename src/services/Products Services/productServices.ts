@@ -3,11 +3,16 @@ import { Products } from "../../entities/products/Products";
 import { Brands } from "../../entities/Brands";
 import { SubCategories } from "../../entities/categories/SubCategories";
 import { Offers } from "../../entities/Offers";
-import { getRepository, In, Like } from "typeorm";
+import { EntityManager, getRepository, In, Like } from "typeorm";
 import { Resources } from "../../entities/Resources";
 import { Categories } from "../../entities/categories/Categories";
 import { MaterialProduct } from "../../entities/products/MaterialProduct";
 import { Material } from "../../entities/Material";
+import { OrdersProducts } from "../../entities/products/OrdersProducts";
+import { Packages } from "../../entities/packages/Packages";
+import { database } from "../../config/database";
+import { unlink } from 'node:fs/promises';
+import path from "path";
 // import { } from "../Resources Services/resourceService";
 // import { uploadFiles } from "../../config/Multer config/multerConfig";
 
@@ -191,94 +196,249 @@ export const s_createProduct = async (req: Request, res: Response) => {
 // ---------------------> Update a product <---------------------
 
 
+// src/controllers/productController.ts
 
+
+// ---------------------> Update a product <---------------------
 export const s_updateProduct = async (req: Request, res: Response) => {
     try {
-        const productId: any = req.params.productId;
-        const { Name, Price, Description, SubCategoryID, Quantity, BrandID } = req.body;
+        const productId = req.params.productId;
+        const {
+            Name,
+            Price,
+            Description,
+            SubCategoryID,
+            Quantity,
+            BrandID,
+            existingImageIDs,
+            existingVideoIDs
+        } = req.body;
+
+        console.log('Requested body:', req.body);
+
         if (!productId) {
-            return res.status(400).send({ message: "Please provide a product ID" });
-        }
-        const productRepository = (Products);
-        const product = await productRepository.findOne({ where: { ProductID: productId }, relations: ["Resource",] });
-
-        if (!product) {
-            return res.status(404).send({ message: "Product not found" });
+            return res.status(400).json({ message: "Please provide a product ID" });
         }
 
-        if (Name) {
-            const existingProduct = await productRepository.findOne({ where: { Name } });
-            if (existingProduct && existingProduct.ProductID !== product.ProductID) {
-                return res.status(409).send({ message: "Product name already exists" });
+        await database.manager.transaction(async (transactionalEntityManager: EntityManager) => {
+            // Fetch the product
+            const product = await transactionalEntityManager.findOne(Products, {
+                where: { ProductID: Number(productId) },
+                relations: ["Resource"],
+            });
+
+            if (!product) {
+                throw { status: 404, message: "Product not found" };
             }
-            product.Name = Name;
-        }
 
+            // Update product fields using update() method
+            const productUpdateData: Partial<Products> = {};
 
-
-
-
-        if (Price) product.Price = Number(Price);
-        if (Description) product.Description = Description;
-        if (Quantity) product.Quantity = Number(Quantity);
-
-        if (BrandID) {
-            const brand = await Brands.findOne({ where: { BrandID: BrandID } });
-            if (!brand) {
-                return res.status(404).send({ message: "Brand not found" });
+            if (Name) {
+                // Check for duplicate product name
+                const existingProduct = await transactionalEntityManager.findOne(Products, { where: { Name } });
+                if (existingProduct && existingProduct.ProductID !== product.ProductID) {
+                    throw { status: 409, message: "Product name already exists" };
+                }
+                productUpdateData.Name = Name;
             }
-            product.Brand = brand;
-        }
 
-        const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+            if (Price !== undefined && Price !== null) productUpdateData.Price = Number(Price);
+            if (Description !== undefined && Description !== null) productUpdateData.Description = Description;
+            if (Quantity !== undefined && Quantity !== null) productUpdateData.Quantity = Number(Quantity);
 
-        const images = files?.images || [];
-        if (images.length > 0) {
+            if (BrandID) {
+                const brand = await transactionalEntityManager.findOne(Brands, { where: { BrandID: Number(BrandID) } });
+                if (!brand) {
+                    throw { status: 404, message: "Brand not found" };
+                }
+                productUpdateData.Brand = brand;
+            }
+
+            if (SubCategoryID) {
+                const subCategory = await transactionalEntityManager.findOne(SubCategories, { where: { SubCategoryID: Number(SubCategoryID) } });
+                if (!subCategory) {
+                    throw { status: 404, message: "SubCategory not found" };
+                }
+                productUpdateData.SubCategory = subCategory;
+            }
+
+            // Apply product updates
+            if (Object.keys(productUpdateData).length > 0) {
+                await transactionalEntityManager.update(Products, { ProductID: Number(productId) }, productUpdateData);
+                console.log("Product updated:", productId);
+            }
+
+            // Parse existing resource IDs
+            let existingImageIDsArray: number[] = [];
+            let existingVideoIDsArray: number[] = [];
+
+            if (existingImageIDs) {
+                try {
+                    existingImageIDsArray = JSON.parse(existingImageIDs);
+                    if (!Array.isArray(existingImageIDsArray)) {
+                        throw new Error("existingImageIDs is not an array");
+                    }
+                    existingImageIDsArray = existingImageIDsArray.map(id => Number(id));
+                } catch (e) {
+                    console.error("Error parsing existingImageIDs:", e);
+                    throw { status: 400, message: "Invalid format for existingImageIDs" };
+                }
+            }
+
+            if (existingVideoIDs) {
+                try {
+                    existingVideoIDsArray = JSON.parse(existingVideoIDs);
+                    if (!Array.isArray(existingVideoIDsArray)) {
+                        throw new Error("existingVideoIDs is not an array");
+                    }
+                    existingVideoIDsArray = existingVideoIDsArray.map(id => Number(id));
+                } catch (e) {
+                    console.error("Error parsing existingVideoIDs:", e);
+                    throw { status: 400, message: "Invalid format for existingVideoIDs" };
+                }
+            }
+
+            console.log("Parsed existingImageIDsArray:", existingImageIDsArray);
+            console.log("Parsed existingVideoIDsArray:", existingVideoIDsArray);
+
+            // Retrieve all existing resources associated with the product
+            const existingResources = await transactionalEntityManager.find(Resources, {
+                where: { Product: { ProductID: Number(productId) } }
+            });
+
+            console.log("Existing resources:", existingResources.map(r => ({ id: r.ResourceID, name: r.entityName })));
+
+            // Separate existing images and videos
+            const existingImageResources = existingResources.filter(r => r.fileType.startsWith('image/'));
+            const existingVideoResources = existingResources.filter(r => r.fileType.startsWith('video/'));
+
+            // Determine which image resources to delete
+            const imageResourcesToDelete = existingImageResources.filter(r => !existingImageIDsArray.includes(r.ResourceID));
+
+            // Determine which video resources to delete
+            const videoResourcesToDelete = existingVideoResources.filter(r => !existingVideoIDsArray.includes(r.ResourceID));
+
+            console.log("Image Resources to delete:", imageResourcesToDelete.map(r => r.ResourceID));
+            console.log("Video Resources to delete:", videoResourcesToDelete.map(r => r.ResourceID));
+
+            // Delete image resources
+            for (const resource of imageResourcesToDelete) {
+                console.log("Deleting image resource:", resource.ResourceID, resource.filePath);
+                const deleteResult = await transactionalEntityManager.delete(Resources, { ResourceID: resource.ResourceID });
+                console.log(`Delete Result for ResourceID ${resource.ResourceID}:`, deleteResult);
+
+                if (deleteResult.affected && deleteResult.affected > 0) {
+                    const normalizedFilePath = resource.filePath.replace(/\\/g, "/");
+                    const absoluteFilePath = path.resolve(__dirname, '../../../', normalizedFilePath);
+
+                    console.log("Deleting image file at:", absoluteFilePath);
+                    try {
+                        await unlink(absoluteFilePath); // No callback, just await the promise
+                        console.log(`Deleted image file: ${absoluteFilePath}`);
+                    } catch (err: any) {
+                        if (err.code === 'ENOENT') {
+                            console.warn(`Image file not found: ${absoluteFilePath}`);
+                        } else {
+                            console.error(`Failed to delete image file: ${absoluteFilePath}`, err);
+                            throw { status: 500, message: `Failed to delete image file: ${absoluteFilePath}` };
+                        }
+                    }
+                } else {
+                    console.warn(`No image record found with ResourceID: ${resource.ResourceID}`);
+                }
+            }
+
+            // Delete video resources
+            for (const resource of videoResourcesToDelete) {
+                console.log("Deleting video resource:", resource.ResourceID, resource.filePath);
+                const deleteResult = await transactionalEntityManager.delete(Resources, { ResourceID: resource.ResourceID });
+                console.log(`Delete Result for ResourceID ${resource.ResourceID}:`, deleteResult);
+
+                if (deleteResult.affected && deleteResult.affected > 0) {
+                    const normalizedFilePath = resource.filePath.replace(/\\/g, "/");
+                    const absoluteFilePath = path.resolve(__dirname, '../../../', normalizedFilePath);
+
+                    console.log("Deleting video file at:", absoluteFilePath);
+                    try {
+                        await unlink(absoluteFilePath); // No callback, just await the promise
+                        console.log(`Deleted video file: ${absoluteFilePath}`);
+                    } catch (err: any) {
+                        if (err.code === 'ENOENT') {
+                            console.warn(`Video file not found: ${absoluteFilePath}`);
+                        } else {
+                            console.error(`Failed to delete video file: ${absoluteFilePath}`, err);
+                            throw { status: 500, message: `Failed to delete video file: ${absoluteFilePath}` };
+                        }
+                    }
+                } else {
+                    console.warn(`No video record found with ResourceID: ${resource.ResourceID}`);
+                }
+            }
+
+            // Handle uploaded files (images and videos)
+            const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+
+            const images = files?.images || [];
+            const videos = files?.videos || [];
+
+            console.log("Uploaded images:", images.map(f => f.filename));
+            console.log("Uploaded videos:", videos.map(f => f.filename));
+
+            // Add new image resources using insert()
             for (const image of images) {
-                const resource = Resources.create({
-                    entityName: image.filename,
-                    filePath: `resources/${image.filename}`,
-                    fileType: image.mimetype,
-                    Product: product,
-                });
-                await resource.save();
+                const resourceExists = existingImageResources.some(r => r.entityName === image.filename);
+                if (!resourceExists) {
+                    const insertResult = await transactionalEntityManager.insert(Resources, {
+                        entityName: image.filename,
+                        filePath: `resources/${image.filename}`,
+                        fileType: image.mimetype,
+                        Product: { ProductID: Number(productId) }
+                    });
+                    console.log("Inserted new image resource:", insertResult.identifiers);
+                } else {
+                    console.log("Image resource already exists:", image.filename);
+                }
             }
-        }
 
-        const videos = files?.videos || [];
-        if (videos.length > 0) {
+            // Add new video resources using insert()
             for (const video of videos) {
-                const resource = Resources.create({
-                    entityName: video.filename,
-                    filePath: `resources/${video.filename}`,
-                    fileType: video.mimetype,
-                    Product: product,
-                });
-                await resource.save();
+                const resourceExists = existingVideoResources.some(r => r.entityName === video.filename);
+                if (!resourceExists) {
+                    const insertResult = await transactionalEntityManager.insert(Resources, {
+                        entityName: video.filename,
+                        filePath: `resources/${video.filename}`,
+                        fileType: video.mimetype,
+                        Product: { ProductID: Number(productId) }
+                    });
+                    console.log("Inserted new video resource:", insertResult.identifiers);
+                } else {
+                    console.log("Video resource already exists:", video.filename);
+                }
             }
-        }
 
-        if (SubCategoryID) {
-            const subCategory = await SubCategories.findOne({ where: { SubCategoryID } });
-            if (!subCategory) {
-                return res.status(404).send({ message: "SubCategory not found" });
-            }
-            product.SubCategory = subCategory;
-        }
+            console.log("Update transaction completed successfully.");
+        });
 
-        await productRepository.save(product);
+        // After transaction, fetch updated product with resources
+        const updatedProduct = await database.getRepository(Products).findOne({
+            where: { ProductID: Number(productId) },
+            relations: ["Resource", "SubCategory", "SubCategory.Category", "Brand", "Offer", "Review", "Review.User", "Review.User.UserProfilePicture"]
+        });
 
-        return res.status(200).send({ message: "Product updated successfully", success: true });
-
+        return res.status(200).json({
+            message: "Product updated successfully",
+            success: true,
+            updatedProduct
+        });
     } catch (error: any) {
-        console.error("Error:", error);
-        return res.status(500).send({ message: "An error occurred", error: error.message });
+        console.error("Error in s_updateProduct:", error);
+        if (error.status && error.message) {
+            return res.status(error.status).json({ message: error.message, success: false });
+        }
+        return res.status(500).json({ message: "An internal server error occurred", success: false });
     }
 };
-
-
-
-
 // --------------------- get 5 random products under men category ---------------------
 export const s_getRandomMenProducts = async (req: Request, res: Response) => {
     try {
@@ -344,6 +504,16 @@ export const s_deleteProduct = async (req: Request, res: Response) => {
 
         if (!product) {
             return res.status(404).send({ message: "Product not found" });
+        }
+
+        const isOrdered = await OrdersProducts.findOne({ where: { Product: { ProductID: productId } } });
+        if (isOrdered) {
+            return res.status(400).send({ message: "Product cannot be deleted because it is already ordered" });
+        }
+
+        const isPackage = await Packages.findOne({ where: { PackageProduct: { Product: { ProductID: productId } } } });
+        if (isPackage) {
+            return res.status(400).send({ message: "Product cannot be deleted because it is already in a package" });
         }
 
         await productRepository.delete({ ProductID: productId });

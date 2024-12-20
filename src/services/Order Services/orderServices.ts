@@ -186,7 +186,10 @@ export const s_getCartUser = async (req: Request, res: Response) => {
 export const s_getAllOrdersAdmin = async (req: Request, res: Response) => {
     try {
         const orders = await Orders.find({
-            where: { Status: In(["purchased", "under review", "rejected"]) },
+            where: {
+                Status: In(['pending', 'purchased', 'under review', 'rejected',
+                    'shipped', 'delivered', 'returned', 'canceled', 'completed']    )
+            },
             relations: ["User", "OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
         });
         console.log('Fetched Orders:', orders);

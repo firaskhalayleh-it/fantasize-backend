@@ -34,8 +34,8 @@ export const s_getAllCategories = async (req: Request, res: Response) => {
 //----------------------- Get category by ID-----------------------
 export const s_getCategory = async (req: Request, res: Response) => {
     try {
-        const categoryId :any = req.params.categoryId;
-        const category = await Categories.findOne({ where: { CategoryID: categoryId } });
+        const categoryId  = req.params.categoryId;
+        const category = await Categories.findOne({ where: { CategoryID: Number(categoryId) } ,relations: ['SubCategory', 'Image'] });
 
         if (! category) {
             return res.status(404).json({ message: 'Category not found' });
