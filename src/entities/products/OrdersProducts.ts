@@ -1,56 +1,63 @@
+// src/entities/products/OrdersProducts.ts
+
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    ManyToOne,
-    CreateDateColumn,
-    UpdateDateColumn,
-    BaseEntity,
-    OneToMany
-  } from 'typeorm';
-  import { Users } from '../users/Users';
-  import { PaymentMethods } from '../users/PaymentMethods';
-  import { Addresses } from '../users/Addresses';
-import { Products } from './Products';
-  
-  @Entity()
-  export class Orders extends BaseEntity {
-    @PrimaryGeneratedColumn('increment')
-    OrderID: number;
-  
-    @ManyToOne(() => Users, (user) => user.UserID)
-    User: Users;
+  Entity,
+  BaseEntity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BeforeInsert,
+  BeforeUpdate,
+  OneToMany,
+  OneToOne,
+  JoinColumn,
+} from "typeorm";
+import { Orders } from "../Orders";
+import { Products } from "./Products";
+import { OrderedCustomization } from "../OrderedCustomization";
 
-    @OneToMany(() => Products, (products) => products.ProductID)
-    Products: Products[];
-  
-    @Column('varchar')
-    Status: string;
-  
-    @Column('boolean')
-    IsGift: boolean;
-  
-    @Column('text')
-    GiftMessage: string;
-  
-    @Column('boolean')
-    IsAnonymous: boolean;
-  
-    @Column('decimal')
-    TotalPrice: number;
+@Entity({ name: 'OrdersProducts' })
+export class OrdersProducts extends BaseEntity {
+  @PrimaryGeneratedColumn('increment')
+  OrderProductID: number;
 
+  @ManyToOne(() => Orders, (order) => order.OrdersProducts, { onDelete: 'CASCADE' })
+  Order: Orders;
 
+  @ManyToOne(() => Products, (product) => product.OrdersProducts, { eager: true })
+  Product: Products;
+
+  @OneToOne(() => OrderedCustomization, (orderedCustomization) => orderedCustomization.OrdersProducts, { eager: true })
+  @JoinColumn()
+  OrderedCustomization: OrderedCustomization;
   
-    @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.PaymentMethodID)
-    PaymentMethod: PaymentMethods;
-  
-    @ManyToOne(() => Addresses, (address) => address.AddressID)
-    Address: Addresses;
-  
-    @CreateDateColumn()
-    CreatedAt: Date;
-  
-    @UpdateDateColumn()
-    UpdatedAt: Date;
+
+  @Column('int')
+  Quantity: number;
+
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  TotalPrice: number;
+
+  @CreateDateColumn()
+  CreatedAt: Date;
+
+  @UpdateDateColumn()
+  UpdatedAt: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async calculateTotalPrice() {
+    if (this.Product && this.Quantity) {
+      let finalPrice = Number(this.Product.Price);
+      
+      if (this.Product.Offer && this.Product.Offer.IsActive) {
+        const discount = this.Product.Offer.Discount;
+        finalPrice = finalPrice - (finalPrice * (discount / 100));
+      }
+
+      this.TotalPrice = finalPrice * this.Quantity;
+    }
   }
-  
+}

@@ -1,56 +1,70 @@
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    ManyToOne,
-    CreateDateColumn,
-    UpdateDateColumn,
-    BaseEntity,
-    OneToMany
-  } from 'typeorm';
-  import { Users } from '../users/Users';
-  import { PaymentMethods } from '../users/PaymentMethods';
-  import { Addresses } from '../users/Addresses';
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BaseEntity,
+  ManyToMany,
+  JoinTable,
+  JoinColumn,
+  BeforeInsert,
+  BeforeUpdate,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
+import { Users } from '../users/Users';
+import { PaymentMethods } from '../users/PaymentMethods';
+import { Addresses } from '../users/Addresses';
 import { Packages } from './Packages';
-  
-  @Entity()
-  export class Orders extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    OrderID: number;
-  
-    @ManyToOne(() => Users, (user) => user.UserID)
-    User: Users;
+import { Orders } from '../Orders';
+import { before } from 'node:test';
+import { OrderedCustomization } from '../OrderedCustomization';
 
-    @OneToMany(() => Packages, (packages) => packages.PackageID)
-    Packages: Packages[];
-  
-    @Column('varchar')
-    Status: string;
-  
-    @Column('boolean')
-    IsGift: boolean;
-  
-    @Column('text')
-    GiftMessage: string;
-  
-    @Column('boolean')
-    IsAnonymous: boolean;
-  
-    @Column('decimal')
-    TotalPrice: number;
+@Entity({ name: 'OrdersPackages' })
+export class OrdersPackages extends BaseEntity {
+  @PrimaryGeneratedColumn('increment', { name: 'OrderPackageID' })
+  OrderPackageID: number;
+
+  @ManyToOne(() => Orders, (order) => order.OrdersPackages, { onDelete: 'CASCADE' })
+  Order: Orders;
+
+  @Column('int', { nullable: true })
+  quantity: number;
+
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  TotalPrice: number;
+
+  @OneToOne(() => OrderedCustomization, (orderedCustomization) => orderedCustomization.OrdersPackages, { eager: true })
+  @JoinColumn()
+  OrderedCustomization: OrderedCustomization;
+
+  @ManyToOne(() => Packages, (pkg) => pkg.OrdersPackages, { onDelete: 'CASCADE', eager: true })
+  Package: Packages;
 
 
-  
-    @ManyToOne(() => PaymentMethods, (paymentMethod) => paymentMethod.PaymentMethodID)
-    PaymentMethod: PaymentMethods;
-  
-    @ManyToOne(() => Addresses, (address) => address.AddressID)
-    Address: Addresses;
-  
-    @CreateDateColumn()
-    CreatedAt: Date;
-  
-    @UpdateDateColumn()
-    UpdatedAt: Date;
+  @CreateDateColumn()
+  CreatedAt: Date;
+
+  @UpdateDateColumn()
+  UpdatedAt: Date;
+
+
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async calculateTotalPrice() {
+    if (this.Package && this.Package.Price && this.quantity) {
+      let finalPrice = this.Package.Price;
+
+      if (this.Package.Offer && this.Package.Offer.IsActive) {
+        const discount = this.Package.Offer.Discount;
+        finalPrice = finalPrice - (finalPrice * (discount / 100));
+      }
+
+      this.TotalPrice = finalPrice * this.quantity;
+    }
   }
-  
+
+}

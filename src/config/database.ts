@@ -1,7 +1,5 @@
-
 import { DataSource } from "typeorm";
 import 'dotenv/config';
-
 
 export const database = new DataSource({
     type: 'postgres',
@@ -12,30 +10,19 @@ export const database = new DataSource({
     database: process.env.DATABASE_NAME,
     logging: false,
     synchronize: true,
-    schema: 'fatansize_test',
+    schema: 'fantasize_test',
     entities: [
         'src/entities/**/*.ts',
+        'src/entities/*.ts',
     ],
-
+    migrations: ['src/migrations/*.ts'],
 });
 
-
-export const initlizeDB = async () => {
-    await database.connect().then(() => {
-        console.log('database initlized : ', database.isConnected);
+export const initializeDB = async () => {
+    try {
+        await database.initialize();
+        console.log('Database initialized successfully');
+    } catch (err: any) {
+        console.error('Database initialization failed:', err);
     }
-    ).catch((error) => {
-        console.log('database initlized : ', database.isConnected);
-
-        console.log('database connection error : ', error);
-
-
-    });
-
-
-
-
-
-
-
-}
+};
