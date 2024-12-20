@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { s_createPackage, s_getAllPackages, s_getAllPackagesUnderSpecificSubcategory,
      s_getPackageByID, s_updatePackage ,s_getRandomPackagesWomen,
-     s_getRandomPackagesMen, s_getLastPackage} from '../../services/Packages Services/packagesServices';
+     s_getRandomPackagesMen, s_getLastPackage,s_deletePackage} from '../../services/Packages Services/packagesServices';
 
 //----------------------- Create a new package-----------------------
 export const c_createPackage = async (req:Request , res:Response) =>{
@@ -57,5 +57,12 @@ export const c_getRandomPackagesMen = async (req:Request , res:Response) =>{
 export const c_getLastPackage = async (req:Request , res:Response) =>{
 
     const result = await s_getLastPackage(req, res);
+    res.status(200).json(result);
+}
+
+//----------------------- Delete a package -----------------------
+export const c_deletePackage = async (req:Request , res:Response) =>{
+
+    const result = await s_deletePackage(req, res);
     res.status(200).json(result);
 }

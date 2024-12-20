@@ -41,7 +41,7 @@ export const createNewOrderPackage = async (req: Request, res: Response) => {
     let order = await Orders.findOne({
       where: {
         User: { UserID: userId },
-        Status: false,
+        Status: 'pending',
       },
       relations: ["User", "OrdersPackages", "OrdersPackages.Package", "OrdersPackages.OrderedCustomization"],
     });
@@ -354,10 +354,10 @@ export const getOrderPackage = async (req: Request, res: Response) => {
       where: {
         OrderPackageID: orderPackageId
       },
-      relations: ["Order", "Package", "OrderedCustomization"]
+      relations: ["Order", "Package", "OrderedCustomization", "Package.Resource"]
     });
 
-    if (!orderPackage) {
+    if (!orderPackage) {  
       return res.status(404).send({ message: "Order Package not found" });
     }
 

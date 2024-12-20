@@ -573,7 +573,7 @@ export const s_getRandomPackagesMen = async (req: Request, res: Response) => {
 // ----------------------------get last package--------------------------------
 export const s_getLastPackage = async (req: Request, res: Response) => {
     try {
-        const lastPackage = await Packages.findOne({ where:{}, order: { PackageID: 'DESC' }, relations: ['PackageProduct', 'Reviews', 'SubCategory', 'Resource', 'Customization', 'Offer'] });
+        const lastPackage = await Packages.findOne({ where: {}, order: { PackageID: 'DESC' }, relations: ['PackageProduct', 'Reviews', 'SubCategory', 'Resource', 'Customization', 'Offer'] });
         if (!lastPackage) {
             return res.status(404).send({ message: "No packages found" });
         }
@@ -582,5 +582,98 @@ export const s_getLastPackage = async (req: Request, res: Response) => {
         console.log(error);
         return res.status(500).send({ message: error });
     }
+}
+
+
+// ---------------------------- delete a package--------------------------------
+export const    s_deletePackage = async (req: Request, res: Response) => {
+    try {
+        const packageId = req.params.packageId;
+        if (!packageId) {
+            return res.status(400).send({ message: "Please provide a package ID" });
+        }
+
+        await database.manager.transaction(async (transactionalEntityManager: EntityManager) => {
+            // Fetch the package along with its associated resources and products
+            const pkg = await transactionalEntityManager.findOne(Packages, {
+                where: { PackageID: Number(packageId) },
+                relations: ["Resource", "PackageProduct", "PackageProduct.Product"],
+            });
+
+            if (!pkg) {
+                throw { status: 404, message: "Package not found" };
+            }
+
+            // Fetch existing PackageProduct entries
+            const existingPackageProducts = pkg.PackageProduct || [];
+
+            // Restore stock for each product
+            for (const existingPP of existingPackageProducts) {
+                const product = await transactionalEntityManager.findOne(Products, { where: { ProductID: existingPP.Product.ProductID } });
+                if (product) {
+                    product.Quantity += existingPP.Quantity;
+                    await transactionalEntityManager.save(product);
+                    console.log(`Restored stock for Product ID ${product.ProductID}: New Stock = ${product.Quantity}`);
+                }
+
+                // Remove PackageProduct entry
+                await transactionalEntityManager.remove(PackageProduct, existingPP);
+                console.log(`Removed PackageProduct for Product ID ${existingPP.Product.ProductID}`);
+            }
+
+            // Retrieve all existing resources associated with the package
+            const existingResources = await transactionalEntityManager.find(Resources, {
+                where: { Package: { PackageID: Number(packageId) } },
+            });
+
+            // Delete all resources
+            for (const resource of existingResources) {
+                console.log(`Deleting resource:`, resource.ResourceID, resource.filePath);
+                const deleteResult = await transactionalEntityManager.delete(Resources, { ResourceID: resource.ResourceID });
+                console.log(`Delete Result for ResourceID ${resource.ResourceID}:`, deleteResult);
+
+                if (deleteResult.affected && deleteResult.affected > 0) {
+                    let normalizedFilePath = resource.filePath.replace(/\\/g, "/");
+                    if (!normalizedFilePath.startsWith("/")) {
+                        normalizedFilePath = "/" + normalizedFilePath;
+                    }
+                    normalizedFilePath = normalizedFilePath.replace(/\/\//g, "/"); // Replace double slashes with single slash
+
+                    const absoluteFilePath = path.resolve(__dirname, '../../', normalizedFilePath);
+
+                    console.log(`Deleting file at:`, absoluteFilePath);
+                    try {
+                        await fs.unlink(absoluteFilePath);
+                        console.log(`Deleted file: ${absoluteFilePath}`);
+                    } catch (err: any) {
+                        if (err.code === 'ENOENT') {
+                            console.warn(`File not found: ${absoluteFilePath}`);
+                        } else {
+                            console.error(`Failed to delete file: ${absoluteFilePath}`, err);
+                            throw { status: 500, message: `Failed to delete file: ${absoluteFilePath}` };
+                        }
+                    }
+                }
+            }
+
+            // Remove the package
+            await transactionalEntityManager.remove(Packages, pkg);
+            console.log(`Removed Package ID ${pkg.PackageID}`);
+
+
+            return res.status(200).json({
+                message: "Package deleted successfully",
+                success: true,
+            });
+        });
+    }
+    catch (error: any) {
+        console.error("Error in s_deletePackage:", error);
+        if (error.status && error.message) {
+            return res.status(error.status).json({ message: error.message, success: false });
+        }
+        return res.status(500).json({ message: "An internal server error occurred", success: false });
+    }
+
 }
 

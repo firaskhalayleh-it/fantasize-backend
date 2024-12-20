@@ -302,7 +302,7 @@ export const getOrderProductById = async (req: Request, res: Response) => {
 
         const orderProduct = await OrdersProducts.findOne({
             where: { OrderProductID: orderProductId },
-            relations: ["Order", "Product", "OrderedCustomization"]
+            relations: ["Order", "Product", "OrderedCustomization","Product.Resource"]
         });
 
         if (!orderProduct) {

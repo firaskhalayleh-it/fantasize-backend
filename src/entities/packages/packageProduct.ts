@@ -14,9 +14,9 @@ export class PackageProduct extends BaseEntity {
   @Column('int')
   Quantity: number;
 
-  @ManyToOne(() => Packages, (pkg) => pkg.PackageProduct, { onDelete: 'CASCADE' ,eager: true})
+  @ManyToOne(() => Packages, (pkg) => pkg.PackageProduct, { onDelete: 'CASCADE' ,})
   Package: Packages;  
 
-  @ManyToOne(() => Products, (product) => product.PackageProduct, { onDelete: 'CASCADE' ,eager: true})
+  @ManyToOne(() => Products, (product) => product.PackageProduct, { onDelete: 'CASCADE' ,})
   Product: Products;
 }

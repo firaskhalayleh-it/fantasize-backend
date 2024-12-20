@@ -2,7 +2,7 @@ import express from "express"
 import { isAuthorized } from "../../middlewares/isAuthentecated";
 import { c_createPackage, c_getAllPackages, c_getAllPackagesUnderSpecificSubcategory,
      c_getPackageByID, c_updatePackage ,c_getRandomPackages,c_getRandomPackagesMen
-    ,c_getLastPackage} from "../../controllers/Packages Controller/packagesController";
+    ,c_getLastPackage,c_deletePackage} from "../../controllers/Packages Controller/packagesController";
 import { uploadFields } from "../../middlewares/multerMiddleware";
 
 const packageRoute = express.Router();
@@ -75,6 +75,15 @@ packageRoute.get('/packages/random/men', c_getRandomPackagesMen);
  */
 
 packageRoute.get('/last/package', c_getLastPackage);
+
+/**
+ *  @description   Delete a package
+ * @route         /packages/:packageId
+ * @method        DELETE
+ * @access        private (admin)
+ */
+packageRoute.delete('/packages/:packageId', isAuthorized, c_deletePackage);
+
 
 
 export default packageRoute;

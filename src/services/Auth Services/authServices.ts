@@ -184,12 +184,14 @@ export const s_signInWithGoogle = async (req: Request, res: Response) => {
 
         let profilePicture: Resources | null = null;
         if (req.file) {
-            profilePicture = Resources.create({
-                entityName: req.file.filename,
-                filePath: path.join('resources', req.file.filename),
-                fileType: req.file.mimetype,
-            });
-            profilePicture = await profilePicture.save();
+            if (!user?.UserProfilePicture) {
+                profilePicture = Resources.create({
+                    entityName: req.file.filename,
+                    filePath: path.join('resources', req.file.filename),
+                    fileType: req.file.mimetype,
+                });
+                profilePicture = await profilePicture.save();
+            }
         }
 
         if (!user) {
