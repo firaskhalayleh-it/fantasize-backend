@@ -59,6 +59,24 @@ export const s_getProduct = async (req: Request, res: Response) => {
     }
 }
 
+
+// ---------------------> Get product by id <---------------------
+export const s_singleProduct = async (req: Request, res: Response) => {
+    try {
+        const productId: any = req.params.id;
+        const product = await Products.findOne({ where: { ProductID: productId }, relations: ['Brand', 'SubCategory', 'Review', 'Review.User', 'Review.User.UserProfilePicture', 'Offer'] });
+
+        if (!product) {
+            return "The Product Not Found !";
+        }
+
+        return product;
+    } catch (err: any) {
+        console.log(err);
+        res.status(500).send({ message: err.message })
+    }
+}
+
 // ---------------------> Get product by category and sub category<---------------------
 export const s_getProductByCategoryAndSubCategory = async (req: Request, res: Response) => {
     try {
