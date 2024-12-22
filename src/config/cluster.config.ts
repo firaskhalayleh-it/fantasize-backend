@@ -8,7 +8,7 @@ export const clusterConfig = {
 
   server: {
     // Make sure your environment variable is set, or fallback to 3000
-    port: parseInt(process.env.APP_PORT || '3000', 10),
+    port: parseInt(process.env.APP_PORT || '5000', 10),
     // Use 0.0.0.0 to listen on all interfaces
     host: '0.0.0.0',
 
