@@ -27,7 +27,7 @@ orderProductRoute.post('/order', IsAuthenticated, c_createNewOrderUser);
  *  @method        PUT
  *  @access        private
  */
-orderProductRoute.put('/orderproduct/:orderProductId', isAuthorized, c_updateOrderProduct);
+orderProductRoute.put('/orderproduct/:orderProductId', IsAuthenticated, c_updateOrderProduct);
 
 
 
@@ -38,7 +38,7 @@ orderProductRoute.put('/orderproduct/:orderProductId', isAuthorized, c_updateOrd
  *  @access        private
  */
 
-orderProductRoute.delete('/order/:orderId/:orderProductId', isAuthorized, c_deleteOrderProduct);
+orderProductRoute.delete('/order/:orderId/:orderProductId', IsAuthenticated, c_deleteOrderProduct);
 
 
 
@@ -49,7 +49,7 @@ orderProductRoute.delete('/order/:orderId/:orderProductId', isAuthorized, c_dele
  *  @method        GET
  *  @access        private
  */
-orderProductRoute.get('/orderproduct/:orderProductId', isAuthorized, c_getOrderProductById);
+orderProductRoute.get('/orderproduct/:orderProductId', IsAuthenticated, c_getOrderProductById);
 
 
 export default orderProductRoute;

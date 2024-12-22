@@ -47,7 +47,7 @@ const IP = ip.address();
 
 app.use(cookieParser());
 
-const PORT = process.env.APP_PORT || 3000;
+const PORT = parseInt(process.env.APP_PORT || '3000', 10);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -106,7 +106,7 @@ app.use(notFound);
 app.use(errorHandler);
 app.use(validateUUIDParam);
 
-app.listen(PORT, async () => {
+app.listen(PORT, '0.0.0.0', async () => {
   await initializeDB();
   console.log(`Server is running on http://${IP}:${PORT}`);
 });

@@ -9,7 +9,7 @@ export class MaterialProduct extends BaseEntity {
     @PrimaryGeneratedColumn()
     MaterialProductID: number;
 
-    @ManyToOne(() => Material, (material) => material.materialProduct)
+    @ManyToOne(() => Material, (material) => material.materialProduct,{eager: true})
     Material: Material;
 
     @ManyToOne(() => Products, (product) => product.MaterialProduct, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })

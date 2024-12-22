@@ -1,5 +1,5 @@
 import express from 'express';
-import { isAuthorized } from '../../middlewares/isAuthentecated';
+import { IsAuthenticated } from '../../middlewares/isAuthentecated';
 import { c_addNewBrand, c_deleteBrand, c_getAllBrands, c_updateBrand,c_getBrandForProduct } from '../../controllers/Brands Controller/brandsController';
 
 const brandRoute = express.Router();
@@ -10,7 +10,7 @@ const brandRoute = express.Router();
  *  @method        POST
  *  @access        private (admin)
  */
-brandRoute.post('/AddBrands' , isAuthorized , c_addNewBrand);
+brandRoute.post('/AddBrands' , IsAuthenticated , c_addNewBrand);
 
 /**
  *  @description   Get all brands
@@ -28,7 +28,7 @@ brandRoute.get('/brands' , c_getAllBrands);
  *  @method        PUT
  *  @access        private (admin)
  */
-brandRoute.put('/brands/:brandId' , isAuthorized,c_updateBrand);
+brandRoute.put('/brands/:brandId' , IsAuthenticated,c_updateBrand);
 
 /**
  *  @description   Delete a brand
@@ -36,7 +36,7 @@ brandRoute.put('/brands/:brandId' , isAuthorized,c_updateBrand);
  *  @method        DELETE
  *  @access        private (admin)
  */
-brandRoute.delete('/brands/:brandId',isAuthorized , c_deleteBrand);
+brandRoute.delete('/brands/:brandId',IsAuthenticated , c_deleteBrand);
 
 /**
  *  @description   Get brand for product

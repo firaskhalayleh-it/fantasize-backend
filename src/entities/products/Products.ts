@@ -34,7 +34,7 @@ export class Products extends BaseEntity {
   Status: string;
 
 
-  @OneToMany(() => MaterialProduct, (materialProduct) => materialProduct.Product, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @OneToMany(() => MaterialProduct, (materialProduct) => materialProduct.Product, { onDelete: 'CASCADE', onUpdate: 'CASCADE' ,eager: true})
   MaterialProduct: MaterialProduct[];
 
   @Column('decimal', { precision: 9, scale: 2, default: 0 })
@@ -44,7 +44,7 @@ export class Products extends BaseEntity {
   AvgRating: number;
 
 
-  @ManyToOne(() => Brands, (brand) => brand.Products,)
+  @ManyToOne(() => Brands, (brand) => brand.Products,{eager:true})
   Brand: Brands;
 
   @ManyToOne(() => SubCategories, (subcategory) => subcategory.Products,)

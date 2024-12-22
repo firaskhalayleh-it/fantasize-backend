@@ -133,10 +133,14 @@ export const s_getAllReviewsPackage = async (req: Request, res: Response) => {
 export const s_updateReview = async (req: Request, res: Response) => {
     try {
         const reviewId :any = req.params.reviewId;
+        const user = (req as any).user.payload.userId;
         const { Rating, Comment } = req.body;
         const reviewToUpdate = await Reviews.findOne({ where: { ReviewID: reviewId } });
         if (!reviewToUpdate) {
             return res.status(404).send({ message: "Review not found" });
+        }
+        if (reviewToUpdate.User.UserID !== user) {
+            return res.status(403).send({ message: "You are not authorized to update this review" });
         }
         reviewToUpdate.Rating = Rating || reviewToUpdate.Rating;
         reviewToUpdate.Comment = Comment || reviewToUpdate.Comment;
@@ -154,9 +158,13 @@ export const s_updateReview = async (req: Request, res: Response) => {
 export const s_deleteReview = async (req: Request, res: Response) => {
     try {
         const reviewId = Number(req.params.reviewId);
+        const user = (req as any).user.payload.userId;
         const review = await Reviews.findOne({ where: { ReviewID: reviewId } });
         if (!review) {
             return res.status(404).send({ message: "Review not found" });
+        }
+        if (review.User.UserID !== user) {
+            return res.status(403).send({ message: "You are not authorized to delete this review" });
         }
         await review.remove();
         return "Review deleted";

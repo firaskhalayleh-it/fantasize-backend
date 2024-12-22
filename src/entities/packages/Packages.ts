@@ -46,7 +46,7 @@ export class Packages extends BaseEntity {
   Quantity: number;
 
 
-  @OneToMany(() => MaterialPackage, (materialPackage) => materialPackage.Package)
+  @OneToMany(() => MaterialPackage, (materialPackage) => materialPackage.Package, { eager: true })
   MaterialPackage: MaterialPackage[];
 
 
@@ -95,7 +95,7 @@ export class Packages extends BaseEntity {
   @OneToMany(() => FavoritePackages, (favoritePackages) => favoritePackages.Package)
   FavoritePackages: FavoritePackages[];
 
-  @ManyToMany(() => Reviews, (review) => review.Packages)
+  @ManyToMany(() => Reviews, (review) => review.Packages, { eager: true })
   Reviews: Reviews[];
 
   @CreateDateColumn()

@@ -14,7 +14,7 @@ export class Reviews extends BaseEntity {
     @Column('text', {nullable: true})
     Comment: string;
 
-    @ManyToOne(() => Users, (user) => user.UserID)
+    @ManyToOne(() => Users, (user) => user.UserID, { eager: true })
     User: Users;
 
     @ManyToMany(() => Products, (product) => product.Review)

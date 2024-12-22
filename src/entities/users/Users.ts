@@ -66,7 +66,7 @@ export class Users extends BaseEntity {
   @Column('varchar', { nullable: true })
   Gender: string;
 
-  @OneToOne(() => Resources, (resource) => resource.User, { nullable: true })
+  @OneToOne(() => Resources, (resource) => resource.User, { nullable: true ,eager: true})
   @JoinColumn()
   UserProfilePicture: Resources;
 

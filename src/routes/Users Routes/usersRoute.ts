@@ -65,6 +65,7 @@ userRoute.get("/getusers/:id", isAuthorized, c_getUserNameWithProfilePic);
  */
 userRoute.put("/reset_password/:resetToken", c_resetUserPassword);
 
+
 /**
  *  @description  reset user password
  *  @route        /update_password

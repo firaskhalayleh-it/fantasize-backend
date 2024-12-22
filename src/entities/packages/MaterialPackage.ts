@@ -7,7 +7,7 @@ export class MaterialPackage extends BaseEntity {
     @PrimaryGeneratedColumn()
     MaterialPackageID: number;
 
-    @ManyToOne(() => Material, (material) => material.materialPackage)
+    @ManyToOne(() => Material, (material) => material.materialPackage, { eager: true })
     Material: Material;
 
     @ManyToOne(() => Packages, (pkg) => pkg.MaterialPackage)

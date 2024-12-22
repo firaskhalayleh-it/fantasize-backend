@@ -16,7 +16,7 @@ const customizationRoute = express.Router();
  *  @method         post
  *  @access         private
  */
-customizationRoute.post('/customization', IsAuthenticated, isAuthorized, uploadDynamic, c_createCustomization);
+customizationRoute.post('/customization', isAuthorized, uploadDynamic, c_createCustomization);
 
 
 /**
@@ -25,7 +25,7 @@ customizationRoute.post('/customization', IsAuthenticated, isAuthorized, uploadD
  *  @method         get
  *  @access         private
  */
-customizationRoute.get('/customization', IsAuthenticated, isAuthorized, c_getAllCustomizations);
+customizationRoute.get('/customization', IsAuthenticated, c_getAllCustomizations);
 
 /**
  *  @description    Update customization
@@ -33,7 +33,7 @@ customizationRoute.get('/customization', IsAuthenticated, isAuthorized, c_getAll
  *  @method         put
  *  @access         private
  */
-customizationRoute.put('/customization/:id', IsAuthenticated, isAuthorized, uploadDynamic, c_updateCustomization);
+customizationRoute.put('/customization/:id', isAuthorized, uploadDynamic, c_updateCustomization);
 
 /**
  *  @description    Assign customization to product
@@ -41,7 +41,7 @@ customizationRoute.put('/customization/:id', IsAuthenticated, isAuthorized, uplo
  *  @method         post
  *  @access         private
  */
-customizationRoute.post('/customization/product', IsAuthenticated, isAuthorized, c_assignCustomizationToProduct);
+customizationRoute.post('/customization/product', isAuthorized, c_assignCustomizationToProduct);
 
 /**
  *  @description    Assign customization to package
@@ -49,7 +49,7 @@ customizationRoute.post('/customization/product', IsAuthenticated, isAuthorized,
  *  @method         post
  *  @access         private
  */
-customizationRoute.post('/customization/package', IsAuthenticated, isAuthorized, c_assignCustomizationToPackage);
+customizationRoute.post('/customization/package', isAuthorized, c_assignCustomizationToPackage);
 
 /**
  *  @description    Remove customization from product
@@ -57,7 +57,7 @@ customizationRoute.post('/customization/package', IsAuthenticated, isAuthorized,
  *  @method         delete
  *  @access         private
  */
-customizationRoute.delete('/customization/product', IsAuthenticated, isAuthorized, c_removeCustomizationFromProduct);
+customizationRoute.delete('/customization/product', isAuthorized, c_removeCustomizationFromProduct);
 
 /**
  *  @description    Remove customization from package
@@ -65,7 +65,7 @@ customizationRoute.delete('/customization/product', IsAuthenticated, isAuthorize
  *  @method         delete
  *  @access         private
  */
-customizationRoute.delete('/customization/package', IsAuthenticated, isAuthorized, c_removeCustomizationFromPackage);
+customizationRoute.delete('/customization/package', isAuthorized, c_removeCustomizationFromPackage);
 
 
 
