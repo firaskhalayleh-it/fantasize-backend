@@ -6,6 +6,8 @@ import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import cors from "cors";
+import ip from 'ip';
+import { clusterConfig } from './config/cluster.config';
 import authRoute from "./routes/Auth Routes/authRoutes";
 import { errorHandler, notFound, validateUUIDParam } from "./middlewares/httpErrors";
 import userRoute from "./routes/Users Routes/usersRoute";
@@ -34,78 +36,91 @@ import notificationRoute from "./routes/Notification Routes/notificationRoute";
 import generaroute from "./routes/general Routes/generalRoute";
 import './config/passportConfig';
 
-import ip from 'ip';
-const app = express();
-const IP = ip.address();
-// const corsOptions = {
-//   origin: "http://127.0.0.1:5500",
-//   credentials: true,  
-// };
+async function startServer() {
+    const app = express();
+    const IP = ip.address();
+    const { server, session: sessionConfig, cors: corsConfig } = clusterConfig;
 
-// app.use(cors(corsOptions));
+    // Basic middleware
+    app.use(cookieParser());
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
 
+    // Session setup
+    app.use(session({
+        ...sessionConfig,
+        cookie: {
+            ...sessionConfig.cookie,
+            // Ensure cookie settings are properly applied
+            secure: process.env.NODE_ENV === 'production'
+        }
+    }));
 
-app.use(cookieParser());
+    // Passport initialization
+    app.use(passport.initialize());
+    app.use(passport.session());
 
-const PORT = parseInt(process.env.APP_PORT || '3000', 10);
+    // CORS configuration
+    app.use(cors(corsConfig));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+    // Swagger setup
+    setupSwagger(app);
 
-app.use(session({
-  secret: 'secret-key',
-  resave: false,
-  saveUninitialized: true,
-}));
+    // Static files
+    app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
 
-app.use(passport.initialize());
-app.use(passport.session());
+    // Routes
+    app.use('/api', authGoogleFacebookRoute);
+    app.use("/api", authRoute);
+    app.use("/api", userRoute);
+    app.use("/api", addressRoute);
+    app.use("/api", paymentMethodRoute);
+    app.use("/api", categoryRoute);
+    app.use("/api", productRoute);
+    app.use("/api", userFaves);
+    app.use("/api", orderProductRoute);
+    app.use("/api", packageRoute);
+    app.use("/api", orderPackageRoute);
+    app.use("/api", favoritePackagesRoute);
+    app.use("/api", brandRoute);
+    app.use("/api", reviewsRoute);
+    app.use("/api", offerRoute);
+    app.use("/api", orderRoute);
+    app.use("/api", adminDashboardRoutes);
+    app.use("/api", customizationRoute);
+    app.use("/explore", exploreRoute);
+    app.use("/material", materialRoutes);
+    app.use("/home", homeRoute);
+    app.use("/search", searchRoute);
+    app.use("/general", generaroute);
+    app.use("/notifications", notificationRoute);
 
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization', 'cookie'],
+    // Error handling middleware
+    app.use(notFound);
+    app.use(errorHandler);
+    app.use(validateUUIDParam);
 
+    try {
+        // Initialize database
+        await initializeDB();
+        
+        // Start server
+        app.listen(server.port, server.host, () => {
+            console.log(`Worker ${process.pid} is running on http://${IP}:${server.port}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+}
 
+// Start the server if this file is run directly
+if (require.main === module) {
+    startServer().catch(error => {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    });
+}
 
-
-
-
-}));
-setupSwagger(app);
-app.use('/api', authGoogleFacebookRoute);
-app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
-app.use("/api", authRoute);
-app.use("/api", userRoute);
-app.use("/api", addressRoute);
-app.use("/api", paymentMethodRoute);
-app.use("/api", categoryRoute);
-app.use("/api", productRoute);
-app.use("/api", userFaves);
-app.use("/api", orderProductRoute);
-app.use("/api", packageRoute);
-app.use("/api", orderPackageRoute);
-app.use("/api", favoritePackagesRoute);
-app.use("/api", brandRoute);
-app.use("/api", reviewsRoute);
-app.use("/api", offerRoute);
-app.use("/api", orderRoute);
-app.use("/api", adminDashboardRoutes);
-app.use("/api", customizationRoute);
-app.use("/explore", exploreRoute);
-app.use("/material", materialRoutes);
-app.use("/home", homeRoute);
-app.use("/search", searchRoute);
-app.use("/general", generaroute);
-app.use("/notifications", notificationRoute); 
-
-
-app.use(notFound);
-app.use(errorHandler);
-app.use(validateUUIDParam);
-
-app.listen(PORT, '0.0.0.0', async () => {
-  await initializeDB();
-  console.log(`Server is running on http://${IP}:${PORT}`);
-});
+// Export for testing purposes
+export default startServer;
