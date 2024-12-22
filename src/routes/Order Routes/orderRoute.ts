@@ -56,7 +56,7 @@ export const userOrders = orderRoute.get('/cart', IsAuthenticated, c_getCartForU
  * @method        PUT
  * @access        private
     */
-orderRoute.patch('/orders/:orderId', isAuthorized, c_updateOrderStatus);
+orderRoute.patch('/orders/:orderId', IsAuthenticated, c_updateOrderStatus);
 
 /**
  * @description   Approve order
