@@ -10,7 +10,7 @@ export class FavoritePackages extends BaseEntity{
     @ManyToOne(() => Users, (user) => user.UserID)
     User: Users;
 
-    @ManyToOne(() => Packages, (pkg) => pkg.PackageID)
+    @ManyToOne(() => Packages, (pkg) => pkg.PackageID, {eager:true})
     Package: Packages;
 
     @CreateDateColumn()

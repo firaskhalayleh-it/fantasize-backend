@@ -10,7 +10,7 @@ export class FavoriteProducts extends BaseEntity {
   @ManyToOne(() => Users, (user) => user.UserID,)
   User: Users;
 
-  @ManyToOne(() => Products, (product) => product.FavoriteProducts)
+  @ManyToOne(() => Products, (product) => product.FavoriteProducts, { eager: true })
   Product: Products;
 
   @CreateDateColumn()
