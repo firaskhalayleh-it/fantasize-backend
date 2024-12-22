@@ -17,6 +17,6 @@ export class PackageProduct extends BaseEntity {
   @ManyToOne(() => Packages, (pkg) => pkg.PackageProduct, { onDelete: 'CASCADE' ,})
   Package: Packages;  
 
-  @ManyToOne(() => Products, (product) => product.PackageProduct, { onDelete: 'CASCADE' ,})
+  @ManyToOne(() => Products, (product) => product.PackageProduct, { onDelete: 'CASCADE' ,eager:true})
   Product: Products;
 }
