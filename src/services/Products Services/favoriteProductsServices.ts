@@ -44,8 +44,10 @@ export const s_getAllFavoriteProductsUser = async (req: Request, res: Response) 
 
         const favoriteProducts = await FavoriteProducts.find({ 
             where: { User: { UserID: userId } }, 
-            relations: ["Product"] 
         });
+        if (favoriteProducts.length === 0) {
+            return res.status(404).send({ message: "No favorite products found" });
+        }
 
        
         return res.status(200).send(favoriteProducts);
