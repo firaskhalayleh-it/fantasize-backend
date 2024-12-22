@@ -1,24 +1,26 @@
-import os from 'os';
+import ip from 'ip';
+
+const localIP = ip.address();
 
 export const clusterConfig = {
-    numWorkers: 3, 
-    server: {
-      port: parseInt(process.env.APP_PORT || '5000', 10),
-      host: '0.0.0.0',
-    },
-    session: {
-      secret: process.env.SESSION_SECRET || 'your-secret-key',
-      resave: false,
-      saveUninitialized: true,
-      cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000
-      }
-    },
-    cors: {
-      origin: '*',
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-      credentials: true,
-      allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
-    }
-  };
+  // Adjust to however many workers you want
+  numWorkers: 3,
+
+  server: {
+    // Make sure your environment variable is set, or fallback to 3000
+    port: parseInt(process.env.APP_PORT || '3000', 10),
+    // Use 0.0.0.0 to listen on all interfaces
+    host: '0.0.0.0',
+
+    // You can keep localIP for logging or referencing your LAN IP if desired
+    localIP
+  },
+
+  // Wide-open CORS config. Adjust as needed.
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
+  }
+};
