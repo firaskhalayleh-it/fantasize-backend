@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
+  
+    "scripts": {
+    "start": "ts-node src/cluster.ts",
+    "start:single": "ts-node src/index.ts",
+    "dev": "nodemon src/cluster.ts",
+    "dev:single": "nodemon src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts",
-    "typeorm": "typeorm-ts-node-commonjs"
-  },
+    "prod": "node dist/cluster.js"
+  }
+  ,
   "keywords": [],
   "repository": {
     "type": "git",
