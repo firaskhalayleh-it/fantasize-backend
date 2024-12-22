@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 import cors from "cors";
 import ip from 'ip';
+import cluster from 'cluster';
 import { clusterConfig } from './config/cluster.config';
 import authRoute from "./routes/Auth Routes/authRoutes";
 import { errorHandler, notFound, validateUUIDParam } from "./middlewares/httpErrors";
@@ -38,32 +39,40 @@ import './config/passportConfig';
 
 async function startServer() {
     const app = express();
-    const IP = ip.address();
-    const { server, session: sessionConfig, cors: corsConfig } = clusterConfig;
+    const { server, cors: corsConfig } = clusterConfig;
+
+    // Request logging middleware
+    app.use((req, res, next) => {
+        console.log(`[Worker ${process.pid}] ${req.method} ${req.url}`);
+        next();
+    });
 
     // Basic middleware
     app.use(cookieParser());
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
-    // Session setup
-    app.use(session({
-        ...sessionConfig,
-        cookie: {
-            ...sessionConfig.cookie,
-            // Ensure cookie settings are properly applied
-            secure: process.env.NODE_ENV === 'production'
-        }
-    }));
-
     // Passport initialization
     app.use(passport.initialize());
-    app.use(passport.session());
 
     // CORS configuration
     app.use(cors(corsConfig));
 
-    // Swagger setup
+    // Instance info endpoint for testing
+    app.get('/instance-info', (req, res) => {
+        res.json({
+            pid: process.pid,
+            workerId: cluster.worker?.id || 'N/A',
+            timestamp: new Date().toISOString(),
+            // Note: ip.address() is your local IP; if you're behind NAT, 
+            // this won't be your public IP.
+            serverAddress: `http://${ip.address()}:${server.port}`,
+            clientIP: req.ip,
+            uptime: process.uptime()
+        });
+    });
+
+    // Setup Swagger docs
     setupSwagger(app);
 
     // Static files
@@ -102,11 +111,18 @@ async function startServer() {
 
     try {
         // Initialize database
-        await initializeDB();
+        await initializeDB().then(() => {
+            console.log('Database connection successful');
+        });
         
-        // Start server
+        // IMPORTANT: Listen on 0.0.0.0 so it can be reached from any network
         app.listen(server.port, server.host, () => {
-            console.log(`Worker ${process.pid} is running on http://${IP}:${server.port}`);
+            console.log(
+                `Worker ${process.pid} is running on http://${ip.address()}:${server.port}`
+            );
+            console.log(
+                `Express server is bound to ${server.host} (all interfaces).`
+            );
         });
     } catch (error) {
         console.error('Failed to start server:', error);
@@ -114,7 +130,7 @@ async function startServer() {
     }
 }
 
-// Start the server if this file is run directly
+// If this module is run directly (not imported), start the server
 if (require.main === module) {
     startServer().catch(error => {
         console.error('Failed to start server:', error);
@@ -122,5 +138,4 @@ if (require.main === module) {
     });
 }
 
-// Export for testing purposes
 export default startServer;
