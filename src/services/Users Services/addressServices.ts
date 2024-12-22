@@ -111,9 +111,7 @@ export const s_getUserAddress = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'User not found!' });
         }
         const address = user.Addresses;
-        if (!address) {
-            return res.status(404).json({ message: 'Address not found!' });
-        }
+        
         return res.status(200).json(address);
 
     } catch (err: any) {

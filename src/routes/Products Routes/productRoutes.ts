@@ -17,7 +17,7 @@ const productRoute = express.Router();
  *  @access        Public
  */
 
-productRoute.get('/GetAllProducts', isAuthorized, c_getAllProducts);
+productRoute.get('/GetAllProducts', IsAuthenticated, c_getAllProducts);
 
 
 

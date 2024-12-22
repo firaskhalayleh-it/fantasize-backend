@@ -30,7 +30,7 @@ offerRoute.post('/addOffer', isAuthorized, c_createNewOffer);
  *  @method        GET
  *  @access        admin
  */
-offerRoute.get('/offers', isAuthorized, c_getAllOffers);
+offerRoute.get('/offers', IsAuthenticated, c_getAllOffers);
 
 /**
  *  @description   Get an offer by ID
@@ -84,7 +84,7 @@ offerRoute.post('/offers/packages', isAuthorized, c_createOfferPackage);
  *  @method        GET
  *  @access        public
  */
-offerRoute.get('/offers/product/:productId', isAuthorized, c_getAllOffersForProduct);
+offerRoute.get('/offers/product/:productId', IsAuthenticated, c_getAllOffersForProduct);
 
 
 /**
@@ -93,7 +93,7 @@ offerRoute.get('/offers/product/:productId', isAuthorized, c_getAllOffersForProd
  *  @method        GET
  *  @access        public
  */
-offerRoute.get('/offers/package/:packageId', isAuthorized, c_getAllOffersForPackage);
+offerRoute.get('/offers/package/:packageId', IsAuthenticated, c_getAllOffersForPackage);
 
 
 

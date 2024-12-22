@@ -3,6 +3,7 @@
 import { Router } from 'express';
 import { c_addGeneral, c_getGeneral, c_updateGeneral } from '../../controllers/general controllers/generalController';
 import { c_addContactUs, c_getContactUs, c_getContactUsById } from '../../controllers/general controllers/contactUsController';
+import { isAuthorized } from '../../middlewares/isAuthentecated';
 
 const generaroute = Router();
 
@@ -20,7 +21,7 @@ generaroute.get('/get', c_getGeneral);
  * @route         POST /general/create
  * @access        Private
 **/
-generaroute.post('/create', c_addGeneral);
+generaroute.post('/create',isAuthorized, c_addGeneral);
 
 /** 
  * @description   Update general data
@@ -28,7 +29,7 @@ generaroute.post('/create', c_addGeneral);
  * @access        Private
  * 
  **/
-generaroute.put('/update', c_updateGeneral);
+generaroute.put('/update',isAuthorized, c_updateGeneral);
 
 
 /** 
@@ -37,7 +38,7 @@ generaroute.put('/update', c_updateGeneral);
  * @access        Public
  * 
  **/
-generaroute.get('/contactUs', c_getContactUs);
+generaroute.get('/contactUs',isAuthorized, c_getContactUs);
 
 /** 
  * @description   Get contact us data by id
@@ -46,7 +47,7 @@ generaroute.get('/contactUs', c_getContactUs);
  * 
  **/
 
-generaroute.get('/contactUs/:id', c_getContactUsById);
+generaroute.get('/contactUs/:id',isAuthorized, c_getContactUsById);
 
 /** 
  * @description   Create contact us data
@@ -54,6 +55,6 @@ generaroute.get('/contactUs/:id', c_getContactUsById);
  * @access        Public
  * 
  **/
-generaroute.post('/contactUs', c_addContactUs);
+generaroute.post('/contactUs',isAuthorized, c_addContactUs);
 
 export default generaroute;
