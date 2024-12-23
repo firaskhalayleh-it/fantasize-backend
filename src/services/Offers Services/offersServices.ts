@@ -4,7 +4,6 @@ import { Products } from "../../entities/products/Products";
 import { Packages } from "../../entities/packages/Packages";
 import { createNewOffer } from "../../utils/OfferNotification";
 import { IsNull, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not } from "typeorm";
-import { Orders } from "../../entities/Orders";
 
 
 //----------------------- Create a new offer  -----------------------
@@ -152,27 +151,6 @@ export const s_getAllOffers = async (req: Request, res: Response) => {
 
     } catch (err: any) {
         console.log("Error:", err);
-        res.status(500).send({ message: err.message });
-    }
-}
-//----------------------- Get all offers with customer details -----------------------
-
-export const s_getAllOffersWithCustomerDetails = async (req: Request, res: Response) => {
-    try {
-        const order = await Orders.find({
-            relations: ["Customer", "Products", "Packages"]
-        });
-
-        const orderdetails = order.map(order => ({
-            "Order-Id": order.OrderID,
-            "Customer Name": order.User.Username ? order.User.Username : "N/A",
-            "Price": order.TotalPrice,
-            "Status": order.Status 
-        }));
-
-        return res.status(200).send(orderdetails);
-    } catch (err: any) {
-        console.log(err);
         res.status(500).send({ message: err.message });
     }
 }
