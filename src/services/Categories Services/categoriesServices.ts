@@ -279,35 +279,48 @@ export const s_disactivateCategory = async (req: Request, res: Response) => {
 
 export const s_updateSubcategory = async (req: Request, res: Response) => {
     try {
-        const categoryId = Number(req.params.categoryId); // CategoryID من المسار
-        const subcategoryId = Number(req.params.subcategoryId); // SubCategoryID من المسار
-        const { Name, IsActive, CategoryId } = req.body; // البيانات من الـ request body
+        const categoryId = Number(req.params.categoryId); // CategoryID from the route
+        const subcategoryId = Number(req.params.subcategoryId); // SubCategoryID from the route
+        const { Name, IsActive, CategoryId } = req.body; // Data from the request body
 
-        // العثور على الفئة الأم (Category) والفئة الفرعية (SubCategory)
+        // Find the parent category and the subcategory
         const category = await Categories.findOne({ where: { CategoryID: categoryId } });
         const subcategory = await SubCategories.findOne({ where: { SubCategoryID: subcategoryId } });
 
         if (category && subcategory) {
-            // إذا كان هناك CategoryId جديد في الـ request body، نقوم بتحديث الفئة الأم
+            // If there's a new CategoryId in the request body, update the parent category
             if (CategoryId) {
-                // التأكد من أن الفئة الأم الجديدة موجودة
+                // Ensure the new parent category exists
                 const newCategory = await Categories.findOne({ where: { CategoryID: CategoryId } });
                 if (newCategory) {
-                    subcategory.Category = newCategory; // ربط الفئة الفرعية بالفئة الأم الجديدة
+                    subcategory.Category = newCategory; // Associate subcategory with the new parent category
                 } else {
                     return res.status(404).send({ message: 'New Category not found' });
                 }
             }
 
-            // تحديث البيانات في الفئة الفرعية
-            if (Name) subcategory.Name = Name;
+            // Update the subcategory fields
+            if (Name !== undefined && Name.trim() !== "") {
+                subcategory.Name = Name.trim();
+            }
 
             // Coerce IsActive to boolean if it's defined
             if (IsActive !== undefined) {
-                subcategory.IsActive = Boolean(IsActive);
+                if (typeof IsActive === 'boolean') {
+                    subcategory.IsActive = IsActive;
+                } else if (typeof IsActive === 'string') {
+                    // Convert string to boolean
+                    subcategory.IsActive = IsActive.toLowerCase() === 'true';
+                } else if (typeof IsActive === 'number') {
+                    // Convert number to boolean (1=true, 0=false)
+                    subcategory.IsActive = IsActive === 1;
+                } else {
+                    // Default to false if type is unrecognized
+                    subcategory.IsActive = false;
+                }
             }
 
-            // حفظ التحديثات
+            // Save the updates
             const updatedSubcategory = await subcategory.save();
 
             if (updatedSubcategory) {
@@ -320,8 +333,8 @@ export const s_updateSubcategory = async (req: Request, res: Response) => {
         }
 
     } catch (err: any) {
-        console.log(err);
-        res.status(500).send({ message: err.message })
+        console.error(err);
+        res.status(500).send({ message: err.message });
     }
 }
 
