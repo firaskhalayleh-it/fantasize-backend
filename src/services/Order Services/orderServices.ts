@@ -88,7 +88,7 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
         order.Address = address;
         order.IsGift = IsGift ?? false;
         order.IsAnonymous = IsAnonymous ?? false;
-
+        console.log(orderdetails);
         // If special customization is found, set status to under review and do NOT deduct inventory
         if (specialCustomizationFound) {
             order.Status = 'under review';

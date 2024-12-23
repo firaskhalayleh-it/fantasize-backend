@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
-import { s_createCategory, s_createSubcategory, s_deleteCategory, s_DeleteSubcategory,s_getNewCollection, s_disactivateCategory, s_getAllCategories, s_getAllSubcategories, s_getCategory, s_updateCategory, s_updateSubcategory } from '../../services/Categories Services/categoriesServices';
+import { s_createCategory, s_createSubcategory, s_deleteCategory, 
+    s_DeleteSubcategory,s_getNewCollection, s_disactivateCategory, 
+    s_getAllCategories, s_getAllSubcategories, s_getCategory, 
+    s_updateCategory, s_updateSubcategory } from '../../services/Categories Services/categoriesServices';
 
 //-----------------------Get all categories -----------------------
 export const c_getAllCategories = async (req:Request , res:Response) =>{
