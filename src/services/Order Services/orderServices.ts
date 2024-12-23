@@ -133,28 +133,58 @@ export const s_checkoutOrderUser = async (req: Request, res: Response) => {
 export const s_getAllOrdersUser = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user.payload.userId;
-        const user = await Users.findOne({ where: { UserID: userId } });
-        if (!user) {
-            return res.status(404).send({ message: "User not found" });
-        }
-        console.log(`user is : ${user}`);
-        const orders = await Orders.find({
-            where: { User: { UserID: userId }, Status: In(["purchased", "under review", "rejected"]) }, order: { OrderID: "DESC" },
+
+        // Optional: Validate userId format if necessary
+
+        const ordersRepository = (Orders);
+
+        // Implement Pagination
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
+        const skip = (page - 1) * limit;
+
+        // Fetch orders with pagination and selective fields
+        const [orders, total] = await ordersRepository.findAndCount({
+            where: {
+                User: { UserID: userId },
+                Status: In(["purchased", "under review", "rejected"])
+            },
+            order: { OrderID: "DESC" },
             relations: [
                 "OrdersProducts",
                 "OrdersProducts.Product",
                 "OrdersPackages",
                 "OrdersPackages.Package"
-            ]
+            ],
+            select: [
+                "OrderID",
+                "Status",
+                "IsGift",
+                "IsAnonymous",
+                "TotalPrice",
+                "CreatedAt",
+                "UpdatedAt",
+                "PaymentMethod",
+                "Address",
+            ],
+            skip,
+            take: limit
         });
 
-        console.log(orders);
-        return res.status(200).send(orders);
+        
+
+        return res.status(200).send({
+            data: orders,
+            total,
+            page,
+            last_page: Math.ceil(total / limit)
+        });
     } catch (err: any) {
-        console.log(err);
-        res.status(500).send({ message: err.message });
+        // Use a proper logging mechanism instead of console.log
+        console.error('Error fetching user orders:', err);
+        return res.status(500).send({ message: "Internal Server Error" });
     }
-}
+};
 
 //----------------------- Get Cart for a user-----------------------
 export const s_getCartUser = async (req: Request, res: Response) => {
@@ -188,7 +218,7 @@ export const s_getAllOrdersAdmin = async (req: Request, res: Response) => {
         const orders = await Orders.find({
             where: {
                 Status: In(['pending', 'purchased', 'under review', 'rejected',
-                    'shipped', 'delivered', 'returned', 'canceled', 'completed']    )
+                    'shipped', 'delivered', 'returned', 'canceled', 'completed'])
             },
             relations: ["User", "OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
         });

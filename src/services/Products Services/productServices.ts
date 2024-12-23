@@ -85,7 +85,7 @@ export const s_getProductByCategoryAndSubCategory = async (req: Request, res: Re
         if (!CategoryID || !subCategoryID) {
             return res.status(400).send({ message: "Please fill all the fields" });
         }
-        const products = await Products.find({ where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID } }, relations: ['SubCategory', 'Offer'] });
+        const products = await Products.find({ where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID, IsActive: true } }, relations: ['SubCategory', 'Offer'] });
         if (products.length == 0) {
             return res.status(404).send({ message: "The Product Not Found !" });
         }

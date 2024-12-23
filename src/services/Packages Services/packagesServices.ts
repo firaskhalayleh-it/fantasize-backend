@@ -162,7 +162,7 @@ export const s_getAllPackagesUnderSpecificSubcategory = async (req: Request, res
             return res.status(400).send({ message: "Please fill all the fields" });
         }
         const pkg = await Packages.find({
-            where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID } },
+            where: { SubCategory: { Category: { CategoryID: CategoryID }, SubCategoryID: subCategoryID, IsActive: true } },
             relations: ['SubCategory', 'PackageProduct', 'Reviews']
         });
         if (!pkg) {
@@ -586,7 +586,7 @@ export const s_getLastPackage = async (req: Request, res: Response) => {
 
 
 // ---------------------------- delete a package--------------------------------
-export const    s_deletePackage = async (req: Request, res: Response) => {
+export const s_deletePackage = async (req: Request, res: Response) => {
     try {
         const packageId = req.params.packageId;
         if (!packageId) {
