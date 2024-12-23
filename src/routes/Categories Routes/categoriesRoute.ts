@@ -68,7 +68,7 @@ categoryRoute.put('/categories/:categoryId/subcategories/:subcategoryId',isAutho
 
 categoryRoute.get('/categories/subcategories', c_getAllCategories);
 
-
+    
 
 /**
  *  @description   disActive a category by ID if it is active

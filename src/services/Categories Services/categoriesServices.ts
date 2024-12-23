@@ -351,7 +351,7 @@ export const s_getNewCollection = async (req: Request, res: Response) => {
         const products = await Products.find({
             where: [
                 { CreatedAt: MoreThan(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)) },
-                { Offer: { ValidFrom: LessThan(today), ValidTo: MoreThan(today), IsActive: true } }
+                { Offer: { ValidFrom: LessThan(today), IsActive: true } }
             ],
             relations: ["Offer", "Resource", "SubCategory", "SubCategory.Category.SubCategory"]
         });
