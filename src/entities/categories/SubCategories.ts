@@ -19,9 +19,9 @@ export class SubCategories extends BaseEntity {
   @JoinColumn({ name: "CategoryID" }) 
   Category: Categories;
 
-  @OneToMany(() => Products, (product) => product.SubCategory)
+  @OneToMany(() => Products, (product) => product.SubCategory,{onDelete: 'CASCADE'})
   Products: Products[];
 
-  @OneToMany(() => Packages, (pkg) => pkg.SubCategory)
+  @OneToMany(() => Packages, (pkg) => pkg.SubCategory,{onDelete: 'CASCADE'})  
   Package: Packages[];
 }

@@ -1,7 +1,7 @@
 import express from 'express';
 import { c_createCategory, c_createSubcategory, c_deleteCategory, c_DeleteSubcategory, c_disActiveCategory, c_getAllCategories, c_getAllSubcategories, c_getCategory, c_getNewCollection, c_updateCategory, c_updateSubcategory } from "../../controllers/Categories Controller/CategoriesController";
 
-import { isAuthorized } from "../../middlewares/isAuthentecated";
+import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
 import { uploadSingle } from "../../middlewares/multerMiddleware";
 const categoryRoute = express.Router();
 
@@ -86,6 +86,22 @@ categoryRoute.put('/categories/:CategoryId', isAuthorized, c_disActiveCategory);
  *  @access        Public
  */
 categoryRoute.get('/categories/newCollection', c_getNewCollection);
+
+/**
+ *  @description   Delete a category by ID
+ *  @route         /categories/:id
+ *  @method        DELETE
+ *  @access        Admin
+ */
+categoryRoute.delete('/categories/:id', IsAuthenticated, c_deleteCategory);
+
+/**
+ *  @description   Delete a subcategory by ID
+ *  @route         /categories/:categoryId/subcategories/:subcategoryId
+ *  @method        DELETE
+ *  @access        Admin
+ */
+categoryRoute.delete('/subcategories/:subcategoryId', IsAuthenticated, c_DeleteSubcategory);
 
 
 export default categoryRoute;

@@ -18,7 +18,7 @@ export const s_getAllCategories = async (req: Request, res: Response) => {
         }
 
         if (categories && categories.length > 0) {
-            
+
             return res.status(200).json(categories);
 
         } else {
@@ -34,13 +34,13 @@ export const s_getAllCategories = async (req: Request, res: Response) => {
 //----------------------- Get category by ID-----------------------
 export const s_getCategory = async (req: Request, res: Response) => {
     try {
-        const categoryId  = req.params.categoryId;
-        const category = await Categories.findOne({ where: { CategoryID: Number(categoryId) } ,relations: ['SubCategory', 'Image'] });
+        const categoryId = req.params.categoryId;
+        const category = await Categories.findOne({ where: { CategoryID: Number(categoryId) }, relations: ['SubCategory', 'Image'] });
 
-        if (! category) {
+        if (!category) {
             return res.status(404).json({ message: 'Category not found' });
         }
-        
+
         return res.status(200).json(category);
     } catch (err: any) {
         console.log(err);
@@ -58,8 +58,8 @@ export const s_createCategory = async (req: Request, res: Response) => {
         if (!Name || Name.trim() === '') {
             return res.status(400).send({ message: 'Please provide a category name' });
         }
-        const categoryIsExist = await Categories.findOne({where:{Name:Name}});
-        if(categoryIsExist){
+        const categoryIsExist = await Categories.findOne({ where: { Name: Name } });
+        if (categoryIsExist) {
             return res.status(409).send({ message: `This Category  '${Name}' Is Already Exisit` });
         }
         // Create the category
@@ -105,7 +105,7 @@ export const s_createCategory = async (req: Request, res: Response) => {
 //----------------------- Update a category by ID-----------------------
 export const s_updateCategory = async (req: Request, res: Response) => {
     try {
-        const categoryId :any= req.params.id;
+        const categoryId: any = req.params.id;
         const { Name, IsActive } = req.body;
 
         // البحث عن الفئة
@@ -122,7 +122,7 @@ export const s_updateCategory = async (req: Request, res: Response) => {
                     entityName: req.file.filename,
                     fileType: req.file.mimetype,
                     filePath: req.file.path,
-                    Category: category  
+                    Category: category
                 }).save();
 
                 // حفظ الصورة
@@ -229,13 +229,11 @@ export const s_createSubcategory = async (req: Request, res: Response) => {
 //----------------------- Delete a subcategory under a specific category-----------------------
 export const s_DeleteSubcategory = async (req: Request, res: Response) => {
     try {
-        const categoryId = Number(req.params.categoryId);
         const subcategoryId = Number(req.params.subcategoryId);
 
-        const category = await Categories.findOne({ where: { CategoryID: categoryId } });
         const subcategory = await SubCategories.findOne({ where: { SubCategoryID: subcategoryId } });
 
-        if (category && subcategory) {
+        if (subcategory) {
             await SubCategories.delete({ SubCategoryID: subcategoryId });
             return res.status(200).json({ message: 'Subcategory deleted successfully' });
         }
@@ -307,7 +305,7 @@ export const s_updateSubcategory = async (req: Request, res: Response) => {
 
             // حفظ التحديثات
             const updatedSubcategory = await subcategory.save();
-            
+
             if (updatedSubcategory) {
                 return res.status(200).json(updatedSubcategory);
             } else {
@@ -337,7 +335,7 @@ export const s_getNewCollection = async (req: Request, res: Response) => {
                 { CreatedAt: MoreThan(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)) },
                 { Offer: { ValidFrom: LessThan(today), ValidTo: MoreThan(today), IsActive: true } }
             ],
-            relations: ["Offer", "Resource", "SubCategory","SubCategory.Category.SubCategory"]
+            relations: ["Offer", "Resource", "SubCategory", "SubCategory.Category.SubCategory"]
         });
 
         // Fetch packages created within the last 3 days with active offers
@@ -346,7 +344,7 @@ export const s_getNewCollection = async (req: Request, res: Response) => {
                 { CreatedAt: MoreThan(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)) },
                 { Offer: { ValidFrom: LessThan(today), ValidTo: MoreThan(today), IsActive: true } }
             ],
-            relations: ["Offer", "Resource", "SubCategory","SubCategory.Category.SubCategory"]
+            relations: ["Offer", "Resource", "SubCategory", "SubCategory.Category.SubCategory"]
         });
 
         // make the resources of the products and packages to be the first image
