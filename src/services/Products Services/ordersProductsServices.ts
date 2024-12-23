@@ -250,14 +250,12 @@ export const updateOrderProduct = async (req: Request, res: Response) => {
 // ----------------------- Delete a Specific Product Order -----------------------
 export const deleteOrderProduct = async (req: Request, res: Response) => {
     try {
-        const orderId = Number(req.params.orderId);
         const productId = Number(req.params.orderProductId);
 
         // Fetch the specific OrderProduct
         const orderProduct = await OrdersProducts.findOne({
             where: {
-                Order: { OrderID: orderId },
-                Product: { ProductID: productId }
+                OrderProductID: productId
             },
             relations: ["Order", "Product"]
         });
@@ -271,7 +269,7 @@ export const deleteOrderProduct = async (req: Request, res: Response) => {
 
         // Recalculate the total price of the order
         const order = await Orders.findOne({
-            where: { OrderID: orderId },
+            where: { OrderID: orderProduct.Order.OrderID },
             relations: ["OrdersProducts", "OrdersPackages"]
         });
 
@@ -282,7 +280,7 @@ export const deleteOrderProduct = async (req: Request, res: Response) => {
 
         // Reload the order with updated relations
         const updatedOrder = await Orders.findOne({
-            where: { OrderID: orderId },
+            where: { OrderID: orderProduct.Order.OrderID },
             relations: ["OrdersProducts", "OrdersPackages", "OrdersProducts.Product", "OrdersPackages.Package"]
         });
 

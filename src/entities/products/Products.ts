@@ -90,7 +90,7 @@ export class Products extends BaseEntity {
   Review: Reviews[];
 
 
-  @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product, { onDelete: 'CASCADE' , onUpdate: 'CASCADE' })
   FavoriteProducts: FavoriteProducts[];
 
   @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product )
