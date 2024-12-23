@@ -30,7 +30,7 @@ orderPackageRoute.put('/orderpackage/:orderPackageId', IsAuthenticated,uploadSin
  * @access        private
  * 
     */
-orderPackageRoute.delete('/orderpackage/:orderId/:orderPackageId', IsAuthenticated, c_deleteorderPackage);
+orderPackageRoute.delete('/orderpackage/:orderPackageId', IsAuthenticated, c_deleteorderPackage);
 
 
 /**

@@ -61,26 +61,38 @@ export const s_getAllFavoriteProductsUser = async (req: Request, res: Response) 
 
 
 //----------------------- Remove a product from favorites-----------------------
-export const s_removeProductFavorites = async (req:Request , res:Response) =>{
+export const s_removeProductFavorites = async (req: Request, res: Response) => {
     try {
         const productId = Number(req.params.productId);
-        const { userId } = (req as any).user.payload.userId;
+        const userId = (req as any).user.payload.userId;
 
-        const product = await Products.findOne({ where: { ProductID: productId } });
+        // Validate product existence
+        const productRepository = (Products);
+        const product = await productRepository.findOne({ where: { ProductID: productId } });
         if (!product) {
-            return res.status(404).send({ message: "Product not found" });
+            return res.status(404).json({ message: "Product not found" });
         }
-        const favoriteProduct = await FavoriteProducts.findOne({ where: { Product: {ProductID:productId}, User: {UserID:userId} } });
-        if(!favoriteProduct){
-            return res.status(400).send({ message: "Product not in favorites" });
-        }
-        await favoriteProduct.remove();
-        await favoriteProduct.save();
 
-        return "product removed from favorites";
-    
+        // Find the favorite entry
+        const favoriteRepository = (FavoriteProducts);
+        const favoriteProduct = await favoriteRepository.findOne({
+            where: {
+                Product: { ProductID: productId },
+                User: { UserID: userId }
+            },
+            relations: ["Product", "User"] // Ensure relations are loaded
+        });
+
+        if (!favoriteProduct) {
+            return res.status(400).json({ message: "Product not in favorites" });
+        }
+
+        // Remove the favorite entry
+        await favoriteRepository.remove(favoriteProduct);
+
+        return res.status(200).json({ message: "Product removed from favorites" });
     } catch (err: any) {
-        console.log(err);
-        res.status(500).send({ message: err.message })
+        console.error(err);
+        res.status(500).json({ message: err.message });
     }
-} 
+};

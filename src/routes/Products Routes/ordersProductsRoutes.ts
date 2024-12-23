@@ -38,7 +38,7 @@ orderProductRoute.put('/orderproduct/:orderProductId', IsAuthenticated, c_update
  *  @access        private
  */
 
-orderProductRoute.delete('/order/:orderId/:orderProductId', IsAuthenticated, c_deleteOrderProduct);
+orderProductRoute.delete('/orderproduct/:orderProductId', IsAuthenticated, c_deleteOrderProduct);
 
 
 
