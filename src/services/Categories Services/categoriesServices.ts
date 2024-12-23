@@ -301,7 +301,11 @@ export const s_updateSubcategory = async (req: Request, res: Response) => {
 
             // تحديث البيانات في الفئة الفرعية
             if (Name) subcategory.Name = Name;
-            if (typeof IsActive === 'boolean') subcategory.IsActive = IsActive;
+
+            // Coerce IsActive to boolean if it's defined
+            if (IsActive !== undefined) {
+                subcategory.IsActive = Boolean(IsActive);
+            }
 
             // حفظ التحديثات
             const updatedSubcategory = await subcategory.save();
@@ -320,6 +324,7 @@ export const s_updateSubcategory = async (req: Request, res: Response) => {
         res.status(500).send({ message: err.message })
     }
 }
+
 
 
 
