@@ -53,7 +53,7 @@ export class Packages extends BaseEntity {
   @Column('enum', { enum: ['out of stock', 'in stock', 'running low'], default: 'in stock' })
   Status: string;
 
-  @ManyToOne(() => Offers, (offer) => offer.Packages,{eager:true})
+  @ManyToOne(() => Offers, (offer) => offer.Packages, { eager: true })
   Offer: Offers;
 
   @OneToMany(() => OrdersPackages, (orderPackage) => orderPackage.Package,)
@@ -63,7 +63,8 @@ export class Packages extends BaseEntity {
   SubCategory: SubCategories;
 
 
-  @Column('int', { default: 0 })
+
+  @Column('numeric', { precision: 3, scale: 2, default: 0 })
   AvgRating: number;
 
 
@@ -74,7 +75,7 @@ export class Packages extends BaseEntity {
 
   // @OneToMany(() => Products, (product) => product.Package)
   // Product: Products[];
-  @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Package, {eager:true})
+  @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Package, { eager: true })
   PackageProduct: PackageProduct[];
 
   @ManyToMany(() => Customization, (pkgCustom) => pkgCustom.Packages, { eager: true })

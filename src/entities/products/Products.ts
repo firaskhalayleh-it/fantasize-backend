@@ -34,34 +34,34 @@ export class Products extends BaseEntity {
   Status: string;
 
 
-  @OneToMany(() => MaterialProduct, (materialProduct) => materialProduct.Product, { onDelete: 'CASCADE', onUpdate: 'CASCADE' ,eager: true})
+  @OneToMany(() => MaterialProduct, (materialProduct) => materialProduct.Product, { onDelete: 'CASCADE', onUpdate: 'CASCADE', eager: true })
   MaterialProduct: MaterialProduct[];
 
   @Column('decimal', { precision: 9, scale: 2, default: 0 })
   DiscountPrice: number
 
-  @Column('int', { default: 0 })
+  @Column('numeric', { precision: 3, scale: 2, default: 0 })
   AvgRating: number;
 
 
-  @ManyToOne(() => Brands, (brand) => brand.Products,{eager:true})
+  @ManyToOne(() => Brands, (brand) => brand.Products, { eager: true })
   Brand: Brands;
 
-  @ManyToOne(() => SubCategories, (subcategory) => subcategory.Products,{eager:true})
+  @ManyToOne(() => SubCategories, (subcategory) => subcategory.Products, { eager: true })
   SubCategory: SubCategories;
 
   // @ManyToOne(() => Packages, (pkg) => pkg.Product,)
   // Package: Packages;
-  @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Product, {  onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @OneToMany(() => PackageProduct, (packageProduct) => packageProduct.Product, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   PackageProduct: PackageProduct[];
 
-  @ManyToOne(() => Offers, (offer) => offer.Products, { eager: true , onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @ManyToOne(() => Offers, (offer) => offer.Products, { eager: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   Offer: Offers;
 
-  @OneToMany(() => Resources, (resource) => resource.Product, { eager: true ,cascade: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @OneToMany(() => Resources, (resource) => resource.Product, { eager: true, cascade: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   Resource: Resources[];
 
-  @ManyToMany(() => Customization, (customization) => customization.Product, { eager: true , onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @ManyToMany(() => Customization, (customization) => customization.Product, { eager: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinTable({
     name: 'ProductsCustomization',
     joinColumn: {
@@ -75,7 +75,7 @@ export class Products extends BaseEntity {
   })
   Customization: Customization[];
 
-  @ManyToMany(() => Reviews, (review) => review.Products, { eager: true , onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @ManyToMany(() => Reviews, (review) => review.Products, { eager: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinTable({
     name: 'ProductsReviews',
     joinColumn: {
@@ -90,10 +90,10 @@ export class Products extends BaseEntity {
   Review: Reviews[];
 
 
-  @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product, { onDelete: 'CASCADE' , onUpdate: 'CASCADE' })
+  @OneToMany(() => FavoriteProducts, (favoriteProduct) => favoriteProduct.Product, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   FavoriteProducts: FavoriteProducts[];
 
-  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product )
+  @OneToMany(() => OrdersProducts, (orderProduct) => orderProduct.Product)
   OrdersProducts: OrdersProducts[];
 
 
