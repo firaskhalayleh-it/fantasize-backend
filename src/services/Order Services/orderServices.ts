@@ -171,7 +171,7 @@ export const s_getAllOrdersUser = async (req: Request, res: Response) => {
             take: limit
         });
 
-        
+
 
         return res.status(200).send({
             data: orders,
@@ -198,7 +198,7 @@ export const s_getCartUser = async (req: Request, res: Response) => {
             where: { User: { UserID: userId }, Status: 'pending' },
             relations: ["OrdersProducts", "OrdersProducts.Product", "OrdersPackages",
                 "OrdersPackages.Package", "PaymentMethod", "Address",
-                "OrdersProducts.OrderedCustomization", "OrdersProducts.OrderedCustomization"]
+                "OrdersProducts.OrderedCustomization", "OrdersProducts.OrderedCustomization"], order: { OrderID: "DESC" }
         });
         if (!order) {
             return res.status(404).send({ message: "Cart not found" });
@@ -398,25 +398,59 @@ export const s_rejectOrder = async (req: Request, res: Response) => {
     }
 };
 
-// get all orders for a user
-export const s_getOrdersForUser = async (req: Request, res: Response) => {
-    try {
-        const userId = req.params.userId;
-        const user = await Users.findOne({ where: { UserID: userId } });
-        if (!user) {
-            return res.status(404).send({ message: "User not found" });
+    // get all orders for a user
+    export const s_getOrdersForUser = async (req: Request, res: Response) => {
+        try {
+            const userId = req.params.userId;
+            // Add pagination
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 20;
+            const skip = (page - 1) * limit;
+
+            // Check if user exists using a lean query
+            const userExists = await Users.createQueryBuilder()
+                .where("UserID = :userId", { userId })
+                .getExists();
+
+            if (!userExists) {
+                return res.status(404).send({ message: "User not found" });
+            }
+
+            // Use findAndCount for pagination and selective loading
+            const [orders, total] = await Orders.findAndCount({
+                where: { User: { UserID: userId } },
+                relations: [
+                    "OrdersProducts",
+                    "OrdersProducts.Product",
+                    "OrdersPackages",
+                    "OrdersPackages.Package"
+                ],
+                select: [
+                    "OrderID",
+                    "Status",
+                    "TotalPrice",
+                    "CreatedAt",
+                    "UpdatedAt",
+                    "OrdersPackages",
+                    "OrdersProducts"
+                ],
+                order: { CreatedAt: "DESC" },
+                skip,
+                take: limit
+            });
+
+            return res.status(200).send({
+                data: orders,
+                total,
+                page,
+                last_page: Math.ceil(total / limit)
+            });
         }
-        const orders = await Orders.find({
-            where: { User: { UserID: userId } },
-            relations: ["OrdersProducts", "OrdersPackages",]
-        });
-        return res.status(200).send(orders);
+        catch (err: any) {
+            console.error('Error fetching user orders:', err);
+            return res.status(500).send({ message: "Internal Server Error" });
+        }
     }
-    catch (err: any) {
-        console.log(err);
-        res.status(500).send({ message: err.message });
-    }
-}
 
 
 
