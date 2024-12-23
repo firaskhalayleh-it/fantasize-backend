@@ -220,11 +220,20 @@ export const s_getAllOrdersAdmin = async (req: Request, res: Response) => {
                 Status: In(['pending', 'purchased', 'under review', 'rejected',
                     'shipped', 'delivered', 'returned', 'canceled', 'completed'])
             },
-            relations: ["User", "OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"]
+            relations: ["User", "OrdersProducts", "OrdersProducts.Product", "OrdersPackages", "OrdersPackages.Package"],
+            select: ["OrderID", "TotalPrice", "Status"]
         });
-        console.log('Fetched Orders:', orders);
 
-        return res.status(200).send(orders);
+        const formattedOrders = orders.map(order => ({
+            OrderID: order.OrderID,
+            CustomerName: order.User?.Username ?? "Unknown",
+            Price: order.TotalPrice,
+            Status: order.Status
+        }));
+
+        console.log('Fetched Orders:', formattedOrders);
+
+        return res.status(200).send(formattedOrders);
     } catch (err: any) {
         console.error(err);
         res.status(500).send({ message: err.message });
