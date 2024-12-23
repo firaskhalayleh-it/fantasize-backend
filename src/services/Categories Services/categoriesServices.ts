@@ -300,8 +300,8 @@ export const s_updateSubcategory = async (req: Request, res: Response) => {
             }
 
             // تحديث البيانات في الفئة الفرعية
-            subcategory.Name = Name || subcategory.Name;
-            subcategory.IsActive = IsActive || subcategory.IsActive;
+            if (Name) subcategory.Name = Name;
+            if (typeof IsActive === 'boolean') subcategory.IsActive = IsActive;
 
             // حفظ التحديثات
             const updatedSubcategory = await subcategory.save();
