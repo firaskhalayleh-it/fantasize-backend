@@ -162,7 +162,7 @@ export class AdminDashboardService {
    */
   async getTotalActiveOffers(): Promise<number> {
     return Offers.createQueryBuilder('offers')
-      .where('offers.IsActive = :isActive', { isActive: false })
+      .where('offers.IsActive = :isActive', { isActive: true })
       .getCount();
   }
 
