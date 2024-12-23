@@ -1,6 +1,6 @@
 // update ,delete and get by id(Profile)  ,get all users  , search user using username
 import express from "express"
-import { c_getAllUser, c_getUser, c_getUserNameWithProfilePic, c_searchUser, c_updateUser, c_updateUserPassword ,c_resetUserPassword} from "../../controllers/Users Controller/userController";
+import { c_getAllUser, c_getUser, c_getUserNameWithProfilePic, c_searchUser, c_updateUser, c_updateUserPassword, c_resetUserPassword } from "../../controllers/Users Controller/userController";
 
 import { IsAuthenticated, isAuthorized } from "../../middlewares/isAuthentecated";
 import { uploadSingle } from "../../middlewares/multerMiddleware";
@@ -14,9 +14,9 @@ const userRoute = express.Router();
  *  @access       private
  * 
  */
-userRoute.put("/update_user", isAuthorized, uploadSingle, c_updateUser);
+userRoute.put("/update_user", IsAuthenticated, uploadSingle, c_updateUser);
 // when admin edit some user 
-userRoute.put("/update_user/:userId", isAuthorized, uploadSingle, c_updateUser);
+userRoute.put("/update_user/:userId", IsAuthenticated, uploadSingle, c_updateUser);
 
 
 
