@@ -19,6 +19,7 @@
   "author": "firas",
   "license": "ISC",
   "dependencies": {
+    "@types/socket.io": "^3.0.1",
     "@types/validator": "^13.12.2",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
@@ -49,6 +50,7 @@
     "pm2": "^5.4.2",
     "redis": "^4.7.0",
     "reflect-metadata": "^0.2.2",
+    "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "validator": "^13.12.0"

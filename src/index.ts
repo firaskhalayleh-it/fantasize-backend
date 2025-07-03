@@ -1,4 +1,5 @@
 import express from "express";
+import { createServer } from "http";
 import session from 'express-session';
 import passport from 'passport';
 import { initializeDB } from "./config/database";
@@ -37,6 +38,7 @@ import notificationRoute from "./routes/Notification Routes/notificationRoute";
 import generaroute from "./routes/general Routes/generalRoute";
 import './config/passportConfig';
 import adminPerformanceRoutes from "./routes/Admin Performance Routes/adminPerformanceRoutes";
+import realTimeRoutes from "./routes/Real-time Routes/realTimeRoutes";
 
 // Enhanced middlewares
 import { performanceMiddleware } from "./services/Performance Services/performanceService";
@@ -44,9 +46,13 @@ import { securityMiddleware, sanitizeInput, sqlInjectionProtection, xssProtectio
 import { rateLimitMiddleware, rateLimitConfigs } from "./middlewares/rateLimitMiddleware";
 import healthRoutes from "./routes/Health Routes/healthRoutes";
 
+// WebSocket service
+import { WebSocketService, webSocketService } from "./services/WebSocket Services/webSocketService";
+
 async function startServer() {
     const app = express();
-    const { server, cors: corsConfig } = clusterConfig;
+    const server = createServer(app); // Create HTTP server
+    const { cors: corsConfig } = clusterConfig;
 
     // Request logging middleware
     app.use((req, res, next) => {
@@ -87,7 +93,7 @@ async function startServer() {
             timestamp: new Date().toISOString(),
             // Note: ip.address() is your local IP; if you're behind NAT, 
             // this won't be your public IP.
-            serverAddress: `http://${ip.address()}:${server.port}`,
+            serverAddress: `http://${ip.address()}:${process.env.APP_PORT || 5000}`,
             clientIP: req.ip,
             uptime: process.uptime()
         });
@@ -122,6 +128,7 @@ async function startServer() {
     app.use("/api", rateLimitMiddleware(rateLimitConfigs.order), orderRoute);
     app.use("/api", rateLimitMiddleware(rateLimitConfigs.admin), adminDashboardRoutes);
     app.use("/api", rateLimitMiddleware(rateLimitConfigs.admin), adminPerformanceRoutes);
+    app.use("/api", rateLimitMiddleware(rateLimitConfigs.admin), realTimeRoutes);
     app.use("/api", customizationRoute);
     app.use("/explore", exploreRoute);
     app.use("/material", materialRoutes);
@@ -140,14 +147,25 @@ async function startServer() {
         await initializeDB().then(() => {
             console.log('Database connection successful');
         });
+
+        // Initialize WebSocket service
+        const wsService = WebSocketService.getInstance(server);
+        // Make WebSocket service available globally
+        (global as any).webSocketService = wsService;
         
         // IMPORTANT: Listen on 0.0.0.0 so it can be reached from any network
-        app.listen(server.port, server.host, () => {
+        const port = parseInt(process.env.APP_PORT || '5000', 10);
+        const host = process.env.HOST || '0.0.0.0';
+        
+        server.listen(port, host, () => {
             console.log(
-                `Worker ${process.pid} is running on http://${ip.address()}:${server.port}`
+                `Worker ${process.pid} is running on http://${ip.address()}:${port}`
             );
             console.log(
-                `Express server is bound to ${server.host} (all interfaces).`
+                `Express server is bound to ${host} (all interfaces).`
+            );
+            console.log(
+                `WebSocket server is running on the same port`
             );
         });
     } catch (error) {
