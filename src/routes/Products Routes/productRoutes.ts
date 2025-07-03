@@ -6,6 +6,7 @@ import { c_createProduct, c_getProduct, c_getProductByCategoryAndSubCategory,
      c_getRandomMenProducts, c_getRandomWomenProducts ,c_deleteProduct,c_getLastProduct} from "../../controllers/Products Controller/productController";
 import FavoriteProductRoute from "./favoriteProductsRoutes";
 import { uploadFields } from "../../middlewares/multerMiddleware";
+import { cacheMiddleware, cacheConfigs, invalidateCache, invalidationPatterns } from "../../middlewares/cacheMiddleware";
 
 const productRoute = express.Router();
 
@@ -17,7 +18,7 @@ const productRoute = express.Router();
  *  @access        Public
  */
 
-productRoute.get('/GetAllProducts', IsAuthenticated, c_getAllProducts);
+productRoute.get('/GetAllProducts', IsAuthenticated, cacheMiddleware(cacheConfigs.products), c_getAllProducts);
 
 
 
@@ -28,7 +29,7 @@ productRoute.get('/GetAllProducts', IsAuthenticated, c_getAllProducts);
  *  @access        Public
  */
 
-productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', c_getProductByCategoryAndSubCategory);
+productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', cacheMiddleware(cacheConfigs.products), c_getProductByCategoryAndSubCategory);
 
 /**
  *  @description   Get a single product by ID
@@ -36,7 +37,7 @@ productRoute.get('/:CategoryID/:subCategoryID/getAllproducts', c_getProductByCat
  *  @method        GET
  *  @access        Public
  */
-productRoute.get('/getProduct/:id', c_getProduct);
+productRoute.get('/getProduct/:id', cacheMiddleware(cacheConfigs.products), c_getProduct);
 
 /**
  *  @description   Create a new product
@@ -44,7 +45,7 @@ productRoute.get('/getProduct/:id', c_getProduct);
  *  @method        POST
  *  @access        admin
  */
-productRoute.post('/createProduct', isAuthorized, uploadFields, c_createProduct);
+productRoute.post('/createProduct', isAuthorized, uploadFields, invalidateCache(invalidationPatterns.products), c_createProduct);
 
 /**
  *  @description   Update a product
@@ -52,7 +53,7 @@ productRoute.post('/createProduct', isAuthorized, uploadFields, c_createProduct)
  *  @method        PUT
  *  @access        admin
  */
-productRoute.put('/product/:productId', isAuthorized,uploadFields, c_updateProduct);
+productRoute.put('/product/:productId', isAuthorized, uploadFields, invalidateCache(invalidationPatterns.products), c_updateProduct);
 
 
 /**
@@ -70,7 +71,7 @@ productRoute.use('/product/:productId', FavoriteProductRoute);
  *  @method        GET
  *  @access        Public
  */
-productRoute.get('/products', c_getAllProducts);
+productRoute.get('/products', cacheMiddleware(cacheConfigs.products), c_getAllProducts);
 
 /**
  *  @description   Get all products by category
@@ -81,7 +82,7 @@ productRoute.get('/products', c_getAllProducts);
     * 
         */
 
-productRoute.get('/products/:CategoryID', c_getProductByCategoryID);
+productRoute.get('/products/:CategoryID', cacheMiddleware(cacheConfigs.products), c_getProductByCategoryID);
 
 
 /**
@@ -90,7 +91,7 @@ productRoute.get('/products/:CategoryID', c_getProductByCategoryID);
  * @method      GET
  * @access     public
 */
-productRoute.get('/products/random/men', c_getRandomMenProducts);
+productRoute.get('/products/random/men', cacheMiddleware(cacheConfigs.products), c_getRandomMenProducts);
 
 /**
  *  @description   Get random products for women
@@ -98,7 +99,7 @@ productRoute.get('/products/random/men', c_getRandomMenProducts);
  * @method      GET
  * @access     public
 */
-productRoute.get('/products/random/women', c_getRandomWomenProducts);
+productRoute.get('/products/random/women', cacheMiddleware(cacheConfigs.products), c_getRandomWomenProducts);
 
 
 
@@ -108,7 +109,7 @@ productRoute.get('/products/random/women', c_getRandomWomenProducts);
  *  @method        DELETE
  *  @access        admin
  */
-productRoute.delete('/products/:productId', isAuthorized, c_deleteProduct);
+productRoute.delete('/products/:productId', isAuthorized, invalidateCache(invalidationPatterns.products), c_deleteProduct);
 
 /**
  *  @description   Get last product
@@ -116,7 +117,7 @@ productRoute.delete('/products/:productId', isAuthorized, c_deleteProduct);
  *  @method        GET
  *  @access        public
  */
-productRoute.get('/last/product', c_getLastProduct);
+productRoute.get('/last/product', cacheMiddleware(cacheConfigs.products), c_getLastProduct);
 
 
 

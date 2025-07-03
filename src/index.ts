@@ -36,6 +36,13 @@ import searchRoute from "./routes/search Route/searchRoute";
 import notificationRoute from "./routes/Notification Routes/notificationRoute";
 import generaroute from "./routes/general Routes/generalRoute";
 import './config/passportConfig';
+import adminPerformanceRoutes from "./routes/Admin Performance Routes/adminPerformanceRoutes";
+
+// Enhanced middlewares
+import { performanceMiddleware } from "./services/Performance Services/performanceService";
+import { securityMiddleware, sanitizeInput, sqlInjectionProtection, xssProtection } from "./middlewares/securityMiddleware";
+import { rateLimitMiddleware, rateLimitConfigs } from "./middlewares/rateLimitMiddleware";
+import healthRoutes from "./routes/Health Routes/healthRoutes";
 
 async function startServer() {
     const app = express();
@@ -47,10 +54,24 @@ async function startServer() {
         next();
     });
 
+    // Performance monitoring middleware
+    app.use(performanceMiddleware);
+
+    // Security middleware
+    app.use(securityMiddleware);
+
     // Basic middleware
     app.use(cookieParser());
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+
+    // Input sanitization and security
+    app.use(sanitizeInput);
+    app.use(sqlInjectionProtection);
+    app.use(xssProtection);
+
+    // General rate limiting
+    app.use(rateLimitMiddleware(rateLimitConfigs.general));
 
     // Passport initialization
     app.use(passport.initialize());
@@ -78,9 +99,13 @@ async function startServer() {
     // Static files
     app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
 
-    // Routes
-    app.use('/api', authGoogleFacebookRoute);
-    app.use("/api", authRoute);
+    // Health check routes (no auth required)
+    app.use('/', healthRoutes);
+
+    // Authentication routes with stricter rate limiting
+    app.use('/api', rateLimitMiddleware(rateLimitConfigs.auth), authGoogleFacebookRoute);
+    app.use("/api", rateLimitMiddleware(rateLimitConfigs.auth), authRoute);
+    // Other API routes
     app.use("/api", userRoute);
     app.use("/api", addressRoute);
     app.use("/api", paymentMethodRoute);
@@ -94,13 +119,14 @@ async function startServer() {
     app.use("/api", brandRoute);
     app.use("/api", reviewsRoute);
     app.use("/api", offerRoute);
-    app.use("/api", orderRoute);
-    app.use("/api", adminDashboardRoutes);
+    app.use("/api", rateLimitMiddleware(rateLimitConfigs.order), orderRoute);
+    app.use("/api", rateLimitMiddleware(rateLimitConfigs.admin), adminDashboardRoutes);
+    app.use("/api", rateLimitMiddleware(rateLimitConfigs.admin), adminPerformanceRoutes);
     app.use("/api", customizationRoute);
     app.use("/explore", exploreRoute);
     app.use("/material", materialRoutes);
     app.use("/home", homeRoute);
-    app.use("/search", searchRoute);
+    app.use("/search", rateLimitMiddleware(rateLimitConfigs.search), searchRoute);
     app.use("/general", generaroute);
     app.use("/notifications", notificationRoute);
 
